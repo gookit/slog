@@ -1,9 +1,19 @@
-package slog
+package slog_test
 
-import "testing"
+import (
+	"os"
+	"testing"
+
+	"github.com/gookit/slog"
+	"github.com/gookit/slog/handler"
+	"github.com/gookit/slog/processor"
+)
 
 func TestInfof(t *testing.T) {
-	AddProcessor()
+	slog.AddHandler(&handler.StreamHandler{
+		Out: os.Stdout,
+	})
+	slog.AddProcessor(processor.AddHostname())
 
-	Infof("info %s", "message")
+	slog.Infof("info %s", "message")
 }

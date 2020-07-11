@@ -68,8 +68,16 @@ var LevelNames = map[Level]string{
 
 var std = New("stdLogger")
 
+var (
+
+)
+
 func Std() *Logger  {
 	return std
+}
+
+func AddHandler(h Handler) {
+	std.AddHandler(h)
 }
 
 func AddProcessor(p Processor) {

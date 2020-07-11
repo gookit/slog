@@ -13,13 +13,3 @@ func (h *BaseHandler) HandleBatch()  {
 type BufferedHandler struct {
 
 }
-
-// Formattable definition
-type Formattable struct {
-
-}
-
-// Processable definition
-type Processable struct {
-
-}

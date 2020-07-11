@@ -6,9 +6,11 @@ import (
 	"github.com/gookit/slog"
 )
 
-var hostname,_ = os.Hostname()
+// AddHostname to record
+func AddHostname() slog.Processor {
+	hostname,_ := os.Hostname()
 
-var AddHostname = slog.ProcessorFunc(func(record *slog.Record) {
-	record.AddField("hostname", hostname)
-})
-
+	return slog.ProcessorFunc(func(record *slog.Record) {
+		record.AddField("hostname", hostname)
+	})
+}

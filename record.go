@@ -3,6 +3,7 @@ package slog
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -16,7 +17,7 @@ type Record struct {
 	Channel   string
 	Message   string
 
-	Time  time.Time
+	Time time.Time
 
 	Ctx context.Context
 
@@ -29,12 +30,14 @@ type Record struct {
 	// log extra data
 	Extra M
 
+	Caller *runtime.Frame
+
 	formatted []byte
 }
 
 var (
 	// Defines the key when adding errors using WithError.
-	ErrorKey   = "error"
+	ErrorKey = "error"
 
 	bufferPool *sync.Pool
 )
@@ -43,21 +46,22 @@ func newRecord(logger *Logger) *Record {
 	return &Record{logger: logger}
 }
 
+// WithContext on record
 func (r *Record) WithContext(ctx context.Context) *Record {
 	r.Ctx = ctx
 
 	return r
 }
 
-func (r *Record) WithError(err error) *Record  {
+func (r *Record) WithError(err error) *Record {
 	return r.WithFields(M{ErrorKey: err})
 }
 
-func (r *Record) WithField(name string, val interface{}) *Record  {
+func (r *Record) WithField(name string, val interface{}) *Record {
 	return r.WithFields(M{name: val})
 }
 
-func (r *Record) WithFields(fields M) *Record  {
+func (r *Record) WithFields(fields M) *Record {
 	// data := make(M, len(r.Data)+len(fields))
 	// for k, v := range r.Data {
 	// 	data[k] = v
@@ -65,28 +69,40 @@ func (r *Record) WithFields(fields M) *Record  {
 
 	return &Record{
 		logger:    r.logger,
-		Time:  r.Time,
+		Time:      r.Time,
 		Level:     r.Level,
 		LevelName: r.LevelName,
 		Message:   r.Message,
-		Fields:   fields,
+		Fields:    fields,
 	}
 }
 
 // AddField add new field to the record
-func (r *Record) AddField(name string, val interface{}) *Record  {
+func (r *Record) AddField(name string, val interface{}) *Record {
 	r.Fields[name] = val
 	return r
 }
 
-func (r *Record) Log(level Level, args ...interface{}){
-	r.Level = level
-	r.LevelName = level.String()
-	r.Message = fmt.Sprint(args...)
+// AddFields add new fields to the record
+func (r *Record) AddFields(fields M) *Record {
+	for n, v := range fields {
+		r.Fields[n] = v
+	}
+	return r
 }
 
-func (r *Record) Logf(level Level, format string, args ...interface{}){
+func (r *Record) Log(level Level, args ...interface{}) {
+	r.log(level, fmt.Sprint(args...))
+}
+
+func (r *Record) Logf(level Level, format string, args ...interface{}) {
+	r.log(level, fmt.Sprintf(format, args...))
+}
+
+func (r *Record) log(level Level, message string) {
 	r.Level = level
 	r.LevelName = level.String()
-	r.Message = fmt.Sprintf(format, args...)
+	r.Message = message
+
+	r.logger.write()
 }

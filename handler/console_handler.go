@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"os"
+
 	"github.com/gookit/color"
 	"github.com/gookit/slog"
 )
@@ -19,21 +21,21 @@ var ColorTheme = map[slog.Level]color.Color{
 
 // ConsoleHandler definition
 type ConsoleHandler struct {
-
+	StreamHandler
 }
 
-func (c *ConsoleHandler) Close() error {
+func NewConsoleHandler() *ConsoleHandler {
+	return &ConsoleHandler{
+		StreamHandler{
+			Out: os.Stdout,
+		},
+	}
+}
+
+func (c *ConsoleHandler) Handle(record *slog.Record) error {
 	panic("implement me")
 }
 
-func (c *ConsoleHandler) IsHandling(level slog.Level) bool {
-	panic("implement me")
-}
-
-func (c *ConsoleHandler) Handle(record *slog.Record) bool {
-	panic("implement me")
-}
-
-func (c *ConsoleHandler) HandleBatch(records []*slog.Record) bool {
+func (c *ConsoleHandler) HandleBatch(records []*slog.Record) error {
 	panic("implement me")
 }
