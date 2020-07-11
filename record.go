@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+type FieldMap map[string]string
+
 // Record a log record
 type Record struct {
 	logger *Logger
@@ -32,8 +34,9 @@ type Record struct {
 
 	Caller *runtime.Frame
 
-	formatted []byte
+	Formatted []byte
 }
+
 
 var (
 	// Defines the key when adding errors using WithError.
@@ -104,5 +107,6 @@ func (r *Record) log(level Level, message string) {
 	r.LevelName = level.String()
 	r.Message = message
 
-	r.logger.write()
+	// TODO
+	r.logger.write(level, *r)
 }

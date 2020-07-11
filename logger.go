@@ -154,6 +154,7 @@ func (logger *Logger) Error(args ...interface{}) {
 
 //
 
+// TODO use Record or *Record ...
 func (logger *Logger) write(level Level, r Record) {
 	var matchedHandlers []Handler
 	for _, handler := range logger.handlers {

@@ -67,7 +67,8 @@ func (p *Processable) ProcessRecord(r *Record) {
 
 // Formatter interface
 type Formatter interface {
-	Format(record *Record)  ([]byte, error)
+	// Format(record *Record)  ([]byte, error)
+	Format(record *Record)  error
 }
 
 // FormattableHandler interface
@@ -77,17 +78,3 @@ type FormattableHandler interface {
 	// SetFormatter set the log formatter
 	SetFormatter(Formatter)
 }
-
-// Formattable definition
-type Formattable struct {
-	formatter Formatter
-}
-
-func (f *Formattable) Formatter() Formatter {
-	return f.formatter
-}
-
-func (f *Formattable) SetFormatter(formatter Formatter) {
-	f.formatter = formatter
-}
-

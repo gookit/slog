@@ -5,12 +5,13 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 )
-
 
 const (
 	defaultMaxCallerDepth int = 25
 	defaultKnownSlogFrames int = 4
+	defaultTimestampFormat = time.RFC3339
 )
 
 var (

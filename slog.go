@@ -66,11 +66,7 @@ var LevelNames = map[Level]string{
 	TraceLevel:  "TRACE",
 }
 
-var std = New("stdLogger")
-
-var (
-
-)
+var std = New()
 
 func Std() *Logger  {
 	return std

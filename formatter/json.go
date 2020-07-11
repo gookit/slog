@@ -10,7 +10,7 @@ type JSONFormatter struct {
 }
 
 // Format an log record
-func (f *JSONFormatter) Format(r *slog.Record) ([]byte, error) {
+func (f *JSONFormatter) Format(r *slog.Record) error {
 	panic("implement me")
 }
 

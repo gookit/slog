@@ -4,13 +4,19 @@ import (
 	"io"
 
 	"github.com/gookit/slog"
+	"github.com/gookit/slog/formatter"
 )
 
 // StreamHandler definition
 type StreamHandler struct {
+	formatter.Formattable
 	// Out io.WriteCloser
 	Out io.Writer
+
 	Levels []slog.Level
+
+	FilePerm int
+	UseLock bool
 }
 
 // Close the handler
@@ -30,8 +36,14 @@ func (h *StreamHandler) IsHandling(level slog.Level) bool {
 }
 
 // Handle log record
-func (h *StreamHandler) Handle(record *slog.Record) error {
-	h.Out.Write()
+func (h *StreamHandler) Handle(record *slog.Record) (err error) {
+	err = h.Formatter().Format(record)
+	if err != nil {
+		return err
+	}
+
+	_, err = h.Out.Write(record.Formatted)
+	return
 }
 
 // HandleBatch log records
