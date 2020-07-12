@@ -68,6 +68,7 @@ var LevelNames = map[Level]string{
 
 var std = New()
 
+// Std get std logger
 func Std() *Logger  {
 	return std
 }

@@ -46,7 +46,10 @@ var (
 )
 
 func newRecord(logger *Logger) *Record {
-	return &Record{logger: logger}
+	return &Record{
+		logger: logger,
+		Fields: make(M),
+	}
 }
 
 // WithContext on record
@@ -108,5 +111,5 @@ func (r *Record) log(level Level, message string) {
 	r.Message = message
 
 	// TODO
-	r.logger.write(level, *r)
+	r.logger.write(level, r)
 }

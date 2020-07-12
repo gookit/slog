@@ -4,6 +4,18 @@ import (
 	"io"
 )
 
+// M short name of map[string]interface{}
+type M map[string]interface{}
+
+// func (m M) String() string  {
+// 	return fmt.Sprint(m)
+// }
+
+//
+// handler
+//
+
+
 // Handler interface
 type Handler interface {
 	io.Closer
@@ -67,8 +79,8 @@ func (p *Processable) ProcessRecord(r *Record) {
 
 // Formatter interface
 type Formatter interface {
-	// Format(record *Record)  ([]byte, error)
-	Format(record *Record)  error
+	Format(record *Record) ([]byte, error)
+	// Format(record *Record)  error
 }
 
 // FormattableHandler interface

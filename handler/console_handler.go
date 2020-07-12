@@ -24,18 +24,12 @@ type ConsoleHandler struct {
 	StreamHandler
 }
 
-func NewConsoleHandler() *ConsoleHandler {
+func NewConsoleHandler(levels []slog.Level) *ConsoleHandler {
 	return &ConsoleHandler{
 		StreamHandler{
 			Out: os.Stdout,
+			Levels: levels,
 		},
 	}
 }
 
-func (c *ConsoleHandler) Handle(record *slog.Record) error {
-	panic("implement me")
-}
-
-func (c *ConsoleHandler) HandleBatch(records []*slog.Record) error {
-	panic("implement me")
-}

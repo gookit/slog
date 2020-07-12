@@ -1,7 +1,6 @@
 package slog_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/gookit/slog"
@@ -10,9 +9,7 @@ import (
 )
 
 func TestInfof(t *testing.T) {
-	slog.AddHandler(&handler.StreamHandler{
-		Out: os.Stdout,
-	})
+	slog.AddHandler(handler.NewConsoleHandler(slog.AllLevels))
 	slog.AddProcessor(processor.AddHostname())
 
 	slog.Infof("info %s", "message")

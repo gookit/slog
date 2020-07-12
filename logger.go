@@ -8,9 +8,6 @@ import (
 	"time"
 )
 
-// M short name of map[string]interface{}
-type M map[string]interface{}
-
 // Logger definition
 type Logger struct {
 	// name string
@@ -155,7 +152,7 @@ func (logger *Logger) Error(args ...interface{}) {
 //
 
 // TODO use Record or *Record ...
-func (logger *Logger) write(level Level, r Record) {
+func (logger *Logger) write(level Level, r *Record) {
 	var matchedHandlers []Handler
 	for _, handler := range logger.handlers {
 		if handler.IsHandling(level) {
@@ -176,12 +173,12 @@ func (logger *Logger) write(level Level, r Record) {
 
 	// processing log record
 	for _, processor := range logger.processors {
-		processor.Process(&r)
+		processor.Process(r)
 	}
 
 	// handling log record
 	for _, handler := range matchedHandlers {
-		err := handler.Handle(&r)
+		err := handler.Handle(r)
 		if err != nil {
 			_,_ = fmt.Fprintf(os.Stderr, "Failed to dispatch handler: %v\n", err)
 			return
@@ -196,6 +193,6 @@ func (logger *Logger) write(level Level, r Record) {
 
 	// If is Panic level
 	if level <= PanicLevel {
-		panic(&r)
+		panic(r)
 	}
 }

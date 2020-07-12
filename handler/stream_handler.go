@@ -19,6 +19,13 @@ type StreamHandler struct {
 	UseLock bool
 }
 
+func NewStreamHandler(out io.Writer, levels []slog.Level) *StreamHandler {
+	return &StreamHandler{
+		Out: out,
+		Levels: levels,
+	}
+}
+
 // Close the handler
 func (h *StreamHandler) Close() error {
 	// return h.Out.Close()
@@ -37,12 +44,12 @@ func (h *StreamHandler) IsHandling(level slog.Level) bool {
 
 // Handle log record
 func (h *StreamHandler) Handle(record *slog.Record) (err error) {
-	err = h.Formatter().Format(record)
+	bts, err := h.Formatter().Format(record)
 	if err != nil {
 		return err
 	}
 
-	_, err = h.Out.Write(record.Formatted)
+	_, err = h.Out.Write(bts)
 	return
 }
 
