@@ -11,19 +11,15 @@ import (
 	"github.com/gookit/slog"
 )
 
-const SimpleFormat = "[{{datetime}}] {{channel}}.{{levelName}}: {{message}} {{data}} {{extra}}\n";
+const SimpleFormat = "[{{datetime}}] {{channel}}.{{level}}: {{message}} {{data}} {{extra}}\n"
 
 // LineFormatter definition
 type LineFormatter struct {
 	format string
-	fieldMap slog.FieldMap
+	// eg: {"level": "{{level}}",}
+	FieldMap slog.FieldMap
 
 	CliColor bool
-}
-
-// FieldMap get field map
-func (f *LineFormatter) FieldMap() slog.FieldMap {
-	return f.fieldMap
 }
 
 func NewLineFormatter(format ...string) *LineFormatter  {
@@ -36,7 +32,7 @@ func NewLineFormatter(format ...string) *LineFormatter  {
 
 	return &LineFormatter{
 		format: fmtTpl,
-		fieldMap: parseFieldMap(fmtTpl),
+		FieldMap: parseFieldMap(fmtTpl),
 	}
 }
 
@@ -50,19 +46,23 @@ func parseFieldMap(format string) slog.FieldMap {
 		fm[field] = tplVar
 	}
 
-	dump.Println(ss, fm)
-
 	return fm
 }
 
 // Format an log record
 func (f *LineFormatter) Format(r *slog.Record) ([]byte, error) {
-	tplData := make(slog.FieldMap, len(f.fieldMap))
+	tplData := make(slog.FieldMap, len(f.FieldMap))
 
-	for field, tplVar := range f.fieldMap {
+	for field, tplVar := range f.FieldMap {
 		switch {
 		case field == FieldKeyDatetime:
+			if r.Time.IsZero() {
+				r.Time = time.Now()
+			}
+
 			tplData[tplVar] = r.Time.Format(time.RFC3339)
+		case field == FieldKeyLevel:
+			tplData[tplVar] = r.LevelName
 		case field == FieldKeyChannel:
 			tplData[tplVar] = r.Channel
 		case field == FieldKeyMsg:
@@ -76,12 +76,14 @@ func (f *LineFormatter) Format(r *slog.Record) ([]byte, error) {
 		}
 	}
 
+	dump.Println(tplData, r.LevelName)
+
 	// TODO ... use buffer
 	// var buf *bytes.Buffer
 
 	// strings.NewReplacer().WriteString(buf)
 
-	str := strutil.Replaces(f.format, tplData)  + "\n"
+	str := strutil.Replaces(f.format, tplData)
 
 	return []byte(str), nil
 }

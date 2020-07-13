@@ -49,6 +49,7 @@ func newRecord(logger *Logger) *Record {
 	return &Record{
 		logger: logger,
 		Fields: make(M),
+		Channel: "application",
 	}
 }
 
