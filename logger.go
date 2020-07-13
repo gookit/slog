@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+const flushInterval = 30 * time.Second
+
 // Logger definition
 type Logger struct {
 	// name string
@@ -53,6 +55,31 @@ func (logger *Logger) newRecord() *Record {
 
 func (logger *Logger) releaseRecord(r *Record) {
 	logger.recordPool.Put(r)
+}
+
+//
+// Usage:
+// 	go slog.FlushDaemon()
+func (logger *Logger) FlushDaemon() {
+	for _ = range time.NewTicker(flushInterval).C {
+		logger.lockAndFlushAll()
+	}
+}
+
+// lockAndFlushAll is like flushAll but locks l.mu first.
+func (logger *Logger) lockAndFlushAll() {
+	logger.mu.Lock()
+	logger.FlushAll()
+	logger.mu.Unlock()
+}
+
+// FlushAll flushes all the logs and attempts to "sync" their data to disk.
+// logger.mu is held.
+func (logger *Logger) FlushAll() {
+	// Flush from fatal down, in case there's trouble flushing.
+	for _, handler := range logger.handlers {
+		handler.Flush()
+	}
 }
 
 // Register handlers and processors

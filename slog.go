@@ -43,6 +43,8 @@ const (
 	TraceLevel
 )
 
+const DefaultTimeFormat = "2006/01/02 15:04:05"
+
 // A constant exposing all logging levels
 var AllLevels = []Level{
 	PanicLevel,
@@ -65,6 +67,7 @@ var LevelNames = map[Level]string{
 	DebugLevel:  "DEBUG",
 	TraceLevel:  "TRACE",
 }
+
 
 var std = New()
 

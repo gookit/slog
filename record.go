@@ -8,35 +8,55 @@ import (
 	"time"
 )
 
-type FieldMap map[string]string
+// StringMap string map
+type StringMap map[string]string
 
-// Record a log record
+// Record a log record definition
 type Record struct {
 	logger *Logger
 
-	Level     Level
+	Time  time.Time
+	Level Level
+
 	LevelName string
-	Channel   string
-	Message   string
 
-	Time time.Time
+	// Channel log channel name. eg: "order", "goods", "user"
+	Channel string
+	Message string
 
+	// Ctx context.Context
 	Ctx context.Context
 
-	// Contains all the fields set by the user.
+	// Fields custom fields. Contains all the fields set by the user.
 	Fields M
 
 	// log data
 	Data M
 
-	// log extra data
+	// Extra log extra data
 	Extra M
 
+	// Caller information
 	Caller *runtime.Frame
-
-	Formatted []byte
+	// Formatted []byte
 }
 
+const (
+	FieldKeyTime  = "time"
+	FieldKeyData  = "data"
+	FieldKeyFunc  = "func"
+	FieldKeyFile  = "file"
+	// FieldKeyDate  = "date"
+
+	FieldKeyDatetime  = "datetime"
+
+	FieldKeyLevel = "level"
+	FieldKeyError = "error"
+	FieldKeyExtra = "extra"
+
+	FieldKeyChannel = "channel"
+	FieldKeyMessage = "message"
+)
 
 var (
 	// Defines the key when adding errors using WithError.
@@ -45,10 +65,20 @@ var (
 	bufferPool *sync.Pool
 )
 
+// DefaultFields default log export fields
+var DefaultFields = []string{
+	FieldKeyDatetime,
+	FieldKeyChannel,
+	FieldKeyLevel,
+	FieldKeyMessage,
+	FieldKeyData,
+	FieldKeyExtra,
+}
+
 func newRecord(logger *Logger) *Record {
 	return &Record{
-		logger: logger,
-		Fields: make(M),
+		logger:  logger,
+		Fields:  make(M),
 		Channel: "application",
 	}
 }
@@ -64,10 +94,12 @@ func (r *Record) WithError(err error) *Record {
 	return r.WithFields(M{ErrorKey: err})
 }
 
+// WithField with an new field to record
 func (r *Record) WithField(name string, val interface{}) *Record {
 	return r.WithFields(M{name: val})
 }
 
+// WithField with new fields to record
 func (r *Record) WithFields(fields M) *Record {
 	// data := make(M, len(r.Data)+len(fields))
 	// for k, v := range r.Data {
@@ -76,6 +108,7 @@ func (r *Record) WithFields(fields M) *Record {
 
 	return &Record{
 		logger:    r.logger,
+		Channel:   r.Channel,
 		Time:      r.Time,
 		Level:     r.Level,
 		LevelName: r.LevelName,
@@ -98,10 +131,12 @@ func (r *Record) AddFields(fields M) *Record {
 	return r
 }
 
+// Log an message with level
 func (r *Record) Log(level Level, args ...interface{}) {
 	r.log(level, fmt.Sprint(args...))
 }
 
+// Log an message with level
 func (r *Record) Logf(level Level, format string, args ...interface{}) {
 	r.log(level, fmt.Sprintf(format, args...))
 }

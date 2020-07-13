@@ -11,14 +11,21 @@ type M map[string]interface{}
 // 	return fmt.Sprint(m)
 // }
 
+// flushSyncWriter is the interface satisfied by logging destinations.
+type FlushSyncWriter interface {
+	Flush() error
+	Sync() error
+	io.Writer
+}
+
 //
 // handler
 //
 
-
 // Handler interface
 type Handler interface {
 	io.Closer
+	Flush() error
 	// IsHandling Checks whether the given record will be handled by this handler.
 	IsHandling(level Level) bool
 	// Handle a log record.

@@ -11,6 +11,7 @@ import (
  * console log
  *************************************************************/
 
+// ColorTheme for console log
 var ColorTheme = map[slog.Level]color.Color{
 	slog.ErrorLevel: color.FgRed,
 	slog.WarnLevel:  color.FgYellow,
@@ -24,6 +25,7 @@ type ConsoleHandler struct {
 	StreamHandler
 }
 
+// NewConsoleHandler create new ConsoleHandler
 func NewConsoleHandler(levels []slog.Level) *ConsoleHandler {
 	return &ConsoleHandler{
 		StreamHandler{

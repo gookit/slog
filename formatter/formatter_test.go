@@ -10,5 +10,5 @@ import (
 func TestNewLineFormatter(t *testing.T) {
 	lf := formatter.NewLineFormatter()
 
-	fmt.Println(lf.FieldMap)
+	fmt.Println(lf.FieldMap())
 }

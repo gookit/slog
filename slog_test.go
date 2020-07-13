@@ -12,7 +12,7 @@ import (
 func TestInfof(t *testing.T) {
 	slog.AddHandler(handler.NewConsoleHandler(slog.AllLevels))
 	h2 := handler.NewConsoleHandler(slog.AllLevels)
-	h2.SetFormatter(formatter.NewJSONFormatter(slog.FieldMap{
+	h2.SetFormatter(formatter.NewJSONFormatter(slog.StringMap{
 		"datetime": "datetime",
 		"level": "level",
 		"channel": "channel",

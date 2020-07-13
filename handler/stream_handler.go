@@ -9,6 +9,8 @@ import (
 
 // StreamHandler definition
 type StreamHandler struct {
+	BaseHandler
+
 	formatter.Formattable
 	// Out io.WriteCloser
 	Out io.Writer
@@ -19,6 +21,7 @@ type StreamHandler struct {
 	UseLock bool
 }
 
+// NewStreamHandler create new StreamHandler
 func NewStreamHandler(out io.Writer, levels []slog.Level) *StreamHandler {
 	return &StreamHandler{
 		Out: out,
@@ -53,9 +56,5 @@ func (h *StreamHandler) Handle(record *slog.Record) (err error) {
 	return
 }
 
-// HandleBatch log records
-func (h *StreamHandler) HandleBatch(records []*slog.Record) error {
-	panic("implement me")
-}
 
 

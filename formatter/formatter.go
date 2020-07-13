@@ -2,23 +2,6 @@ package formatter
 
 import "github.com/gookit/slog"
 
-const (
-	FieldKeyTime  = "time"
-	FieldKeyData  = "data"
-	FieldKeyFunc  = "func"
-	FieldKeyFile  = "file"
-	// FieldKeyDate  = "date"
-
-	FieldKeyDatetime  = "datetime"
-
-	FieldKeyLevel = "level"
-	FieldKeyError = "error"
-	FieldKeyExtra = "extra"
-
-	FieldKeyChannel  = "channel"
-	FieldKeyMsg   = "message"
-)
-
 // Formattable definition
 type Formattable struct {
 	formatter slog.Formatter

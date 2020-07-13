@@ -1,6 +1,9 @@
 package handler
 
-import "github.com/gookit/slog/formatter"
+import (
+	"github.com/gookit/slog"
+	"github.com/gookit/slog/formatter"
+)
 
 var defaultFormatter = formatter.LineFormatter{}
 
@@ -9,8 +12,13 @@ type BaseHandler struct {
 
 }
 
-func (h *BaseHandler) HandleBatch()  {
+func (h *BaseHandler) Flush() error  {
+	return nil
+}
 
+// HandleBatch log records
+func (h *BaseHandler) HandleBatch(records []*slog.Record) error {
+	panic("implement me")
 }
 
 // BufferedHandler definition

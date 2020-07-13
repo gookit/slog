@@ -9,45 +9,54 @@ import (
 
 // JSONFormatter definition
 type JSONFormatter struct {
-	// FieldMap for output
+	// Fields exported log fields.
+	Fields []string
+	// Aliases for output fields. you can change export field name.
 	// item: `"field" : "output name"`
-	// eg: {"message": "message"}
-	FieldMap slog.FieldMap
+	// eg: {"message": "msg"} export field will display "msg"
+	Aliases slog.StringMap
 }
 
 // NewJSONFormatter create new JSONFormatter
-func NewJSONFormatter(fieldMap slog.FieldMap) *JSONFormatter {
-	return &JSONFormatter{FieldMap: fieldMap}
+func NewJSONFormatter(aliases slog.StringMap) *JSONFormatter {
+	return &JSONFormatter{
+		Aliases: aliases,
+		Fields: slog.DefaultFields,
+	}
 }
 
 // Format an log record
 func (f *JSONFormatter) Format(r *slog.Record) ([]byte,error) {
-	tplData := make(slog.M, len(f.FieldMap))
+	logData := make(slog.M, len(f.Fields))
+	for _, field := range f.Fields {
+		outName, ok := f.Aliases[field]
+		if !ok {
+			outName = field
+		}
 
-	for field, outName := range f.FieldMap {
 		switch {
-		case field == FieldKeyDatetime:
+		case field == slog.FieldKeyDatetime:
 			if r.Time.IsZero() {
 				r.Time = time.Now()
 			}
 
-			tplData[outName] = r.Time.Format(time.RFC3339)
-		case field == FieldKeyLevel:
-			tplData[outName] = r.LevelName
-		case field == FieldKeyChannel:
-			tplData[outName] = r.Channel
-		case field == FieldKeyMsg:
-			tplData[outName] = r.Message
-		case field == FieldKeyData:
-			tplData[outName] = r.Data
-		case field == FieldKeyExtra:
-			tplData[outName] = r.Extra
+			logData[outName] = r.Time.Format(time.RFC3339)
+		case field == slog.FieldKeyLevel:
+			logData[outName] = r.LevelName
+		case field == slog.FieldKeyChannel:
+			logData[outName] = r.Channel
+		case field == slog.FieldKeyMessage:
+			logData[outName] = r.Message
+		case field == slog.FieldKeyData:
+			logData[outName] = r.Data
+		case field == slog.FieldKeyExtra:
+			logData[outName] = r.Extra
 		default:
-			tplData[outName] = r.Fields[field]
+			logData[outName] = r.Fields[field]
 		}
 	}
 
-	bs, err := json.Marshal(tplData)
+	bs, err := json.Marshal(logData)
 	// with newline
 	bs = append(bs, '\n')
 
