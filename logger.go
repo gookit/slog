@@ -1,7 +1,6 @@
 package slog
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"sync"
@@ -115,7 +114,7 @@ func (logger *Logger) PushProcessor(p Processor) {
 }
 
 // AddProcessors to the logger
-func (logger *Logger) AddProcessors(ps []Processor) {
+func (logger *Logger) AddProcessors(ps ...Processor) {
 	logger.processors = append(logger.processors, ps...)
 }
 
@@ -160,20 +159,93 @@ func (logger *Logger) Exit(code int) {
 //
 // }
 
+//
+// ----- Add log with level -----
+//
+
+// Warning logs a message at level Warn
 func (logger *Logger) Warning(args ...interface{}) {
 	logger.Warn(args...)
 }
 
+// Warn logs a message at level Warn
 func (logger *Logger) Warn(args ...interface{}) {
 	logger.Log(WarnLevel, args...)
 }
 
+// Warnf logs a message at level Warn
 func (logger *Logger) Warnf(format string, args ...interface{}) {
 	logger.Logf(WarnLevel, format, args...)
 }
 
+// Info logs a message at level Info
+func (logger *Logger) Info(args ...interface{}) {
+	logger.Log(InfoLevel, args...)
+}
+
+// Info logs a message at level Info
+func (logger *Logger) Infof(format string, args ...interface{})  {
+	logger.Logf(InfoLevel, format, args...)
+}
+
+// Trace logs a message at level Trace
+func (logger *Logger) Trace(args ...interface{}) {
+	logger.Log(TraceLevel, args...)
+}
+
+// Trace logs a message at level Trace
+func (logger *Logger) Tracef(format string, args ...interface{})  {
+	logger.Logf(TraceLevel, format, args...)
+}
+
+// Error logs a message at level Error
 func (logger *Logger) Error(args ...interface{}) {
 	logger.Log(ErrorLevel, args...)
+}
+
+// Error logs a message at level Error
+func (logger *Logger) Errorf(format string, args ...interface{})  {
+	logger.Logf(ErrorLevel, format, args...)
+}
+
+// Notice logs a message at level Notice
+func (logger *Logger) Notice(args ...interface{}) {
+	logger.Log(NoticeLevel, args...)
+}
+
+// Notice logs a message at level Notice
+func (logger *Logger) Noticef(format string, args ...interface{})  {
+	logger.Logf(NoticeLevel, format, args...)
+}
+
+// Debug logs a message at level Debug
+func (logger *Logger) Debug(args ...interface{}) {
+	logger.Log(DebugLevel, args...)
+}
+
+// Debug logs a message at level Debug
+func (logger *Logger) Debugf(format string, args ...interface{})  {
+	logger.Logf(DebugLevel, format, args...)
+}
+
+// Fatal logs a message at level Fatal
+func (logger *Logger) Fatal(args ...interface{}) {
+	logger.Log(FatalLevel, args...)
+}
+
+// Fatal logs a message at level Fatal
+func (logger *Logger) Fatalf(format string, args ...interface{})  {
+	logger.Logf(FatalLevel, format, args...)
+}
+
+// Panic logs a message at level Panic
+func (logger *Logger) Panic(args ...interface{}) {
+	logger.Log(PanicLevel, args...)
+}
+
+// Panic logs a message at level Panic
+func (logger *Logger) Panicf(format string, args ...interface{})  {
+	logger.Logf(PanicLevel, format, args...)
 }
 
 //
@@ -211,12 +283,6 @@ func (logger *Logger) write(level Level, r *Record) {
 			return
 		}
 	}
-
-	var buffer *bytes.Buffer
-
-	buffer = bufferPool.Get().(*bytes.Buffer)
-	buffer.Reset()
-	defer bufferPool.Put(buffer)
 
 	// If is Panic level
 	if level <= PanicLevel {

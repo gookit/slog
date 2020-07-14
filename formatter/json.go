@@ -15,6 +15,9 @@ type JSONFormatter struct {
 	// item: `"field" : "output name"`
 	// eg: {"message": "msg"} export field will display "msg"
 	Aliases slog.StringMap
+
+	// PrettyPrint will indent all json logs
+	PrettyPrint bool
 }
 
 // NewJSONFormatter create new JSONFormatter
@@ -56,10 +59,22 @@ func (f *JSONFormatter) Format(r *slog.Record) ([]byte,error) {
 		}
 	}
 
-	bs, err := json.Marshal(logData)
-	// with newline
-	bs = append(bs, '\n')
+	// sort.Interface()
 
-	return bs, err
+	buffer := r.NewBuffer()
+	encoder := json.NewEncoder(buffer)
+
+	if f.PrettyPrint {
+		encoder.SetIndent("", "  ")
+	}
+
+	// has been add newline.
+	err := encoder.Encode(logData)
+	// if err == nil {
+		// with newline
+		// buffer.Write([]byte("\n"))
+	// }
+
+	return buffer.Bytes(), err
 }
 

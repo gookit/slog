@@ -1,6 +1,7 @@
 package slog
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"runtime"
@@ -26,6 +27,9 @@ type Record struct {
 
 	// Ctx context.Context
 	Ctx context.Context
+
+	// Buffer Can use Buffer on formatter
+	Buffer *bytes.Buffer
 
 	// Fields custom fields. Contains all the fields set by the user.
 	Fields M
@@ -94,6 +98,12 @@ func (r *Record) WithError(err error) *Record {
 	return r.WithFields(M{ErrorKey: err})
 }
 
+func (r *Record) WithTime(t time.Time) *Record {
+	nr := r.Copy()
+	nr.Time = t
+	return nr
+}
+
 // WithField with an new field to record
 func (r *Record) WithField(name string, val interface{}) *Record {
 	return r.WithFields(M{name: val})
@@ -101,10 +111,14 @@ func (r *Record) WithField(name string, val interface{}) *Record {
 
 // WithField with new fields to record
 func (r *Record) WithFields(fields M) *Record {
-	// data := make(M, len(r.Data)+len(fields))
-	// for k, v := range r.Data {
-	// 	data[k] = v
-	// }
+	fieldsCopy := make(M, len(r.Fields)+len(fields))
+	for k, v := range r.Fields {
+		fieldsCopy[k] = v
+	}
+
+	for k, v := range fields {
+		fieldsCopy[k] = v
+	}
 
 	return &Record{
 		logger:    r.logger,
@@ -113,8 +127,37 @@ func (r *Record) WithFields(fields M) *Record {
 		Level:     r.Level,
 		LevelName: r.LevelName,
 		Message:   r.Message,
-		Fields:    fields,
+		Fields:    fieldsCopy,
 	}
+}
+
+// WithField with new fields to record
+func (r *Record) Copy() *Record {
+	dataCopy := make(M, len(r.Data))
+	for k, v := range r.Data {
+		dataCopy[k] = v
+	}
+
+	fieldsCopy := make(M, len(r.Fields))
+	for k, v := range r.Fields {
+		fieldsCopy[k] = v
+	}
+
+	return &Record{
+		logger:    r.logger,
+		Channel:   r.Channel,
+		Time:      r.Time,
+		Level:     r.Level,
+		LevelName: r.LevelName,
+		Message:   r.Message,
+		Fields:    fieldsCopy,
+		Data:      dataCopy,
+	}
+}
+
+func (r *Record) SetTime(t time.Time) *Record {
+	r.Time = t
+	return r
 }
 
 // AddField add new field to the record
@@ -141,11 +184,30 @@ func (r *Record) Logf(level Level, format string, args ...interface{}) {
 	r.log(level, fmt.Sprintf(format, args...))
 }
 
+// NewBuffer get or create an Buffer
+func (r *Record) NewBuffer() *bytes.Buffer {
+	if r.Buffer == nil {
+		return &bytes.Buffer{}
+	}
+
+	return r.Buffer
+}
+
 func (r *Record) log(level Level, message string) {
 	r.Level = level
 	r.LevelName = level.String()
 	r.Message = message
 
+	var buffer *bytes.Buffer
+
+	buffer = bufferPool.Get().(*bytes.Buffer)
+	buffer.Reset()
+	defer bufferPool.Put(buffer)
+
+	r.Buffer = buffer
+
 	// TODO
 	r.logger.write(level, r)
+
+	r.Buffer = nil
 }

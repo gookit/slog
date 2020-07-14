@@ -3,22 +3,13 @@ package handler
 import (
 	"os"
 
-	"github.com/gookit/color"
 	"github.com/gookit/slog"
+	"github.com/gookit/slog/formatter"
 )
 
-/*************************************************************
- * console log
- *************************************************************/
-
-// ColorTheme for console log
-var ColorTheme = map[slog.Level]color.Color{
-	slog.ErrorLevel: color.FgRed,
-	slog.WarnLevel:  color.FgYellow,
-	slog.InfoLevel:  color.FgGreen,
-	slog.DebugLevel: color.FgCyan,
-	slog.TraceLevel: color.FgMagenta,
-}
+/********************************************************************************
+ * console log handler
+ ********************************************************************************/
 
 // ConsoleHandler definition
 type ConsoleHandler struct {
@@ -27,8 +18,15 @@ type ConsoleHandler struct {
 
 // NewConsoleHandler create new ConsoleHandler
 func NewConsoleHandler(levels []slog.Level) *ConsoleHandler {
-	return &ConsoleHandler{
+	h := &ConsoleHandler{
 		StreamHandler: *NewStreamHandler(os.Stdout, levels),
 	}
-}
 
+	// create new formatter
+	f := formatter.NewLineFormatter()
+	// enable color
+	f.EnableColor = true
+
+	h.SetFormatter(f)
+	return h
+}

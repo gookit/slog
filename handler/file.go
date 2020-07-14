@@ -6,6 +6,9 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/gookit/slog"
+	"github.com/gookit/slog/formatter"
 )
 
 // var onceLogDir sync.Once
@@ -26,16 +29,26 @@ const defaultMaxSize uint64 = 1024 * 1024 * 1800
 type FileHandler struct {
 	BaseHandler
 	*bufio.Writer // has Flash() method
-	filepath      string
-	file          *os.File
 
+	filepath string
+	file     *os.File
+
+	useJSON bool
 	MaxSize uint64
 }
 
-func NewFileHandler() *FileHandler {
-	return &FileHandler{
+// NewFileHandler create new FileHandler
+func NewFileHandler(useJSON bool) *FileHandler {
+	h := &FileHandler{
+		useJSON: useJSON,
 		MaxSize: defaultMaxSize,
 	}
+
+	if useJSON {
+		h.SetFormatter(formatter.NewJSONFormatter(slog.StringMap{}))
+	}
+
+	return h
 }
 
 func (h *FileHandler) Flush() error {

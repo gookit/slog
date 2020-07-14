@@ -7,12 +7,13 @@ type Formattable struct {
 	formatter slog.Formatter
 }
 
-var defaultFormatter = NewLineFormatter()
+// DefaultFormatter setting
+var DefaultFormatter = NewLineFormatter()
 
 // Formatter get formatter
 func (f *Formattable) Formatter() slog.Formatter {
 	if f.formatter == nil {
-		f.formatter = defaultFormatter
+		f.formatter = DefaultFormatter
 	}
 	return f.formatter
 }

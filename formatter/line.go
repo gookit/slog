@@ -6,11 +6,21 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gookit/color"
 	"github.com/gookit/goutil/strutil"
 	"github.com/gookit/slog"
 )
 
 const SimpleFormat = "[{{datetime}}] {{channel}}.{{level}}: {{message}} {{data}} {{extra}}\n"
+
+// ColorTheme for format log to console
+var ColorTheme = map[slog.Level]color.Color{
+	slog.ErrorLevel: color.FgRed,
+	slog.WarnLevel:  color.FgYellow,
+	slog.InfoLevel:  color.FgGreen,
+	slog.DebugLevel: color.FgCyan,
+	slog.TraceLevel: color.FgMagenta,
+}
 
 // LineFormatter definition
 type LineFormatter struct {
@@ -19,7 +29,8 @@ type LineFormatter struct {
 	// eg: {"level": "{{level}}",}
 	fieldMap slog.StringMap
 
-	UseColor bool
+	EnableColor bool
+	ColorTheme map[slog.Level]color.Color
 }
 
 // NewLineFormatter create new LineFormatter
@@ -34,15 +45,21 @@ func NewLineFormatter(format ...string) *LineFormatter  {
 	return &LineFormatter{
 		format: fmtTpl,
 		fieldMap: parseFieldMap(fmtTpl),
+		ColorTheme: ColorTheme,
 	}
 }
 
+// FieldMap get export field map
 func (f *LineFormatter) FieldMap() slog.StringMap {
 	return f.fieldMap
 }
 
 // Format an log record
 func (f *LineFormatter) Format(r *slog.Record) ([]byte, error) {
+	if f.EnableColor {
+
+	}
+
 	tplData := make(slog.StringMap, len(f.fieldMap))
 
 	for field, tplVar := range f.fieldMap {
