@@ -28,10 +28,7 @@ type ConsoleHandler struct {
 // NewConsoleHandler create new ConsoleHandler
 func NewConsoleHandler(levels []slog.Level) *ConsoleHandler {
 	return &ConsoleHandler{
-		StreamHandler{
-			Out: os.Stdout,
-			Levels: levels,
-		},
+		StreamHandler: *NewStreamHandler(os.Stdout, levels),
 	}
 }
 

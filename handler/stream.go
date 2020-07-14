@@ -15,7 +15,7 @@ type StreamHandler struct {
 	// Out io.WriteCloser
 	Out io.Writer
 
-	Levels []slog.Level
+	// Levels []slog.Level
 
 	FilePerm int
 	UseLock bool
@@ -25,7 +25,9 @@ type StreamHandler struct {
 func NewStreamHandler(out io.Writer, levels []slog.Level) *StreamHandler {
 	return &StreamHandler{
 		Out: out,
-		Levels: levels,
+		BaseHandler: BaseHandler{
+			Levels: levels,
+		},
 	}
 }
 

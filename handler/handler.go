@@ -9,7 +9,7 @@ var defaultFormatter = formatter.LineFormatter{}
 
 // BaseHandler definition
 type BaseHandler struct {
-
+	Levels []slog.Level
 }
 
 func (h *BaseHandler) Flush() error  {
@@ -19,9 +19,4 @@ func (h *BaseHandler) Flush() error  {
 // HandleBatch log records
 func (h *BaseHandler) HandleBatch(records []*slog.Record) error {
 	panic("implement me")
-}
-
-// BufferedHandler definition
-type BufferedHandler struct {
-
 }
