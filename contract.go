@@ -4,9 +4,6 @@ import (
 	"io"
 )
 
-// M short name of map[string]interface{}
-type M map[string]interface{}
-
 // func (m M) String() string  {
 // 	return fmt.Sprint(m)
 // }

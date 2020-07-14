@@ -9,16 +9,13 @@ import (
 	"time"
 )
 
-// StringMap string map
-type StringMap map[string]string
-
 // Record a log record definition
 type Record struct {
 	logger *Logger
 
 	Time  time.Time
 	Level Level
-
+	// level name from Level
 	LevelName string
 
 	// Channel log channel name. eg: "order", "goods", "user"
@@ -54,31 +51,81 @@ var (
 func newRecord(logger *Logger) *Record {
 	return &Record{
 		logger:  logger,
+		Data:  make(M, 0),
+		Extra:  make(M, 0),
 		Fields:  make(M),
-		Channel: "application",
+		Channel: DefaultChannelName,
 	}
+}
+
+// SetContext on record
+func (r *Record) SetContext(ctx context.Context) *Record {
+	r.Ctx = ctx
+	return r
 }
 
 // WithContext on record
 func (r *Record) WithContext(ctx context.Context) *Record {
-	r.Ctx = ctx
-
-	return r
+	nr := r.Copy()
+	nr.Ctx = ctx
+	return nr
 }
 
+// WithError on record
 func (r *Record) WithError(err error) *Record {
 	return r.WithFields(M{ErrorKey: err})
 }
 
+// SetData on record
+func (r *Record) SetData(data M) *Record {
+	r.Data = data
+	return r
+}
+
+// AddData on record
+func (r *Record) AddData(data M) *Record {
+	for k, v := range data {
+		r.Data[k] = v
+	}
+	return r
+}
+
+// AddValue add Data value to record
+func (r *Record) AddValue(key string, value interface{}) *Record {
+	r.Data[key] = value
+	return r
+}
+
+// SetTime on record
+func (r *Record) SetTime(t time.Time) *Record {
+	r.Time = t
+	return r
+}
+
+// WithTime set the record time
 func (r *Record) WithTime(t time.Time) *Record {
 	nr := r.Copy()
 	nr.Time = t
 	return nr
 }
 
+// AddField add new field to the record
+func (r *Record) AddField(name string, val interface{}) *Record {
+	r.Fields[name] = val
+	return r
+}
+
 // WithField with an new field to record
 func (r *Record) WithField(name string, val interface{}) *Record {
 	return r.WithFields(M{name: val})
+}
+
+// AddFields add new fields to the record
+func (r *Record) AddFields(fields M) *Record {
+	for n, v := range fields {
+		r.Fields[n] = v
+	}
+	return r
 }
 
 // WithField with new fields to record
@@ -127,24 +174,6 @@ func (r *Record) Copy() *Record {
 	}
 }
 
-func (r *Record) SetTime(t time.Time) *Record {
-	r.Time = t
-	return r
-}
-
-// AddField add new field to the record
-func (r *Record) AddField(name string, val interface{}) *Record {
-	r.Fields[name] = val
-	return r
-}
-
-// AddFields add new fields to the record
-func (r *Record) AddFields(fields M) *Record {
-	for n, v := range fields {
-		r.Fields[n] = v
-	}
-	return r
-}
 
 // Log an message with level
 func (r *Record) Log(level Level, args ...interface{}) {

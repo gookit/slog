@@ -1,5 +1,11 @@
 package slog
 
+// M short name of map[string]interface{}
+type M map[string]interface{}
+
+// StringMap string map short name
+type StringMap map[string]string
+
 // These are the different logging levels. You can set the logging level to log
 // on your instance of logger, obtained with `logrus.New()`.
 const (
@@ -24,7 +30,10 @@ const (
 	TraceLevel
 )
 
-const DefaultTimeFormat = "2006/01/02 15:04:05"
+var (
+	DefaultChannelName = "application"
+	DefaultTimeFormat  = "2006/01/02 15:04:05"
+)
 
 const (
 	FieldKeyTime  = "time"
