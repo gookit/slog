@@ -6,7 +6,7 @@ import (
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/formatter"
 	"github.com/gookit/slog/handler"
-	"github.com/gookit/slog/processor"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestInfof(t *testing.T) {
@@ -18,9 +18,21 @@ func TestInfof(t *testing.T) {
 		"message": "msg",
 		"data": "params",
 	}))
-	slog.AddHandler(h2)
 
-	slog.AddProcessor(processor.AddHostname())
+	slog.AddHandler(h2)
+	slog.AddProcessor(slog.AddHostname())
 
 	slog.Infof("info %s", "message")
+}
+
+func TestName2Level(t *testing.T) {
+	for wantLevel, name := range slog.LevelNames {
+		level, err := slog.Name2Level(name)
+		assert.NoError(t, err)
+		assert.Equal(t, wantLevel, level)
+	}
+
+	level, err := slog.Name2Level("unknown")
+	assert.Error(t, err)
+	assert.Equal(t, slog.Level(0), level)
 }

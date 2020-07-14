@@ -31,6 +31,7 @@ func NewJSONFormatter(aliases slog.StringMap) *JSONFormatter {
 // Format an log record
 func (f *JSONFormatter) Format(r *slog.Record) ([]byte,error) {
 	logData := make(slog.M, len(f.Fields))
+
 	for _, field := range f.Fields {
 		outName, ok := f.Aliases[field]
 		if !ok {
@@ -54,9 +55,19 @@ func (f *JSONFormatter) Format(r *slog.Record) ([]byte,error) {
 			logData[outName] = r.Data
 		case field == slog.FieldKeyExtra:
 			logData[outName] = r.Extra
-		default:
-			logData[outName] = r.Fields[field]
+		// default:
+		// 	logData[outName] = r.Fields[field]
 		}
+	}
+
+	// exported custom fields
+	for field, value := range r.Fields {
+		fieldKey := field
+		if _, has := logData[field]; has {
+			fieldKey = "fields." + field
+		}
+
+		logData[fieldKey] = value
 	}
 
 	// sort.Interface()
@@ -68,13 +79,7 @@ func (f *JSONFormatter) Format(r *slog.Record) ([]byte,error) {
 		encoder.SetIndent("", "  ")
 	}
 
-	// has been add newline.
+	// has been add newline in Encode().
 	err := encoder.Encode(logData)
-	// if err == nil {
-		// with newline
-		// buffer.Write([]byte("\n"))
-	// }
-
 	return buffer.Bytes(), err
 }
-

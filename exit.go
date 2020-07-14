@@ -6,7 +6,7 @@ import (
 )
 
 // global exit handler
-var exitHandlers = []func(){}
+var exitHandlers = make([]func(), 0)
 
 func runExitHandlers()  {
 	defer func() {

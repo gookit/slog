@@ -149,15 +149,14 @@ func (logger *Logger) WithFields(fields M) *Record {
 func (logger *Logger) Exit(code int) {
 	logger.runExitHandlers()
 
+	// global exit handlers
+	runExitHandlers()
+
 	if logger.ExitFunc == nil {
 		logger.ExitFunc = os.Exit
 	}
 	logger.ExitFunc(code)
 }
-
-// func (logger *Logger) addRecord(level Level, message string, extra M) {
-//
-// }
 
 //
 // ----- Add log with level -----

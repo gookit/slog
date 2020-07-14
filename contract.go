@@ -47,11 +47,14 @@ type GroupedHandler struct {
 
 // Processor interface
 type Processor interface {
+	// Process record
 	Process(record *Record)
 }
 
+// ProcessorFunc wrapper definition
 type ProcessorFunc func(record *Record)
 
+// Process record
 func (fn ProcessorFunc) Process(record *Record)  {
 	fn(record)
 }
@@ -69,10 +72,12 @@ type Processable struct {
 	processors []Processor
 }
 
+// AddProcessor to the handler
 func (p *Processable) AddProcessor(processor Processor) {
 	p.processors = append(p.processors, processor)
 }
 
+// ProcessRecord process records
 func (p *Processable) ProcessRecord(r *Record) {
 	// processing log record
 	for _, processor := range p.processors {
@@ -87,7 +92,6 @@ func (p *Processable) ProcessRecord(r *Record) {
 // Formatter interface
 type Formatter interface {
 	Format(record *Record) ([]byte, error)
-	// Format(record *Record)  error
 }
 
 // FormattableHandler interface

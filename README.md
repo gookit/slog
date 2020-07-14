@@ -2,6 +2,21 @@
 
 simple log
 
+## GoDoc
+
+- [godoc for github](https://pkg.go.dev/github.com/gookit/slog?tab=doc)
+
+## Install
+
+```bash
+go get github.com/gookit/slog
+```
+
+## 
+
+## Workflow
+
+
 ```text
                      With Formatters
          Handlers -{ 

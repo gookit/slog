@@ -2,7 +2,6 @@ package slog
 
 import (
 	"fmt"
-	"os"
 	"strings"
 )
 
@@ -18,56 +17,6 @@ func (l Level) String() string  {
 func (l Level) Name() string  {
 	return LevelName(l)
 }
-
-// These are the different logging levels. You can set the logging level to log
-// on your instance of logger, obtained with `logrus.New()`.
-const (
-	// PanicLevel level, highest level of severity. Logs and then calls panic with the
-	// message passed to Debug, Info, ...
-	PanicLevel Level = iota
-	// FatalLevel level. Logs and then calls `logger.Exit(1)`. It will exit even if the
-	// logging level is set to Panic.
-	FatalLevel
-	// ErrorLevel level. Runtime errors. Used for errors that should definitely be noted.
-	// Commonly used for hooks to send errors to an error tracking service.
-	ErrorLevel
-	// WarnLevel level. Non-critical entries that deserve eyes.
-	WarnLevel
-	// NoticeLevel level Uncommon events
-	NoticeLevel
-	// InfoLevel level. Examples: User logs in, SQL logs.
-	InfoLevel
-	// DebugLevel level. Usually only enabled when debugging. Very verbose logging.
-	DebugLevel
-	// TraceLevel level. Designates finer-grained informational events than the Debug.
-	TraceLevel
-)
-
-const DefaultTimeFormat = "2006/01/02 15:04:05"
-
-// A constant exposing all logging levels
-var AllLevels = []Level{
-	PanicLevel,
-	FatalLevel,
-	ErrorLevel,
-	WarnLevel,
-	NoticeLevel,
-	InfoLevel,
-	DebugLevel,
-	TraceLevel,
-}
-
-var LevelNames = map[Level]string{
-	PanicLevel:  "PANIC",
-	FatalLevel:  "FATAL",
-	ErrorLevel:  "ERROR",
-	NoticeLevel: "NOTICE",
-	WarnLevel:   "WARNING",
-	InfoLevel:   "INFO",
-	DebugLevel:  "DEBUG",
-	TraceLevel:  "TRACE",
-}
-
 
 var std = New()
 
@@ -146,11 +95,10 @@ func Fatalf(format string, args ...interface{})  {
 
 // Exit runs all the Logrus atexit handlers and then terminates the program using os.Exit(code)
 func Exit(code int) {
-	std.runExitHandlers()
-	runExitHandlers()
-	os.Exit(code)
+	std.Exit(code)
 }
 
+// LevelName match
 func LevelName(l Level) string {
 	if n, ok := LevelNames[l]; ok {
 		return n
@@ -159,6 +107,7 @@ func LevelName(l Level) string {
 	return "UNKNOWN"
 }
 
+// Name2Level convert name to level
 func Name2Level(ln string) (Level, error) {
 	switch strings.ToLower(ln) {
 	case "panic":

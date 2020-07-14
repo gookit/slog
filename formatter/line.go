@@ -87,9 +87,7 @@ func (f *LineFormatter) Format(r *slog.Record) ([]byte, error) {
 
 	// dump.Println(tplData, r.LevelName)
 
-	// TODO ... use buffer
-	// var buf *bytes.Buffer
-
+	// TODO ... use r.Buffer
 	// strings.NewReplacer().WriteString(buf)
 
 	str := strutil.Replaces(f.format, tplData)

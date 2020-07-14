@@ -45,39 +45,11 @@ type Record struct {
 	// Formatted []byte
 }
 
-const (
-	FieldKeyTime  = "time"
-	FieldKeyData  = "data"
-	FieldKeyFunc  = "func"
-	FieldKeyFile  = "file"
-	// FieldKeyDate  = "date"
-
-	FieldKeyDatetime  = "datetime"
-
-	FieldKeyLevel = "level"
-	FieldKeyError = "error"
-	FieldKeyExtra = "extra"
-
-	FieldKeyChannel = "channel"
-	FieldKeyMessage = "message"
-)
-
 var (
 	// Defines the key when adding errors using WithError.
 	ErrorKey = "error"
-
 	bufferPool *sync.Pool
 )
-
-// DefaultFields default log export fields
-var DefaultFields = []string{
-	FieldKeyDatetime,
-	FieldKeyChannel,
-	FieldKeyLevel,
-	FieldKeyMessage,
-	FieldKeyData,
-	FieldKeyExtra,
-}
 
 func newRecord(logger *Logger) *Record {
 	return &Record{

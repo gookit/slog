@@ -1,23 +1,21 @@
-package processor
+package slog
 
 import (
 	"os"
 	"runtime"
-
-	"github.com/gookit/slog"
 )
 
 // AddHostname to record
-func AddHostname() slog.Processor {
+func AddHostname() Processor {
 	hostname,_ := os.Hostname()
 
-	return slog.ProcessorFunc(func(record *slog.Record) {
+	return ProcessorFunc(func(record *Record) {
 		record.AddField("hostname", hostname)
 	})
 }
 
 // MemoryUsage Get memory usage.
-var MemoryUsage slog.ProcessorFunc = func(record *slog.Record) {
+var MemoryUsage ProcessorFunc = func(record *Record) {
 	stat := new(runtime.MemStats)
 	runtime.ReadMemStats(stat)
 	record.Extra["memoryUsage"] = stat.Alloc
