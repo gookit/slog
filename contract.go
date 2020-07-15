@@ -4,10 +4,6 @@ import (
 	"io"
 )
 
-// func (m M) String() string  {
-// 	return fmt.Sprint(m)
-// }
-
 // flushSyncWriter is the interface satisfied by logging destinations.
 type FlushSyncWriter interface {
 	Flush() error

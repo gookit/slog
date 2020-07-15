@@ -3,8 +3,25 @@ package slog
 // M short name of map[string]interface{}
 type M map[string]interface{}
 
+// func (m M) String() string  {
+// 	return fmt.Sprint(m)
+// }
+
 // StringMap string map short name
 type StringMap map[string]string
+
+// Level type
+type Level uint32
+
+// String get level name
+func (l Level) String() string  {
+	return LevelName(l)
+}
+
+// Name get level name
+func (l Level) Name() string  {
+	return LevelName(l)
+}
 
 // These are the different logging levels. You can set the logging level to log
 // on your instance of logger, obtained with `logrus.New()`.

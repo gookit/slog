@@ -11,7 +11,7 @@ const flushInterval = 30 * time.Second
 
 // Logger definition
 type Logger struct {
-	// name string
+	name string
 
 	handlers   []Handler
 	processors []Processor
@@ -57,10 +57,21 @@ func (logger *Logger) releaseRecord(r *Record) {
 }
 
 //
+// ------------ Management ------------
+//
+
+// Sync flushes buffered logs (if any).
+func (logger *Logger) Sync() error {
+	// TODO
+	return nil
+}
+
+// FlushDaemon run flush handle on daemon
+//
 // Usage:
 // 	go slog.FlushDaemon()
 func (logger *Logger) FlushDaemon() {
-	for _ = range time.NewTicker(flushInterval).C {
+	for range time.NewTicker(flushInterval).C {
 		logger.lockAndFlushAll()
 	}
 }
@@ -81,7 +92,32 @@ func (logger *Logger) FlushAll() {
 	}
 }
 
-// Register handlers and processors
+// Exit logger handle
+func (logger *Logger) Exit(code int) {
+	logger.runExitHandlers()
+
+	// global exit handlers
+	runExitHandlers()
+
+	if logger.ExitFunc == nil {
+		logger.ExitFunc = os.Exit
+	}
+	logger.ExitFunc(code)
+}
+
+// SetName for logger
+func (logger *Logger) SetName(name string) {
+	logger.name = name
+}
+
+// Name of the logger
+func (logger *Logger) Name() string {
+	return logger.name
+}
+
+//
+// ------------ Register handlers and processors ------------
+//
 
 // AddHandler to the logger
 func (logger *Logger) AddHandler(h Handler) {
@@ -123,6 +159,10 @@ func (logger *Logger) SetProcessors(ps []Processor) {
 	logger.processors = ps
 }
 
+//
+// ---------- Add logs with level ----------
+//
+
 // Log an message
 func (logger *Logger) Log(level Level, args ...interface{}) {
 	r := logger.newRecord()
@@ -139,28 +179,13 @@ func (logger *Logger) Logf(level Level, format string, args ...interface{}) {
 	logger.releaseRecord(r)
 }
 
+// WithField with new fields to record
 func (logger *Logger) WithFields(fields M) *Record {
 	r := logger.newRecord()
 	defer logger.releaseRecord(r)
 
 	return r.WithFields(fields)
 }
-
-func (logger *Logger) Exit(code int) {
-	logger.runExitHandlers()
-
-	// global exit handlers
-	runExitHandlers()
-
-	if logger.ExitFunc == nil {
-		logger.ExitFunc = os.Exit
-	}
-	logger.ExitFunc(code)
-}
-
-//
-// ----- Add log with level -----
-//
 
 // Warning logs a message at level Warn
 func (logger *Logger) Warning(args ...interface{}) {

@@ -2,20 +2,26 @@ package slog
 
 import (
 	"fmt"
+	"io"
 	"strings"
 )
 
-// Level type
-type Level uint32
-
-// String get level name
-func (l Level) String() string  {
-	return LevelName(l)
+// SugarLogger definition
+type SugarLogger struct {
+	*Logger
+	Out io.Writer
+	Level Level
 }
 
-// Name get level name
-func (l Level) Name() string  {
-	return LevelName(l)
+func NewSugarLogger() *SugarLogger  {
+	return &SugarLogger{
+		Logger: New(),
+	}
+}
+
+// IsHandling Check if the current level can be handling
+func (sl *SugarLogger) IsHandling(level Level) bool {
+	return sl.Level >= level
 }
 
 var std = New()
@@ -93,7 +99,7 @@ func Fatalf(format string, args ...interface{})  {
 	std.Logf(FatalLevel, format, args...)
 }
 
-// Exit runs all the Logrus atexit handlers and then terminates the program using os.Exit(code)
+// Exit runs all the logger exit handlers and then terminates the program using os.Exit(code)
 func Exit(code int) {
 	std.Exit(code)
 }
@@ -120,7 +126,7 @@ func Name2Level(ln string) (Level, error) {
 		return WarnLevel, nil
 	case "notice":
 		return NoticeLevel, nil
-	case "info":
+	case "info", "": // make the zero value useful
 		return InfoLevel, nil
 	case "debug":
 		return DebugLevel, nil
