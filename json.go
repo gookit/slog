@@ -1,10 +1,8 @@
-package formatter
+package slog
 
 import (
 	"encoding/json"
 	"time"
-
-	"github.com/gookit/slog"
 )
 
 // JSONFormatter definition
@@ -14,23 +12,23 @@ type JSONFormatter struct {
 	// Aliases for output fields. you can change export field name.
 	// item: `"field" : "output name"`
 	// eg: {"message": "msg"} export field will display "msg"
-	Aliases slog.StringMap
+	Aliases StringMap
 
 	// PrettyPrint will indent all json logs
 	PrettyPrint bool
 }
 
 // NewJSONFormatter create new JSONFormatter
-func NewJSONFormatter(aliases slog.StringMap) *JSONFormatter {
+func NewJSONFormatter(aliases StringMap) *JSONFormatter {
 	return &JSONFormatter{
 		Aliases: aliases,
-		Fields: slog.DefaultFields,
+		Fields:  DefaultFields,
 	}
 }
 
 // Format an log record
-func (f *JSONFormatter) Format(r *slog.Record) ([]byte,error) {
-	logData := make(slog.M, len(f.Fields))
+func (f *JSONFormatter) Format(r *Record) ([]byte,error) {
+	logData := make(M, len(f.Fields))
 
 	for _, field := range f.Fields {
 		outName, ok := f.Aliases[field]
@@ -39,21 +37,21 @@ func (f *JSONFormatter) Format(r *slog.Record) ([]byte,error) {
 		}
 
 		switch {
-		case field == slog.FieldKeyDatetime:
+		case field == FieldKeyDatetime:
 			if r.Time.IsZero() {
 				r.Time = time.Now()
 			}
 
 			logData[outName] = r.Time.Format(time.RFC3339)
-		case field == slog.FieldKeyLevel:
+		case field == FieldKeyLevel:
 			logData[outName] = r.LevelName
-		case field == slog.FieldKeyChannel:
+		case field == FieldKeyChannel:
 			logData[outName] = r.Channel
-		case field == slog.FieldKeyMessage:
+		case field == FieldKeyMessage:
 			logData[outName] = r.Message
-		case field == slog.FieldKeyData:
+		case field == FieldKeyData:
 			logData[outName] = r.Data
-		case field == slog.FieldKeyExtra:
+		case field == FieldKeyExtra:
 			logData[outName] = r.Extra
 		// default:
 		// 	logData[outName] = r.Fields[field]

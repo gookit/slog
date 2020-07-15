@@ -2,12 +2,12 @@ package main
 
 import (
 	"flag"
+	"log"
 	"time"
 
 	"github.com/golang/glog"
-
-	// "github.com/gookit/slog"
 	"github.com/sirupsen/logrus"
+
 	"github.com/syyongx/llog"
 
 	"go.uber.org/zap"
@@ -20,16 +20,23 @@ func main() {
 	// for glog
 	flag.Parse()
 
+	// -- log
+	log.Println("raw log message")
+
+	// -- glog
+	glog.Infof("glog %s", "message")
+
+	// -- llog
+	llog.NewLogger("llog test")
+
+	// -- logrus
 	logrus.Debug("logrus message")
 	logrus.WithFields(logrus.Fields{
 		"omg":    true,
 		"number": 122,
 	}).Warn("The group's number increased tremendously!")
 
-	glog.Infof("glog %s", "message")
-
-	llog.NewLogger("llog test")
-
+	// -- zerolog
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 
 	zlog.Debug().
@@ -41,6 +48,7 @@ func main() {
 	// slog.Infof("log %s", "message")
 	url := "/path/to/some"
 
+	// -- zap
 	logger, _ := zap.NewProduction()
 	defer logger.Sync() // flushes buffer, if any
 	sugar := logger.Sugar()

@@ -33,7 +33,13 @@ type Logger struct {
 
 // New create an new logger
 func New() *Logger {
+	return NewWithName("")
+}
+
+// NewWithName create an new logger with name
+func NewWithName(name string) *Logger {
 	logger := &Logger{
+		name: name,
 		// exit handle
 		ExitFunc:     os.Exit,
 		exitHandlers: []func(){},

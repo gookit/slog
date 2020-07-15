@@ -1,4 +1,4 @@
-package formatter
+package slog
 
 import (
 	"fmt"
@@ -8,18 +8,17 @@ import (
 
 	"github.com/gookit/color"
 	"github.com/gookit/goutil/strutil"
-	"github.com/gookit/slog"
 )
 
 const SimpleFormat = "[{{datetime}}] {{channel}}.{{level}}: {{message}} {{data}} {{extra}}\n"
 
 // ColorTheme for format log to console
-var ColorTheme = map[slog.Level]color.Color{
-	slog.ErrorLevel: color.FgRed,
-	slog.WarnLevel:  color.FgYellow,
-	slog.InfoLevel:  color.FgGreen,
-	slog.DebugLevel: color.FgCyan,
-	slog.TraceLevel: color.FgMagenta,
+var ColorTheme = map[Level]color.Color{
+	ErrorLevel: color.FgRed,
+	WarnLevel:  color.FgYellow,
+	InfoLevel:  color.FgGreen,
+	DebugLevel: color.FgCyan,
+	TraceLevel: color.FgMagenta,
 }
 
 // LineFormatter definition
@@ -27,10 +26,10 @@ type LineFormatter struct {
 	format string
 	// field map, parsed from format string.
 	// eg: {"level": "{{level}}",}
-	fieldMap slog.StringMap
+	fieldMap StringMap
 
 	EnableColor bool
-	ColorTheme map[slog.Level]color.Color
+	ColorTheme map[Level]color.Color
 }
 
 // NewLineFormatter create new LineFormatter
@@ -50,35 +49,35 @@ func NewLineFormatter(format ...string) *LineFormatter  {
 }
 
 // FieldMap get export field map
-func (f *LineFormatter) FieldMap() slog.StringMap {
+func (f *LineFormatter) FieldMap() StringMap {
 	return f.fieldMap
 }
 
 // Format an log record
-func (f *LineFormatter) Format(r *slog.Record) ([]byte, error) {
+func (f *LineFormatter) Format(r *Record) ([]byte, error) {
 	if f.EnableColor {
 
 	}
 
-	tplData := make(slog.StringMap, len(f.fieldMap))
+	tplData := make(StringMap, len(f.fieldMap))
 
 	for field, tplVar := range f.fieldMap {
 		switch {
-		case field == slog.FieldKeyDatetime:
+		case field == FieldKeyDatetime:
 			if r.Time.IsZero() {
 				r.Time = time.Now()
 			}
 
 			tplData[tplVar] = r.Time.Format(time.RFC3339)
-		case field == slog.FieldKeyLevel:
+		case field == FieldKeyLevel:
 			tplData[tplVar] = r.LevelName
-		case field == slog.FieldKeyChannel:
+		case field == FieldKeyChannel:
 			tplData[tplVar] = r.Channel
-		case field == slog.FieldKeyMessage:
+		case field == FieldKeyMessage:
 			tplData[tplVar] = r.Message
-		case field == slog.FieldKeyData:
+		case field == FieldKeyData:
 			tplData[tplVar] = fmt.Sprint(r.Data)
-		case field == slog.FieldKeyExtra:
+		case field == FieldKeyExtra:
 			tplData[tplVar] = fmt.Sprint(r.Extra)
 		default:
 			tplData[tplVar] = fmt.Sprint(r.Fields[field])
@@ -96,11 +95,11 @@ func (f *LineFormatter) Format(r *slog.Record) ([]byte, error) {
 }
 
 // parse "{{channel}}" to { "channel": "{{channel}}" }
-func parseFieldMap(format string) slog.StringMap {
+func parseFieldMap(format string) StringMap {
 	rgp := regexp.MustCompile(`{{\w+}}`)
 
 	ss := rgp.FindAllString(format, -1)
-	fm := make(slog.StringMap)
+	fm := make(StringMap)
 	for _, tplVar := range ss {
 		field := strings.Trim(tplVar, "{}")
 		fm[field] = tplVar

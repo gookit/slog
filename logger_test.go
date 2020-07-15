@@ -12,6 +12,10 @@ func TestLoggerBasic(t *testing.T) {
 	l.SetName("testName")
 
 	assert.Equal(t, "testName", l.Name())
+
+	l = slog.NewWithName("testName")
+
+	assert.Equal(t, "testName", l.Name())
 }
 
 func TestLogger_AddHandlers(t *testing.T) {

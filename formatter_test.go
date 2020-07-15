@@ -1,10 +1,9 @@
-package formatter_test
+package slog_test
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/gookit/slog"
 	"github.com/gookit/slog/formatter"
 	"github.com/gookit/slog/handler"
 )
@@ -16,10 +15,10 @@ func TestNewLineFormatter(t *testing.T) {
 }
 
 func TestJSONFormatter(t *testing.T) {
-	l := slog.New()
+	l := New()
 
 	f := formatter.NewJSONFormatter(nil)
-	h := handler.NewConsoleHandler(slog.AllLevels)
+	h := handler.NewConsoleHandler(AllLevels)
 	h.SetFormatter(f)
 
 	l.AddHandler(h)
@@ -28,9 +27,9 @@ func TestJSONFormatter(t *testing.T) {
 
 	// PrettyPrint=true
 
-	l = slog.New()
-	h = handler.NewConsoleHandler(slog.AllLevels)
-	f = formatter.NewJSONFormatter(slog.StringMap{
+	l = New()
+	h = handler.NewConsoleHandler(AllLevels)
+	f = formatter.NewJSONFormatter(StringMap{
 		"level": "levelName",
 	})
 	f.PrettyPrint = true

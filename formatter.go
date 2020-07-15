@@ -1,17 +1,15 @@
-package formatter
-
-import "github.com/gookit/slog"
+package slog
 
 // Formattable definition
 type Formattable struct {
-	formatter slog.Formatter
+	formatter Formatter
 }
 
 // DefaultFormatter setting
 var DefaultFormatter = NewLineFormatter()
 
 // Formatter get formatter
-func (f *Formattable) Formatter() slog.Formatter {
+func (f *Formattable) Formatter() Formatter {
 	if f.formatter == nil {
 		f.formatter = DefaultFormatter
 	}
@@ -19,6 +17,6 @@ func (f *Formattable) Formatter() slog.Formatter {
 }
 
 // SetFormatter to handler
-func (f *Formattable) SetFormatter(formatter slog.Formatter) {
+func (f *Formattable) SetFormatter(formatter Formatter) {
 	f.formatter = formatter
 }

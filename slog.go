@@ -4,27 +4,61 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
 )
 
-// SugarLogger definition
-type SugarLogger struct {
+// SugaredLogger definition
+type SugaredLogger struct {
 	*Logger
-	Out io.Writer
+	out io.Writer
 	Level Level
+	formatter Formatter
 }
 
-func NewSugarLogger() *SugarLogger  {
-	return &SugarLogger{
+// NewSugaredLogger create new SugaredLogger
+func NewSugaredLogger(out io.Writer, level Level) *SugaredLogger {
+	return &SugaredLogger{
+		out: out,
+		Level: level,
 		Logger: New(),
 	}
 }
 
+// SetOutput for the logger
+func (sl *SugaredLogger) SetOutput(out io.Writer) {
+	sl.out = out
+}
+
+// Formatter get formatter
+func (sl *SugaredLogger) Formatter() slog.Formatter {
+	if sl.formatter == nil {
+		sl.formatter = DefaultFormatter
+	}
+	return sl.formatter
+}
+
+// SetFormatter to handler
+func (sl *SugaredLogger) SetFormatter(formatter slog.Formatter) {
+	sl.formatter = formatter
+}
+
 // IsHandling Check if the current level can be handling
-func (sl *SugarLogger) IsHandling(level Level) bool {
+func (sl *SugaredLogger) IsHandling(level Level) bool {
 	return sl.Level >= level
 }
 
-var std = New()
+// Handle log record
+func (sl *SugaredLogger) Handle(record *slog.Record)  error {
+	bts, err := sl.Formatter().Format(record)
+	if err != nil {
+		return err
+	}
+
+	_, err = h.Out.Write(bts)
+	return err
+}
+
+var std = NewWithName("stdLogger")
 
 // Std get std logger
 func Std() *Logger  {
