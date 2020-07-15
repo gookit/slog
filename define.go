@@ -1,5 +1,10 @@
 package slog
 
+import (
+	"fmt"
+	"strings"
+)
+
 // M short name of map[string]interface{}
 type M map[string]interface{}
 
@@ -101,4 +106,38 @@ var DefaultFields = []string{
 	FieldKeyMessage,
 	FieldKeyData,
 	FieldKeyExtra,
+}
+
+// LevelName match
+func LevelName(l Level) string {
+	if n, ok := LevelNames[l]; ok {
+		return n
+	}
+
+	return "UNKNOWN"
+}
+
+// Name2Level convert name to level
+func Name2Level(ln string) (Level, error) {
+	switch strings.ToLower(ln) {
+	case "panic":
+		return PanicLevel, nil
+	case "fatal":
+		return FatalLevel, nil
+	case "err", "error":
+		return ErrorLevel, nil
+	case "warn", "warning":
+		return WarnLevel, nil
+	case "notice":
+		return NoticeLevel, nil
+	case "info", "": // make the zero value useful
+		return InfoLevel, nil
+	case "debug":
+		return DebugLevel, nil
+	case "trace":
+		return TraceLevel, nil
+	}
+
+	var l Level
+	return l, fmt.Errorf("invalid log Level: %q", ln)
 }

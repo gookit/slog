@@ -2,7 +2,6 @@ package handler
 
 import (
 	"github.com/gookit/slog"
-	"github.com/gookit/slog/formatter"
 )
 
 /********************************************************************************
@@ -11,7 +10,7 @@ import (
 
 // BaseHandler definition
 type BaseHandler struct {
-	formatter.Formattable
+	slog.Formattable
 	// Levels for log
 	Levels []slog.Level
 }

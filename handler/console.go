@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/gookit/slog"
-	"github.com/gookit/slog/formatter"
 )
 
 /********************************************************************************
@@ -23,7 +22,7 @@ func NewConsoleHandler(levels []slog.Level) *ConsoleHandler {
 	}
 
 	// create new formatter
-	f := formatter.NewLineFormatter()
+	f := slog.NewLineFormatter()
 	// enable color
 	f.EnableColor = true
 

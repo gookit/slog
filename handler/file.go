@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/gookit/slog"
-	"github.com/gookit/slog/formatter"
 )
 
 // var onceLogDir sync.Once
@@ -45,7 +44,7 @@ func NewFileHandler(useJSON bool) *FileHandler {
 	}
 
 	if useJSON {
-		h.SetFormatter(formatter.NewJSONFormatter(slog.StringMap{}))
+		h.SetFormatter(slog.NewJSONFormatter(slog.StringMap{}))
 	}
 
 	return h

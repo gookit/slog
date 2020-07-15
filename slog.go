@@ -10,27 +10,22 @@ import (
 // SugaredLogger definition
 type SugaredLogger struct {
 	*Logger
-	out io.Writer
-	Level Level
+	Out       io.Writer
+	Level     Level
 	formatter Formatter
 }
 
 // NewSugaredLogger create new SugaredLogger
 func NewSugaredLogger(out io.Writer, level Level) *SugaredLogger {
 	return &SugaredLogger{
-		out: out,
-		Level: level,
+		Out:    out,
+		Level:  level,
 		Logger: New(),
 	}
 }
 
-// SetOutput for the logger
-func (sl *SugaredLogger) SetOutput(out io.Writer) {
-	sl.out = out
-}
-
 // Formatter get formatter
-func (sl *SugaredLogger) Formatter() slog.Formatter {
+func (sl *SugaredLogger) Formatter() Formatter {
 	if sl.formatter == nil {
 		sl.formatter = DefaultFormatter
 	}
@@ -38,7 +33,7 @@ func (sl *SugaredLogger) Formatter() slog.Formatter {
 }
 
 // SetFormatter to handler
-func (sl *SugaredLogger) SetFormatter(formatter slog.Formatter) {
+func (sl *SugaredLogger) SetFormatter(formatter Formatter) {
 	sl.formatter = formatter
 }
 
@@ -48,13 +43,13 @@ func (sl *SugaredLogger) IsHandling(level Level) bool {
 }
 
 // Handle log record
-func (sl *SugaredLogger) Handle(record *slog.Record)  error {
+func (sl *SugaredLogger) Handle(record *Record)  error {
 	bts, err := sl.Formatter().Format(record)
 	if err != nil {
 		return err
 	}
 
-	_, err = h.Out.Write(bts)
+	_, err = sl.Out.Write(bts)
 	return err
 }
 
@@ -136,38 +131,4 @@ func Fatalf(format string, args ...interface{})  {
 // Exit runs all the logger exit handlers and then terminates the program using os.Exit(code)
 func Exit(code int) {
 	std.Exit(code)
-}
-
-// LevelName match
-func LevelName(l Level) string {
-	if n, ok := LevelNames[l]; ok {
-		return n
-	}
-
-	return "UNKNOWN"
-}
-
-// Name2Level convert name to level
-func Name2Level(ln string) (Level, error) {
-	switch strings.ToLower(ln) {
-	case "panic":
-		return PanicLevel, nil
-	case "fatal":
-		return FatalLevel, nil
-	case "err", "error":
-		return ErrorLevel, nil
-	case "warn", "warning":
-		return WarnLevel, nil
-	case "notice":
-		return NoticeLevel, nil
-	case "info", "": // make the zero value useful
-		return InfoLevel, nil
-	case "debug":
-		return DebugLevel, nil
-	case "trace":
-		return TraceLevel, nil
-	}
-
-	var l Level
-	return l, fmt.Errorf("invalid log Level: %q", ln)
 }

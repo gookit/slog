@@ -28,6 +28,7 @@ type LineFormatter struct {
 	// eg: {"level": "{{level}}",}
 	fieldMap StringMap
 
+	// Enable color on print log to terminal
 	EnableColor bool
 	ColorTheme map[Level]color.Color
 }
