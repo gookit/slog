@@ -16,6 +16,8 @@ type JSONFormatter struct {
 
 	// PrettyPrint will indent all json logs
 	PrettyPrint bool
+	// TimeFormat the time format layout. default is time.RFC3339
+	TimeFormat string
 }
 
 // NewJSONFormatter create new JSONFormatter
@@ -42,7 +44,7 @@ func (f *JSONFormatter) Format(r *Record) ([]byte,error) {
 				r.Time = time.Now()
 			}
 
-			logData[outName] = r.Time.Format(time.RFC3339)
+			logData[outName] = r.Time.Format(f.TimeFormat)
 		case field == FieldKeyLevel:
 			logData[outName] = r.LevelName
 		case field == FieldKeyChannel:

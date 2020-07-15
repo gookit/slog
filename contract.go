@@ -4,7 +4,13 @@ import (
 	"io"
 )
 
-// flushSyncWriter is the interface satisfied by logging destinations.
+// SyncWriter is the interface satisfied by logging destinations.
+type SyncWriter interface {
+	Sync() error
+	io.Writer
+}
+
+// FlushSyncWriter is the interface satisfied by logging destinations.
 type FlushSyncWriter interface {
 	Flush() error
 	Sync() error

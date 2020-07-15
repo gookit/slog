@@ -45,11 +45,19 @@ func TestName2Level(t *testing.T) {
 		assert.Equal(t, wantLevel, level)
 	}
 
-	level, err := slog.Name2Level("")
-	assert.NoError(t, err)
-	assert.Equal(t, slog.InfoLevel, level)
+	// special names
+	tests := map[slog.Level]string{
+		slog.WarnLevel: "warn",
+		slog.ErrorLevel: "err",
+		slog.InfoLevel: "",
+	}
+	for wantLevel, name := range tests {
+		level, err := slog.Name2Level(name)
+		assert.NoError(t, err)
+		assert.Equal(t, wantLevel, level)
+	}
 
-	level, err = slog.Name2Level("unknown")
+	level, err := slog.Name2Level("unknown")
 	assert.Error(t, err)
 	assert.Equal(t, slog.Level(0), level)
 }

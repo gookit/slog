@@ -23,10 +23,12 @@ func TestJSONFormatter(t *testing.T) {
 
 	l.AddHandler(h)
 
-	l.WithFields(slog.M{
+	fields := slog.M{
 		"field1": 123,
 		"field2": "abc",
-	}).Info("info message")
+	}
+
+	l.WithFields(fields).Info("info message")
 
 	// PrettyPrint=true
 
@@ -40,5 +42,8 @@ func TestJSONFormatter(t *testing.T) {
 	h.SetFormatter(f)
 	l.AddHandler(h)
 
-	l.Info("info message and PrettyPrint is TRUE")
+	l.WithFields(fields).
+		SetData(slog.M{"key1": "val1"}).
+		SetExtra(slog.M{"ext1": "val1"}).
+		Info("info message and PrettyPrint is TRUE")
 }

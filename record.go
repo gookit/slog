@@ -103,6 +103,20 @@ func (r *Record) AddValue(key string, value interface{}) *Record {
 	return r
 }
 
+// SetExtra information on record
+func (r *Record) SetExtra(data M) *Record {
+	r.Extra = data
+	return r
+}
+
+// AddExtra information on record
+func (r *Record) AddExtra(data M) *Record {
+	for k, v := range data {
+		r.Extra[k] = v
+	}
+	return r
+}
+
 // SetTime on record
 func (r *Record) SetTime(t time.Time) *Record {
 	r.Time = t
