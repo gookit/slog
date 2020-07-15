@@ -113,8 +113,9 @@ func (logger *Logger) Exit(code int) {
 }
 
 // SetName for logger
-func (logger *Logger) SetName(name string) {
+func (logger *Logger) SetName(name string) *Logger {
 	logger.name = name
+	return logger
 }
 
 // Name of the logger

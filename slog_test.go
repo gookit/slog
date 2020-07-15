@@ -13,6 +13,12 @@ func ExampleNew() {
 	slog.Infof("info log %s", "message")
 }
 
+func TestNewSugaredLogger(t *testing.T) {
+	// sl := slog.NewSugaredLogger(os.Stdout, slog.ErrorLevel)
+
+	slog.Debugf("debug %s", "message")
+}
+
 func TestInfof(t *testing.T) {
 	slog.AddHandler(handler.NewConsoleHandler(slog.AllLevels))
 

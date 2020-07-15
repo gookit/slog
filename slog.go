@@ -2,31 +2,38 @@ package slog
 
 import (
 	"io"
+	"os"
 )
 
-// SugaredLogger Is a fast and usable Logger, which already contains the default formatting and handling capabilities
+// SugaredLogger definition.
+// Is a fast and usable Logger, which already contains the default formatting and handling capabilities
 type SugaredLogger struct {
 	*Logger
-	Out       io.Writer
-	Level     Level
+	// output writer
+	Out   io.Writer
+	Level Level
 	// if not set, will use DefaultFormatter
 	formatter Formatter
 }
 
 // NewSugaredLogger create new SugaredLogger
 func NewSugaredLogger(out io.Writer, level Level) *SugaredLogger {
-	return &SugaredLogger{
+	sl := &SugaredLogger{
 		Out:    out,
 		Level:  level,
 		Logger: New(),
+		// default value
+		formatter: DefaultFormatter,
 	}
+
+	// NOTICE: use self as an log handler
+	sl.AddHandler(sl)
+
+	return sl
 }
 
 // Formatter get formatter
 func (sl *SugaredLogger) Formatter() Formatter {
-	if sl.formatter == nil {
-		sl.formatter = DefaultFormatter
-	}
 	return sl.formatter
 }
 
@@ -37,12 +44,12 @@ func (sl *SugaredLogger) SetFormatter(formatter Formatter) {
 
 // IsHandling Check if the current level can be handling
 func (sl *SugaredLogger) IsHandling(level Level) bool {
-	return sl.Level >= level
+	return level >= sl.Level
 }
 
 // Handle log record
-func (sl *SugaredLogger) Handle(record *Record)  error {
-	bts, err := sl.Formatter().Format(record)
+func (sl *SugaredLogger) Handle(record *Record) error {
+	bts, err := sl.formatter.Format(record)
 	if err != nil {
 		return err
 	}
@@ -51,16 +58,23 @@ func (sl *SugaredLogger) Handle(record *Record)  error {
 	return err
 }
 
+// Flush all logs
+func (sl *SugaredLogger) Flush() error {
+	sl.FlushAll()
+	return nil
+}
+
 //
 // ------------------------------------------------------------
 // Global std logger usage
 // ------------------------------------------------------------
 //
 
-var std = NewWithName("stdLogger")
+// std logger is an SugaredLogger
+var std = NewSugaredLogger(os.Stdout, ErrorLevel)
 
 // Std get std logger
-func Std() *Logger  {
+func Std() *SugaredLogger {
 	return std
 }
 
@@ -83,7 +97,7 @@ func Trace(args ...interface{}) {
 }
 
 // Trace logs a message at level Trace
-func Tracef(format string, args ...interface{})  {
+func Tracef(format string, args ...interface{}) {
 	std.Logf(TraceLevel, format, args...)
 }
 
@@ -93,7 +107,7 @@ func Info(args ...interface{}) {
 }
 
 // Info logs a message at level Info
-func Infof(format string, args ...interface{})  {
+func Infof(format string, args ...interface{}) {
 	std.Logf(InfoLevel, format, args...)
 }
 
@@ -103,7 +117,7 @@ func Warn(args ...interface{}) {
 }
 
 // Warn logs a message at level Warn
-func Warnf(format string, args ...interface{})  {
+func Warnf(format string, args ...interface{}) {
 	std.Logf(WarnLevel, format, args...)
 }
 
@@ -113,7 +127,7 @@ func Error(args ...interface{}) {
 }
 
 // Error logs a message at level Error
-func Errorf(format string, args ...interface{})  {
+func Errorf(format string, args ...interface{}) {
 	std.Logf(ErrorLevel, format, args...)
 }
 
@@ -123,7 +137,7 @@ func Debug(args ...interface{}) {
 }
 
 // Debug logs a message at level Debug
-func Debugf(format string, args ...interface{})  {
+func Debugf(format string, args ...interface{}) {
 	std.Logf(DebugLevel, format, args...)
 }
 
@@ -133,6 +147,6 @@ func Fatal(args ...interface{}) {
 }
 
 // Fatal logs a message at level Fatal
-func Fatalf(format string, args ...interface{})  {
+func Fatalf(format string, args ...interface{}) {
 	std.Logf(FatalLevel, format, args...)
 }

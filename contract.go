@@ -18,12 +18,12 @@ type FlushSyncWriter interface {
 }
 
 //
-// handler
+// Handler interface
 //
 
-// Handler interface
+// Handler interface definition
 type Handler interface {
-	io.Closer
+	// io.Closer
 	Flush() error
 	// IsHandling Checks whether the given record will be handled by this handler.
 	IsHandling(level Level) bool
@@ -31,20 +31,15 @@ type Handler interface {
 	// all records may be passed to this method, and the handler should discard
 	// those that it does not want to handle.
 	Handle(*Record) error
-	// HandleBatch Handles a set of records at once.
-	HandleBatch([]*Record) error
-}
-
-// GroupedHandler definition
-type GroupedHandler struct {
-	handlers []Handler
+	// HandleBatch Handles a set of records at once. TODO need ?
+	// HandleBatch([]*Record) error
 }
 
 //
-// processor
-//
-
 // Processor interface
+//
+
+// Processor interface definition
 type Processor interface {
 	// Process record
 	Process(record *Record)
@@ -85,12 +80,20 @@ func (p *Processable) ProcessRecord(r *Record) {
 }
 
 //
-// formatter
+// Formatter interface
 //
 
 // Formatter interface
 type Formatter interface {
 	Format(record *Record) ([]byte, error)
+}
+
+// FormatterFunc wrapper definition
+type FormatterFunc func(r *Record) ([]byte, error)
+
+// Format an record
+func (fn FormatterFunc) Format(r *Record) ([]byte, error)  {
+	return fn(r)
 }
 
 // FormattableHandler interface
