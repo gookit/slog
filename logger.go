@@ -1,13 +1,12 @@
 package slog
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"sync"
 	"time"
 )
-
-const flushInterval = 30 * time.Second
 
 // Logger definition
 type Logger struct {
@@ -63,7 +62,9 @@ func (logger *Logger) releaseRecord(r *Record) {
 }
 
 //
-// ------------ Management ------------
+// ---------------------------------------------------------------------------
+// Management
+// ---------------------------------------------------------------------------
 //
 
 // Sync flushes buffered logs (if any).
@@ -94,7 +95,7 @@ func (logger *Logger) lockAndFlushAll() {
 func (logger *Logger) FlushAll() {
 	// Flush from fatal down, in case there's trouble flushing.
 	for _, handler := range logger.handlers {
-		handler.Flush()
+		_= handler.Flush() // ignore error
 	}
 }
 
@@ -122,7 +123,9 @@ func (logger *Logger) Name() string {
 }
 
 //
-// ------------ Register handlers and processors ------------
+// ---------------------------------------------------------------------------
+// Register handlers and processors
+// ---------------------------------------------------------------------------
 //
 
 // AddHandler to the logger
@@ -166,7 +169,47 @@ func (logger *Logger) SetProcessors(ps []Processor) {
 }
 
 //
-// ---------- Add logs with level ----------
+// ---------------------------------------------------------------------------
+// New record with log data, fields
+// ---------------------------------------------------------------------------
+//
+
+// SetFields new record with fields
+func (logger *Logger) WithFields(fields M) *Record {
+	r := logger.newRecord()
+	defer logger.releaseRecord(r)
+
+	return r.SetFields(fields)
+}
+
+// WithData new record with data
+func (logger *Logger) WithData(data M) *Record {
+	r := logger.newRecord()
+	defer logger.releaseRecord(r)
+
+	return r.SetData(data)
+}
+
+// WithTime new record with time.Time
+func (logger *Logger) WithTime(t time.Time) *Record {
+	r := logger.newRecord()
+	defer logger.releaseRecord(r)
+
+	return r.SetTime(t)
+}
+
+// WithContext new record with context.Context
+func (logger *Logger) WithContext(ctx context.Context) *Record {
+	r := logger.newRecord()
+	defer logger.releaseRecord(r)
+
+	return r.SetContext(ctx)
+}
+
+//
+// ---------------------------------------------------------------------------
+// Add log message with level
+// ---------------------------------------------------------------------------
 //
 
 // Log an message
@@ -183,14 +226,6 @@ func (logger *Logger) Logf(level Level, format string, args ...interface{}) {
 	r.Logf(level, format, args...)
 
 	logger.releaseRecord(r)
-}
-
-// WithField with new fields to record
-func (logger *Logger) WithFields(fields M) *Record {
-	r := logger.newRecord()
-	defer logger.releaseRecord(r)
-
-	return r.WithFields(fields)
 }
 
 // Warning logs a message at level Warn

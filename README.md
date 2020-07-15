@@ -2,6 +2,8 @@
 
 simple log
 
+> Inspired the projects [Seldaek/monolog](https://github.com/Seldaek/monolog) and [sirupsen/logrus](https://github.com/sirupsen/logrus). Thank you very much
+
 ## GoDoc
 
 - [godoc for github](https://pkg.go.dev/github.com/gookit/slog?tab=doc)
@@ -12,7 +14,19 @@ simple log
 go get github.com/gookit/slog
 ```
 
-## 
+## Usage
+
+```go
+package main
+
+import (
+	"github.com/gookit/slog"
+)
+
+func main() {
+	slog.Infof("info log %s", "message")
+}
+```
 
 ## Workflow
 
@@ -29,9 +43,13 @@ Logger -{
 - https://github.com/golang/glog
 - https://github.com/Seldaek/monolog
 
-## Related Pkg
+## Related
 
 - https://github.com/sirupsen/logrus
 - https://github.com/uber-go/zap
 - https://github.com/rs/zerolog
 - https://github.com/syyongx/llog
+
+## LICENSE
+
+[MIT](LICENSE)

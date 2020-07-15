@@ -1,17 +1,15 @@
 package slog
 
 import (
-	"fmt"
 	"io"
-	"strings"
-
 )
 
-// SugaredLogger definition
+// SugaredLogger Is a fast and usable Logger, which already contains the default formatting and handling capabilities
 type SugaredLogger struct {
 	*Logger
 	Out       io.Writer
 	Level     Level
+	// if not set, will use DefaultFormatter
 	formatter Formatter
 }
 
@@ -53,11 +51,22 @@ func (sl *SugaredLogger) Handle(record *Record)  error {
 	return err
 }
 
+//
+// ------------------------------------------------------------
+// Global std logger usage
+// ------------------------------------------------------------
+//
+
 var std = NewWithName("stdLogger")
 
 // Std get std logger
 func Std() *Logger  {
 	return std
+}
+
+// Exit runs all the logger exit handlers and then terminates the program using os.Exit(code)
+func Exit(code int) {
+	std.Exit(code)
 }
 
 func AddHandler(h Handler) {
@@ -126,9 +135,4 @@ func Fatal(args ...interface{}) {
 // Fatal logs a message at level Fatal
 func Fatalf(format string, args ...interface{})  {
 	std.Logf(FatalLevel, format, args...)
-}
-
-// Exit runs all the logger exit handlers and then terminates the program using os.Exit(code)
-func Exit(code int) {
-	std.Exit(code)
 }

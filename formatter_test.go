@@ -23,7 +23,10 @@ func TestJSONFormatter(t *testing.T) {
 
 	l.AddHandler(h)
 
-	l.Info("info message")
+	l.WithFields(slog.M{
+		"field1": 123,
+		"field2": "abc",
+	}).Info("info message")
 
 	// PrettyPrint=true
 

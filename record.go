@@ -76,6 +76,13 @@ func (r *Record) WithError(err error) *Record {
 	return r.WithFields(M{ErrorKey: err})
 }
 
+// WithData on record
+func (r *Record) WithData(data M) *Record {
+	nr := r.Copy()
+	nr.Data = data
+	return r
+}
+
 // SetData on record
 func (r *Record) SetData(data M) *Record {
 	r.Data = data
@@ -128,6 +135,12 @@ func (r *Record) AddFields(fields M) *Record {
 	return r
 }
 
+// SetFields to the record
+func (r *Record) SetFields(fields M) *Record {
+	r.Fields = fields
+	return r
+}
+
 // WithField with new fields to record
 func (r *Record) WithFields(fields M) *Record {
 	fieldsCopy := make(M, len(r.Fields)+len(fields))
@@ -174,6 +187,20 @@ func (r *Record) Copy() *Record {
 	}
 }
 
+// NewBuffer get or create an Buffer
+func (r *Record) NewBuffer() *bytes.Buffer {
+	if r.Buffer == nil {
+		return &bytes.Buffer{}
+	}
+
+	return r.Buffer
+}
+
+//
+// ---------------------------------------------------------------------------
+// Add log message with level
+// ---------------------------------------------------------------------------
+//
 
 // Log an message with level
 func (r *Record) Log(level Level, args ...interface{}) {
@@ -185,13 +212,74 @@ func (r *Record) Logf(level Level, format string, args ...interface{}) {
 	r.log(level, fmt.Sprintf(format, args...))
 }
 
-// NewBuffer get or create an Buffer
-func (r *Record) NewBuffer() *bytes.Buffer {
-	if r.Buffer == nil {
-		return &bytes.Buffer{}
-	}
+// Info logs a message at level Info
+func (r *Record) Info(args ...interface{}) {
+	r.Log(InfoLevel, args...)
+}
 
-	return r.Buffer
+// Info logs a message at level Info
+func (r *Record) Infof(format string, args ...interface{})  {
+	r.Logf(InfoLevel, format, args...)
+}
+
+// Trace logs a message at level Trace
+func (r *Record) Trace(args ...interface{}) {
+	r.Log(TraceLevel, args...)
+}
+
+// Trace logs a message at level Trace
+func (r *Record) Tracef(format string, args ...interface{})  {
+	r.Logf(TraceLevel, format, args...)
+}
+
+// Error logs a message at level Error
+func (r *Record) Error(args ...interface{}) {
+	r.Log(ErrorLevel, args...)
+}
+
+// Error logs a message at level Error
+func (r *Record) Errorf(format string, args ...interface{})  {
+	r.Logf(ErrorLevel, format, args...)
+}
+
+// Notice logs a message at level Notice
+func (r *Record) Notice(args ...interface{}) {
+	r.Log(NoticeLevel, args...)
+}
+
+// Notice logs a message at level Notice
+func (r *Record) Noticef(format string, args ...interface{})  {
+	r.Logf(NoticeLevel, format, args...)
+}
+
+// Debug logs a message at level Debug
+func (r *Record) Debug(args ...interface{}) {
+	r.Log(DebugLevel, args...)
+}
+
+// Debug logs a message at level Debug
+func (r *Record) Debugf(format string, args ...interface{})  {
+	r.Logf(DebugLevel, format, args...)
+}
+
+// Fatal logs a message at level Fatal
+func (r *Record) Fatal(args ...interface{}) {
+	r.Log(FatalLevel, args...)
+}
+
+// Fatal logs a message at level Fatal
+func (r *Record) Fatalf(format string, args ...interface{})  {
+	r.Logf(FatalLevel, format, args...)
+}
+
+// Panic logs a message at level Panic
+func (r *Record) Panic(args ...interface{}) {
+	r.Log(PanicLevel, args...)
+}
+
+// Panic logs a message at level Panic
+func (r *Record) Panicf(format string, args ...interface{})  {
+	r.Logf(PanicLevel, format, args...)
 }
 
 func (r *Record) log(level Level, message string) {
