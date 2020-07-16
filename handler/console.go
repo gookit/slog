@@ -29,3 +29,15 @@ func NewConsoleHandler(levels []slog.Level) *ConsoleHandler {
 	h.SetFormatter(f)
 	return h
 }
+
+// SetColorTheme to the formatter
+func (h *ConsoleHandler) ConfigFormatter(fn func(formatter *slog.TextFormatter)) {
+	fn(h.Formatter().(*slog.TextFormatter))
+}
+
+// Handle log record
+func (h *ConsoleHandler) Handle(record *slog.Record)  error {
+	// TODO use color func
+	// color.Fprintf(h.Out, "")
+	return h.StreamHandler.Handle(record)
+}

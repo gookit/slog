@@ -59,6 +59,14 @@ func NewSugaredLogger(out io.Writer, level Level) *SugaredLogger {
 	return sl
 }
 
+// JSONSugaredLogger create new SugaredLogger use JSONFormatter
+func JSONSugaredLogger(out io.Writer, level Level) *SugaredLogger {
+	sl := NewSugaredLogger(out, level)
+	sl.SetFormatter(NewJSONFormatter())
+
+	return sl
+}
+
 // Configure current logger
 func (sl *SugaredLogger) Configure(fn func(sl *SugaredLogger)) *SugaredLogger {
 	fn(sl)

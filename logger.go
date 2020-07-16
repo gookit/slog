@@ -67,7 +67,7 @@ func (logger *Logger) releaseRecord(r *Record) {
 
 //
 // ---------------------------------------------------------------------------
-// Management
+// Management logger
 // ---------------------------------------------------------------------------
 //
 
@@ -107,6 +107,22 @@ func (logger *Logger) FlushAll() {
 	for _, handler := range logger.handlers {
 		_= handler.Flush() // ignore error
 	}
+}
+
+// Reset the logger
+func (logger *Logger) Reset() {
+	logger.ResetHandlers()
+	logger.ResetProcessors()
+}
+
+// ResetProcessors for the logger
+func (logger *Logger) ResetProcessors() {
+	logger.processors = make([]Processor, 0)
+}
+
+// ResetHandlers for the logger
+func (logger *Logger) ResetHandlers() {
+	logger.handlers = make([]Handler, 0)
 }
 
 // Exit logger handle

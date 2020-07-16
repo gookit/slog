@@ -8,9 +8,17 @@ Go 实现的简单、开箱即用的日志库
 
 English instructions please read [README](README.md)
 
+## 功能特色
+
+- 简单，无需配置，开箱即用
+- 可以同时添加多个 `Handler` 日志处理器，输出日志到不同的地方
+- 可以任意扩展自己需要的 `Handler` `Formatter` 
+- 支持支持自定义 `Handler` 处理器
+- 支持支持自定义 `Formatter` 格式化处理
+
 ## GoDoc
 
-- [godoc for github](https://pkg.go.dev/github.com/gookit/slog?tab=doc)
+- [Godoc for github](https://pkg.go.dev/github.com/gookit/slog?tab=doc)
 
 ## Install
 

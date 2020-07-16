@@ -76,39 +76,51 @@ var (
 	TimeFormatRFC3339  = time.RFC3339
 )
 
-// AllLevels exposing all logging levels
-var AllLevels = []Level{
-	PanicLevel,
-	FatalLevel,
-	ErrorLevel,
-	WarnLevel,
-	NoticeLevel,
-	InfoLevel,
-	DebugLevel,
-	TraceLevel,
-}
+var (
+	// AllLevels exposing all logging levels
+	AllLevels = []Level{
+		PanicLevel,
+		FatalLevel,
+		ErrorLevel,
+		WarnLevel,
+		NoticeLevel,
+		InfoLevel,
+		DebugLevel,
+		TraceLevel,
+	}
 
-// LevelNames all level mapping name
-var LevelNames = map[Level]string{
-	PanicLevel:  "PANIC",
-	FatalLevel:  "FATAL",
-	ErrorLevel:  "ERROR",
-	NoticeLevel: "NOTICE",
-	WarnLevel:   "WARNING",
-	InfoLevel:   "INFO",
-	DebugLevel:  "DEBUG",
-	TraceLevel:  "TRACE",
-}
+	// LevelNames all level mapping name
+	LevelNames = map[Level]string{
+		PanicLevel:  "PANIC",
+		FatalLevel:  "FATAL",
+		ErrorLevel:  "ERROR",
+		NoticeLevel: "NOTICE",
+		WarnLevel:   "WARNING",
+		InfoLevel:   "INFO",
+		DebugLevel:  "DEBUG",
+		TraceLevel:  "TRACE",
+	}
+)
 
-// DefaultFields default log export fields
-var DefaultFields = []string{
-	FieldKeyDatetime,
-	FieldKeyChannel,
-	FieldKeyLevel,
-	FieldKeyMessage,
-	FieldKeyData,
-	FieldKeyExtra,
-}
+var (
+	// DefaultFields default log export fields
+	DefaultFields = []string{
+		FieldKeyDatetime,
+		FieldKeyChannel,
+		FieldKeyLevel,
+		FieldKeyMessage,
+		FieldKeyData,
+		FieldKeyExtra,
+	}
+	// NoTimeFields log export fields without time
+	NoTimeFields = []string{
+		FieldKeyChannel,
+		FieldKeyLevel,
+		FieldKeyMessage,
+		FieldKeyData,
+		FieldKeyExtra,
+	}
+)
 
 // LevelName match
 func LevelName(l Level) string {
