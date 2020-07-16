@@ -33,6 +33,9 @@ type FileHandler struct {
 	file     *os.File
 
 	useJSON bool
+	// perm for create log file
+	FilePerm int
+	// file contents max size
 	MaxSize uint64
 }
 

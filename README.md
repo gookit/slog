@@ -8,6 +8,14 @@ A simple log library for Go.
 
 中文说明请阅读 [README.zh-CN](README.zh-CN.md)
 
+## Features
+
+- Simple, directly available without configuration
+- Multiple `Handler` log handlers can be added at the same time to output logs to different places
+- You can arbitrarily extend the `Handler` `Formatter` you need
+- Support to support custom `Handler`
+- Support to support custom `Formatter`
+
 ## GoDoc
 
 - [godoc for github](https://pkg.go.dev/github.com/gookit/slog?tab=doc)

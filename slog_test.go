@@ -40,7 +40,7 @@ func TestUseJSONFormat(t *testing.T) {
 	r.Debugf("debug %s", "message")
 }
 
-func TestInfof(t *testing.T) {
+func TestNewConsoleHandler(t *testing.T) {
 	slog.AddHandler(handler.NewConsoleHandler(slog.AllLevels))
 
 	h2 := handler.NewConsoleHandler(slog.AllLevels)
@@ -53,8 +53,6 @@ func TestInfof(t *testing.T) {
 	}))
 
 	slog.AddHandler(h2)
-	slog.AddProcessor(slog.AddHostname())
-
 	slog.Infof("info %s", "message")
 }
 
