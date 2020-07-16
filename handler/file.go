@@ -1,16 +1,18 @@
 package handler
 
 import (
-	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
+	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/slog"
 )
 
-// var onceLogDir sync.Once
+var onceLogDir sync.Once
 
 var (
 	// program pid
@@ -27,10 +29,9 @@ const defaultMaxSize uint64 = 1024 * 1024 * 1800
 // FileHandler definition
 type FileHandler struct {
 	BaseHandler
-	*bufio.Writer // has Flash() method
 
-	filepath string
-	file     *os.File
+	fpath string
+	file  *os.File
 
 	useJSON bool
 	// perm for create log file
@@ -39,9 +40,15 @@ type FileHandler struct {
 	MaxSize uint64
 }
 
+// JSONFileHandler create new FileHandler with JSON formatter
+func JSONFileHandler(fpath string) *FileHandler {
+	return NewFileHandler(fpath, true)
+}
+
 // NewFileHandler create new FileHandler
-func NewFileHandler(useJSON bool) *FileHandler {
+func NewFileHandler(fpath string, useJSON bool) *FileHandler {
 	h := &FileHandler{
+		fpath:   fpath,
 		useJSON: useJSON,
 		MaxSize: defaultMaxSize,
 	}
@@ -53,17 +60,32 @@ func NewFileHandler(useJSON bool) *FileHandler {
 	return h
 }
 
-func (h *FileHandler) Flush() error {
-	return h.Writer.Flush()
+// Writer return *os.File
+func (h *FileHandler) Writer() io.Writer {
+	return h.file
 }
 
+// Sync logs to disk file
 func (h *FileHandler) Sync() error {
 	return h.file.Sync()
 }
 
+// Handle the log record
+func (h *FileHandler) Handle(r *slog.Record) error {
+	bts, err := h.Formatter().Format(r)
+	if err != nil {
+		return err
+	}
+
+	_, err = h.file.Write(bts)
+	return err
+}
+
 func create(tag string, t time.Time) (f *os.File, filename string, err error) {
 	// TODO ...
-	// onceLogDir.Do(createLogDir)
+	onceLogDir.Do(func() {
+		fsutil.Mkdir(filepath.Dir(h.fpath))
+	})
 
 	dir := "some"
 

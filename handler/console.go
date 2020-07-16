@@ -3,6 +3,7 @@ package handler
 import (
 	"os"
 
+	"github.com/gookit/color"
 	"github.com/gookit/slog"
 )
 
@@ -17,14 +18,14 @@ type ConsoleHandler struct {
 
 // NewConsoleHandler create new ConsoleHandler
 func NewConsoleHandler(levels []slog.Level) *ConsoleHandler {
-	h := &ConsoleHandler{
-		StreamHandler: *NewStreamHandler(os.Stdout, levels),
-	}
+	h := &ConsoleHandler{}
+	h.Out = os.Stdout
+	h.Levels = levels
 
 	// create new formatter
 	f := slog.NewTextFormatter()
-	// enable color
-	f.EnableColor = true
+	// enable color on console
+	f.EnableColor = color.IsSupportColor()
 
 	h.SetFormatter(f)
 	return h
@@ -33,11 +34,4 @@ func NewConsoleHandler(levels []slog.Level) *ConsoleHandler {
 // SetColorTheme to the formatter
 func (h *ConsoleHandler) ConfigFormatter(fn func(formatter *slog.TextFormatter)) {
 	fn(h.Formatter().(*slog.TextFormatter))
-}
-
-// Handle log record
-func (h *ConsoleHandler) Handle(record *slog.Record)  error {
-	// TODO use color func
-	// color.Fprintf(h.Out, "")
-	return h.StreamHandler.Handle(record)
 }

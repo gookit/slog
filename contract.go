@@ -17,6 +17,12 @@ type FlushSyncWriter interface {
 	io.Writer
 }
 
+// WriterHandler is the interface satisfied by logging destinations.
+type WriterHandler interface {
+	Handler
+	Writer() io.Writer
+}
+
 //
 // Handler interface
 //

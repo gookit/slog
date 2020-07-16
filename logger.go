@@ -35,6 +35,13 @@ func New() *Logger {
 	return NewWithName("")
 }
 
+// NewWithHandlers create an new logger with handlers
+func NewWithHandlers(hs ...Handler) *Logger {
+	logger := NewWithName("")
+	logger.AddHandlers(hs...)
+	return logger
+}
+
 // NewWithName create an new logger with name
 func NewWithName(name string) *Logger {
 	logger := &Logger{

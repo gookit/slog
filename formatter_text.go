@@ -62,6 +62,7 @@ func (f *TextFormatter) FieldMap() StringMap {
 
 // Format an log record
 func (f *TextFormatter) Format(r *Record) ([]byte, error) {
+	// output colored logs for console
 	if f.EnableColor {
 		return f.formatForConsole(r)
 	}
@@ -110,6 +111,7 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 
 func (f *TextFormatter) renderColorByLevel(text string, level Level) string {
 	if theme, ok := f.ColorTheme[level]; ok {
+		// return theme.Render(text)
 		return theme.Render(text)
 	}
 

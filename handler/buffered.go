@@ -11,23 +11,25 @@ const defaultFlushInterval = 1000
 // BufferedHandler definition
 type BufferedHandler struct {
 	BaseHandler
-	bufio.Writer
-	handler slog.Handler
 	number int
+	buffer *bufio.Writer
+	handler slog.Handler
 	// options
 	FlushInterval int
 }
 
 // NewBufferedHandler create new BufferedHandler
-func NewBufferedHandler(handler slog.Handler) *BufferedHandler {
+func NewBufferedHandler(handler slog.WriterHandler) *BufferedHandler {
 	return &BufferedHandler{
+		buffer: bufio.NewWriter(handler.Writer()),
 		handler: handler,
 		FlushInterval: defaultFlushInterval,
 	}
 }
 
+// Flush all buffers to the `h.handler.Writer()`
 func (h *BufferedHandler) Flush() error {
-	return h.Writer.Flush()
+	return h.buffer.Flush()
 }
 
 // Handle log record
@@ -38,7 +40,7 @@ func (h *BufferedHandler) Handle(record *slog.Record)  error {
 	}
 
 	h.number++
-	_, err = h.Writer.Write(bts)
+	_, err = h.buffer.Write(bts)
 
 	if h.number >= h.FlushInterval {
 		return h.Flush()

@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"runtime"
@@ -29,7 +28,7 @@ func (h *RotateFileHandler) Write(p []byte) (n int, err error) {
 		}
 	}
 
-	n, err = h.Writer.Write(p)
+	n, err = h.file.Write(p)
 	h.written += uint64(n)
 	// if err != nil {
 	// 	h.logger.Exit(err)
@@ -53,7 +52,7 @@ func (h *RotateFileHandler) rotateFile(now time.Time) error {
 	}
 
 	// init writer
-	h.Writer = bufio.NewWriterSize(h.file, bufferSize)
+	// h.Writer = bufio.NewWriterSize(h.file, bufferSize)
 
 	// Write header.
 	var buf bytes.Buffer

@@ -13,7 +13,6 @@ type StreamHandler struct {
 	// Out io.WriteCloser
 	Out io.Writer
 
-	FilePerm int
 	UseLock bool
 }
 
