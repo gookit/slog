@@ -1,12 +1,12 @@
 # slog
 
-A simple log library for Go.
+Go 实现的简单、开箱即用的日志库
 
-> Inspired the projects [Seldaek/monolog](https://github.com/Seldaek/monolog) and [sirupsen/logrus](https://github.com/sirupsen/logrus). Thank you very much
+> 项目实现参考了 [Seldaek/monolog](https://github.com/Seldaek/monolog) and [sirupsen/logrus](https://github.com/sirupsen/logrus) ，非常感谢它们。
 
-## [中文说明](README.zh-CN.md)
+## [English](README.md)
 
-中文说明请阅读 [README.zh-CN](README.zh-CN.md)
+English instructions please read [README](README.md)
 
 ## GoDoc
 
@@ -20,7 +20,7 @@ go get github.com/gookit/slog
 
 ## Usage
 
-`slog` is very simple to use and can be used without any configuration
+`slog` 使用非常简单，无需任何配置即可使用
 
 ## Quick Start
 

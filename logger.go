@@ -58,6 +58,10 @@ func (logger *Logger) newRecord() *Record {
 }
 
 func (logger *Logger) releaseRecord(r *Record) {
+	// reset data
+	r.Data = map[string]interface{}{}
+	r.Extra = map[string]interface{}{}
+	r.Fields = map[string]interface{}{}
 	logger.recordPool.Put(r)
 }
 
@@ -66,6 +70,12 @@ func (logger *Logger) releaseRecord(r *Record) {
 // Management
 // ---------------------------------------------------------------------------
 //
+
+// Configure current logger
+func (logger *Logger) Configure(fn func(logger *Logger)) *Logger {
+	fn(logger)
+	return logger
+}
 
 // Sync flushes buffered logs (if any).
 func (logger *Logger) Sync() error {
@@ -139,7 +149,7 @@ func (logger *Logger) AddHandlers(hs ...Handler) {
 	logger.handlers = append(logger.handlers, hs...)
 }
 
-// PushHandler to the logger. alias of PushHandler()
+// PushHandler to the logger. alias of AddHandler()
 func (logger *Logger) PushHandler(h Handler) {
 	logger.AddHandler(h)
 }
@@ -180,7 +190,7 @@ func (logger *Logger) WithFields(fields M) *Record {
 	r := logger.newRecord()
 	defer logger.releaseRecord(r)
 
-	return r.SetFields(fields)
+	return r.WithFields(fields)
 }
 
 // WithData new record with data
@@ -188,7 +198,7 @@ func (logger *Logger) WithData(data M) *Record {
 	r := logger.newRecord()
 	defer logger.releaseRecord(r)
 
-	return r.SetData(data)
+	return r.WithData(data)
 }
 
 // WithTime new record with time.Time
@@ -196,7 +206,7 @@ func (logger *Logger) WithTime(t time.Time) *Record {
 	r := logger.newRecord()
 	defer logger.releaseRecord(r)
 
-	return r.SetTime(t)
+	return r.WithTime(t)
 }
 
 // WithContext new record with context.Context
@@ -204,7 +214,7 @@ func (logger *Logger) WithContext(ctx context.Context) *Record {
 	r := logger.newRecord()
 	defer logger.releaseRecord(r)
 
-	return r.SetContext(ctx)
+	return r.WithContext(ctx)
 }
 
 //

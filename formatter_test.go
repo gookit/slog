@@ -17,7 +17,7 @@ func TestNewTextFormatter(t *testing.T) {
 func TestJSONFormatter(t *testing.T) {
 	l := slog.New()
 
-	f := slog.NewJSONFormatter(nil)
+	f := slog.NewJSONFormatter()
 	h := handler.NewConsoleHandler(slog.AllLevels)
 	h.SetFormatter(f)
 
@@ -34,9 +34,10 @@ func TestJSONFormatter(t *testing.T) {
 
 	l = slog.New()
 	h = handler.NewConsoleHandler(slog.AllLevels)
-	f = slog.NewJSONFormatter(slog.StringMap{
+	f = slog.NewJSONFormatter()
+	f.Aliases = slog.StringMap{
 		"level": "levelName",
-	})
+	}
 	f.PrettyPrint = true
 
 	h.SetFormatter(f)

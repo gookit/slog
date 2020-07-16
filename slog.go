@@ -1,3 +1,28 @@
+/*
+Package slog A simple log library for Go.
+
+Source code and other details for the project are available at GitHub:
+
+	https://github.com/gookit/slog
+
+Quick usage:
+
+	package main
+
+	import (
+		"github.com/gookit/slog"
+	)
+
+	func main() {
+		slog.Info("info log message")
+		slog.Warn("warning log message")
+		slog.Infof("info log %s", "message")
+		slog.Debugf("debug %s", "message")
+	}
+
+More usage please see README.
+
+*/
 package slog
 
 import (
@@ -31,6 +56,12 @@ func NewSugaredLogger(out io.Writer, level Level) *SugaredLogger {
 	// NOTICE: use self as an log handler
 	sl.AddHandler(sl)
 
+	return sl
+}
+
+// Configure current logger
+func (sl *SugaredLogger) Configure(fn func(sl *SugaredLogger)) *SugaredLogger {
+	fn(sl)
 	return sl
 }
 
@@ -68,12 +99,15 @@ func (sl *SugaredLogger) Flush() error {
 
 //
 // ------------------------------------------------------------
-// Global std logger usage
+// Global std logger operate
 // ------------------------------------------------------------
 //
 
-// std logger is an SugaredLogger
-var std = NewSugaredLogger(os.Stdout, ErrorLevel)
+// std logger is an SugaredLogger.
+// It is directly available without any additional configuration
+var std = NewSugaredLogger(os.Stdout, ErrorLevel).Configure(func(sl *SugaredLogger) {
+	sl.SetName("stdLogger")
+})
 
 // Std get std logger
 func Std() *SugaredLogger {
@@ -85,12 +119,12 @@ func Exit(code int) {
 	std.Exit(code)
 }
 
-// AddHandler to the logger
+// AddHandler to the std logger
 func AddHandler(h Handler) {
 	std.AddHandler(h)
 }
 
-// AddHandlers to the logger
+// AddHandlers to the std logger
 func AddHandlers(hs ...Handler) {
 	std.AddHandlers(hs...)
 }

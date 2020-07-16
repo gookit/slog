@@ -44,7 +44,7 @@ func NewFileHandler(useJSON bool) *FileHandler {
 	}
 
 	if useJSON {
-		h.SetFormatter(slog.NewJSONFormatter(slog.StringMap{}))
+		h.SetFormatter(slog.NewJSONFormatter())
 	}
 
 	return h

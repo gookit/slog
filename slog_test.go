@@ -23,7 +23,7 @@ func TestUseTextFormat(t *testing.T) {
 }
 
 func TestUseJSONFormat(t *testing.T) {
-	slog.SetFormatter(slog.NewJSONFormatter(nil))
+	slog.SetFormatter(slog.NewJSONFormatter())
 
 	slog.Info("info log message")
 	slog.Warn("warning log message")
@@ -44,10 +44,12 @@ func TestInfof(t *testing.T) {
 	slog.AddHandler(handler.NewConsoleHandler(slog.AllLevels))
 
 	h2 := handler.NewConsoleHandler(slog.AllLevels)
-	h2.SetFormatter(slog.NewJSONFormatter(slog.StringMap{
-		"level": "levelName",
-		"message": "msg",
-		"data": "params",
+	h2.SetFormatter(slog.NewJSONFormatter().Configure(func(f *slog.JSONFormatter) {
+		f.Aliases = slog.StringMap{
+			"level": "levelName",
+			"message": "msg",
+			"data": "params",
+		}
 	}))
 
 	slog.AddHandler(h2)

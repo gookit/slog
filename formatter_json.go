@@ -21,12 +21,18 @@ type JSONFormatter struct {
 }
 
 // NewJSONFormatter create new JSONFormatter
-func NewJSONFormatter(aliases StringMap) *JSONFormatter {
+func NewJSONFormatter() *JSONFormatter {
 	return &JSONFormatter{
-		Aliases: aliases,
+		// Aliases: make(StringMap, 0),
 		Fields:  DefaultFields,
 		TimeFormat: DefaultTimeFormat,
 	}
+}
+
+// Configure current formatter
+func (f *JSONFormatter) Configure(fn func(*JSONFormatter)) *JSONFormatter {
+	fn(f)
+	return f
 }
 
 // Format an log record

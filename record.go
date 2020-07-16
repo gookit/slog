@@ -44,24 +44,39 @@ type Record struct {
 
 var (
 	// Defines the key when adding errors using WithError.
-	ErrorKey = "error"
+	ErrorKey   = "error"
 	bufferPool *sync.Pool
 )
 
 func newRecord(logger *Logger) *Record {
 	return &Record{
 		logger:  logger,
-		Data:  make(M, 0),
-		Extra:  make(M, 0),
-		Fields:  make(M),
 		Channel: DefaultChannelName,
+		// init map data field
+		Data:   make(M, 3),
+		Extra:  make(M, 0),
+		Fields: make(M, 0),
 	}
 }
 
-// SetContext on record
-func (r *Record) SetContext(ctx context.Context) *Record {
-	r.Ctx = ctx
-	return r
+//
+// ---------------------------------------------------------------------------
+// Copy record with something
+// ---------------------------------------------------------------------------
+//
+
+// WithData on record
+func (r *Record) WithData(data M) *Record {
+	nr := r.Copy()
+	nr.Data = data
+	return nr
+}
+
+// WithTime set the record time
+func (r *Record) WithTime(t time.Time) *Record {
+	nr := r.Copy()
+	nr.Time = t
+	return nr
 }
 
 // WithContext on record
@@ -76,10 +91,61 @@ func (r *Record) WithError(err error) *Record {
 	return r.WithFields(M{ErrorKey: err})
 }
 
-// WithData on record
-func (r *Record) WithData(data M) *Record {
+// WithField with an new field to record
+func (r *Record) WithField(name string, val interface{}) *Record {
+	return r.WithFields(M{name: val})
+}
+
+// WithField with new fields to record
+func (r *Record) WithFields(fields M) *Record {
 	nr := r.Copy()
-	nr.Data = data
+
+	for k, v := range fields {
+		nr.Fields[k] = v
+	}
+
+	return nr
+}
+
+// Copy new record from old record
+func (r *Record) Copy() *Record {
+	dataCopy := make(M, len(r.Data))
+	for k, v := range r.Data {
+		dataCopy[k] = v
+	}
+
+	fieldsCopy := make(M, len(r.Fields))
+	for k, v := range r.Fields {
+		fieldsCopy[k] = v
+	}
+
+	extraCopy := make(M, len(r.Extra))
+	for k, v := range r.Extra {
+		extraCopy[k] = v
+	}
+
+	return &Record{
+		logger:    r.logger,
+		Channel:   r.Channel,
+		Time:      r.Time,
+		Level:     r.Level,
+		LevelName: r.LevelName,
+		Message:   r.Message,
+		Data:      dataCopy,
+		Extra:     extraCopy,
+		Fields:    fieldsCopy,
+	}
+}
+
+//
+// ---------------------------------------------------------------------------
+// Direct set value to record
+// ---------------------------------------------------------------------------
+//
+
+// SetContext on record
+func (r *Record) SetContext(ctx context.Context) *Record {
+	r.Ctx = ctx
 	return r
 }
 
@@ -123,22 +189,10 @@ func (r *Record) SetTime(t time.Time) *Record {
 	return r
 }
 
-// WithTime set the record time
-func (r *Record) WithTime(t time.Time) *Record {
-	nr := r.Copy()
-	nr.Time = t
-	return nr
-}
-
 // AddField add new field to the record
 func (r *Record) AddField(name string, val interface{}) *Record {
 	r.Fields[name] = val
 	return r
-}
-
-// WithField with an new field to record
-func (r *Record) WithField(name string, val interface{}) *Record {
-	return r.WithFields(M{name: val})
 }
 
 // AddFields add new fields to the record
@@ -153,52 +207,6 @@ func (r *Record) AddFields(fields M) *Record {
 func (r *Record) SetFields(fields M) *Record {
 	r.Fields = fields
 	return r
-}
-
-// WithField with new fields to record
-func (r *Record) WithFields(fields M) *Record {
-	fieldsCopy := make(M, len(r.Fields)+len(fields))
-	for k, v := range r.Fields {
-		fieldsCopy[k] = v
-	}
-
-	for k, v := range fields {
-		fieldsCopy[k] = v
-	}
-
-	return &Record{
-		logger:    r.logger,
-		Channel:   r.Channel,
-		Time:      r.Time,
-		Level:     r.Level,
-		LevelName: r.LevelName,
-		Message:   r.Message,
-		Fields:    fieldsCopy,
-	}
-}
-
-// WithField with new fields to record
-func (r *Record) Copy() *Record {
-	dataCopy := make(M, len(r.Data))
-	for k, v := range r.Data {
-		dataCopy[k] = v
-	}
-
-	fieldsCopy := make(M, len(r.Fields))
-	for k, v := range r.Fields {
-		fieldsCopy[k] = v
-	}
-
-	return &Record{
-		logger:    r.logger,
-		Channel:   r.Channel,
-		Time:      r.Time,
-		Level:     r.Level,
-		LevelName: r.LevelName,
-		Message:   r.Message,
-		Fields:    fieldsCopy,
-		Data:      dataCopy,
-	}
 }
 
 // NewBuffer get or create an Buffer
@@ -232,7 +240,7 @@ func (r *Record) Info(args ...interface{}) {
 }
 
 // Info logs a message at level Info
-func (r *Record) Infof(format string, args ...interface{})  {
+func (r *Record) Infof(format string, args ...interface{}) {
 	r.Logf(InfoLevel, format, args...)
 }
 
@@ -242,7 +250,7 @@ func (r *Record) Trace(args ...interface{}) {
 }
 
 // Trace logs a message at level Trace
-func (r *Record) Tracef(format string, args ...interface{})  {
+func (r *Record) Tracef(format string, args ...interface{}) {
 	r.Logf(TraceLevel, format, args...)
 }
 
@@ -252,7 +260,7 @@ func (r *Record) Error(args ...interface{}) {
 }
 
 // Error logs a message at level Error
-func (r *Record) Errorf(format string, args ...interface{})  {
+func (r *Record) Errorf(format string, args ...interface{}) {
 	r.Logf(ErrorLevel, format, args...)
 }
 
@@ -262,7 +270,7 @@ func (r *Record) Notice(args ...interface{}) {
 }
 
 // Notice logs a message at level Notice
-func (r *Record) Noticef(format string, args ...interface{})  {
+func (r *Record) Noticef(format string, args ...interface{}) {
 	r.Logf(NoticeLevel, format, args...)
 }
 
@@ -272,7 +280,7 @@ func (r *Record) Debug(args ...interface{}) {
 }
 
 // Debug logs a message at level Debug
-func (r *Record) Debugf(format string, args ...interface{})  {
+func (r *Record) Debugf(format string, args ...interface{}) {
 	r.Logf(DebugLevel, format, args...)
 }
 
@@ -282,7 +290,7 @@ func (r *Record) Fatal(args ...interface{}) {
 }
 
 // Fatal logs a message at level Fatal
-func (r *Record) Fatalf(format string, args ...interface{})  {
+func (r *Record) Fatalf(format string, args ...interface{}) {
 	r.Logf(FatalLevel, format, args...)
 }
 
@@ -292,7 +300,7 @@ func (r *Record) Panic(args ...interface{}) {
 }
 
 // Panic logs a message at level Panic
-func (r *Record) Panicf(format string, args ...interface{})  {
+func (r *Record) Panicf(format string, args ...interface{}) {
 	r.Logf(PanicLevel, format, args...)
 }
 
