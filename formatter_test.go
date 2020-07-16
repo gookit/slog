@@ -8,8 +8,8 @@ import (
 	"github.com/gookit/slog/handler"
 )
 
-func TestNewLineFormatter(t *testing.T) {
-	lf := slog.NewLineFormatter()
+func TestNewTextFormatter(t *testing.T) {
+	lf := slog.NewTextFormatter()
 
 	fmt.Println(lf.FieldMap())
 }

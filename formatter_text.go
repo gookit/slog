@@ -10,7 +10,7 @@ import (
 	"github.com/gookit/goutil/strutil"
 )
 
-const DefaultTemplate = "[{{datetime}}] {{channel}}.{{level}}: {{message}} {{data}} {{extra}}\n"
+const DefaultTemplate = "[{{datetime}}] [{{channel}}] [{{level}}] {{message}} {{data}} {{extra}}\n"
 
 // ColorTheme for format log to console
 var ColorTheme = map[Level]color.Color{
@@ -32,11 +32,14 @@ type TextFormatter struct {
 	TimeFormat string
 	// Enable color on print log to terminal
 	EnableColor bool
+	// ColorTheme setting on render color on terminal
 	ColorTheme  map[Level]color.Color
+	// FullDisplay Whether to display when record.Data, record.Extra, etc. are empty
+	FullDisplay bool
 }
 
-// NewLineFormatter create new TextFormatter
-func NewLineFormatter(template ...string) *TextFormatter {
+// NewTextFormatter create new TextFormatter
+func NewTextFormatter(template ...string) *TextFormatter {
 	var fmtTpl string
 	if len(template) > 0 {
 		fmtTpl = template[0]
@@ -45,9 +48,9 @@ func NewLineFormatter(template ...string) *TextFormatter {
 	}
 
 	return &TextFormatter{
-		template:     fmtTpl,
+		template:   fmtTpl,
 		fieldMap:   parseFieldMap(fmtTpl),
-		TimeFormat: time.RFC3339,
+		TimeFormat: DefaultTimeFormat,
 		ColorTheme: ColorTheme,
 	}
 }
@@ -80,9 +83,17 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 		case field == FieldKeyMessage:
 			tplData[tplVar] = r.Message
 		case field == FieldKeyData:
-			tplData[tplVar] = fmt.Sprint(r.Data)
+			if f.FullDisplay || len(r.Data) > 0{
+				tplData[tplVar] = fmt.Sprint(r.Data)
+			} else {
+				tplData[tplVar] = ""
+			}
 		case field == FieldKeyExtra:
-			tplData[tplVar] = fmt.Sprint(r.Extra)
+			if f.FullDisplay || len(r.Extra) > 0 {
+				tplData[tplVar] = fmt.Sprint(r.Extra)
+			} else {
+				tplData[tplVar] = ""
+			}
 		default:
 			tplData[tplVar] = fmt.Sprint(r.Fields[field])
 		}

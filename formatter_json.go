@@ -25,6 +25,7 @@ func NewJSONFormatter(aliases StringMap) *JSONFormatter {
 	return &JSONFormatter{
 		Aliases: aliases,
 		Fields:  DefaultFields,
+		TimeFormat: DefaultTimeFormat,
 	}
 }
 

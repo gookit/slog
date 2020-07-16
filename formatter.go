@@ -6,7 +6,7 @@ type Formattable struct {
 }
 
 // DefaultFormatter setting
-var DefaultFormatter = NewLineFormatter()
+var DefaultFormatter = NewTextFormatter()
 
 // Formatter get formatter
 func (f *Formattable) Formatter() Formatter {

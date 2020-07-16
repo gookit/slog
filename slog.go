@@ -11,6 +11,8 @@ type SugaredLogger struct {
 	*Logger
 	// output writer
 	Out   io.Writer
+	// Level for log handling.
+	// Greater than or equal to this level will be recorded
 	Level Level
 	// if not set, will use DefaultFormatter
 	formatter Formatter
@@ -83,13 +85,49 @@ func Exit(code int) {
 	std.Exit(code)
 }
 
+// AddHandler to the logger
 func AddHandler(h Handler) {
 	std.AddHandler(h)
 }
 
+// AddHandlers to the logger
+func AddHandlers(hs ...Handler) {
+	std.AddHandlers(hs...)
+}
+
+// GetFormatter of the std logger
+func GetFormatter() Formatter {
+	return std.Formatter()
+}
+
+// SetFormatter to std logger
+func SetFormatter(f Formatter) {
+	std.SetFormatter(f)
+}
+
+// AddProcessor to the logger
 func AddProcessor(p Processor) {
 	std.AddProcessor(p)
 }
+
+// AddProcessors to the logger
+func AddProcessors(ps ...Processor) {
+	std.AddProcessors(ps...)
+}
+
+// -------------------------- New record with log data, fields -----------------------------
+
+// WithData new record with data
+func WithData(data M) *Record {
+	return std.WithData(data)
+}
+
+// WithFields new record with fields
+func WithFields(fields M) *Record {
+	return std.WithFields(fields)
+}
+
+// -------------------------- Add log messages with level -----------------------------
 
 // Trace logs a message at level Trace
 func Trace(args ...interface{}) {
