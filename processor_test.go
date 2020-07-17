@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAddHostname(t *testing.T) {
+func TestAddProcessor(t *testing.T) {
 	buf := new(bytes.Buffer)
 
 	l := slog.JSONSugaredLogger(buf, slog.ErrorLevel)
@@ -19,6 +19,7 @@ func TestAddHostname(t *testing.T) {
 
 	hostname,_ := os.Hostname()
 
+	// {"channel":"application","data":{},"datetime":"2020/07/17 12:01:35","extra":{},"hostname":"InhereMac","level":"INFO","message":"message"}
 	str := buf.String()
 	buf.Reset()
 	assert.Contains(t, str, `"level":"INFO"`)
@@ -26,7 +27,7 @@ func TestAddHostname(t *testing.T) {
 	assert.Contains(t, str, fmt.Sprintf(`"hostname":"%s"`, hostname))
 
 	l.ResetProcessors()
-	l.AddProcessor(slog.MemoryUsage)
+	l.PushProcessor(slog.MemoryUsage)
 	l.Info("message2")
 
 	// {"channel":"application","data":{},"datetime":"2020/07/16 16:40:18","extra":{"memoryUsage":326072},"level":"INFO","message":"message2"}

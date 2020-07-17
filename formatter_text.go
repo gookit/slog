@@ -14,15 +14,18 @@ const DefaultTemplate = "[{{datetime}}] [{{channel}}] [{{level}}] {{message}} {{
 
 // ColorTheme for format log to console
 var ColorTheme = map[Level]color.Color{
-	ErrorLevel: color.FgRed,
-	WarnLevel:  color.FgYellow,
-	InfoLevel:  color.FgGreen,
-	DebugLevel: color.FgCyan,
-	TraceLevel: color.FgMagenta,
+	FatalLevel:  color.FgRed,
+	ErrorLevel:  color.FgMagenta,
+	WarnLevel:   color.FgYellow,
+	NoticeLevel: color.OpBold,
+	InfoLevel:   color.FgGreen,
+	DebugLevel:  color.FgCyan,
+	// TraceLevel:  color.FgLightGreen,
 }
 
 // TextFormatter definition
 type TextFormatter struct {
+	// text template for output logs
 	template string
 	// field map, parsed from format string.
 	// eg: {"level": "{{level}}",}
@@ -33,9 +36,12 @@ type TextFormatter struct {
 	// Enable color on print log to terminal
 	EnableColor bool
 	// ColorTheme setting on render color on terminal
-	ColorTheme  map[Level]color.Color
+	ColorTheme map[Level]color.Color
 	// FullDisplay Whether to display when record.Data, record.Extra, etc. are empty
 	FullDisplay bool
+	// EncodeFunc data encode for record.Data, record.Extra, etc.
+	// Default is encode by `fmt.Sprint()`
+	EncodeFunc func(v interface{}) string
 }
 
 // NewTextFormatter create new TextFormatter
@@ -48,10 +54,14 @@ func NewTextFormatter(template ...string) *TextFormatter {
 	}
 
 	return &TextFormatter{
-		template:   fmtTpl,
-		fieldMap:   parseFieldMap(fmtTpl),
+		template: fmtTpl,
+		fieldMap: parseFieldMap(fmtTpl),
+		// default options
 		TimeFormat: DefaultTimeFormat,
 		ColorTheme: ColorTheme,
+		EncodeFunc: func(v interface{}) string {
+			return fmt.Sprint(v)
+		},
 	}
 }
 
@@ -64,10 +74,14 @@ func (f *TextFormatter) FieldMap() StringMap {
 func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 	// output colored logs for console
 	if f.EnableColor {
-		return f.formatForConsole(r)
+		return f.formatWithColor(r)
 	}
 
-	tplData := make(StringMap, len(f.fieldMap))
+	return f.formatNoColor(r)
+}
+
+func (f *TextFormatter) formatNoColor(r *Record) ([]byte, error) {
+	tplData := make(map[string]string, len(f.fieldMap))
 	for field, tplVar := range f.fieldMap {
 		switch {
 		case field == FieldKeyDatetime:
@@ -83,43 +97,31 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 		case field == FieldKeyMessage:
 			tplData[tplVar] = r.Message
 		case field == FieldKeyData:
-			if f.FullDisplay || len(r.Data) > 0{
-				tplData[tplVar] = fmt.Sprint(r.Data)
+			if f.FullDisplay || len(r.Data) > 0 {
+				tplData[tplVar] = f.EncodeFunc(r.Data)
 			} else {
 				tplData[tplVar] = ""
 			}
 		case field == FieldKeyExtra:
 			if f.FullDisplay || len(r.Extra) > 0 {
-				tplData[tplVar] = fmt.Sprint(r.Extra)
+				tplData[tplVar] = f.EncodeFunc(r.Extra)
 			} else {
 				tplData[tplVar] = ""
 			}
 		default:
-			tplData[tplVar] = fmt.Sprint(r.Fields[field])
+			tplData[tplVar] = f.EncodeFunc(r.Fields[field])
 		}
 	}
-
-	// dump.Println(tplData, r.LevelName)
 
 	// TODO ... use r.Buffer
 	// strings.NewReplacer().WriteString(buf)
 
 	str := strutil.Replaces(f.template, tplData)
-
 	return []byte(str), nil
 }
 
-func (f *TextFormatter) renderColorByLevel(text string, level Level) string {
-	if theme, ok := f.ColorTheme[level]; ok {
-		// return theme.Render(text)
-		return theme.Render(text)
-	}
-
-	return text
-}
-
-func (f *TextFormatter) formatForConsole(r *Record) ([]byte, error) {
-	tplData := make(StringMap, len(f.fieldMap))
+func (f *TextFormatter) formatWithColor(r *Record) ([]byte, error) {
+	tplData := make(map[string]string, len(f.fieldMap))
 	for field, tplVar := range f.fieldMap {
 		switch {
 		case field == FieldKeyDatetime:
@@ -139,28 +141,35 @@ func (f *TextFormatter) formatForConsole(r *Record) ([]byte, error) {
 			//
 			// }
 		case field == FieldKeyData:
-			if f.FullDisplay || len(r.Data) > 0{
-				tplData[tplVar] = fmt.Sprint(r.Data)
+			if f.FullDisplay || len(r.Data) > 0 {
+				tplData[tplVar] = f.EncodeFunc(r.Data)
 			} else {
 				tplData[tplVar] = ""
 			}
 		case field == FieldKeyExtra:
 			if f.FullDisplay || len(r.Extra) > 0 {
-				tplData[tplVar] = fmt.Sprint(r.Extra)
+				tplData[tplVar] = f.EncodeFunc(r.Extra)
 			} else {
 				tplData[tplVar] = ""
 			}
 		default:
-			tplData[tplVar] = fmt.Sprint(r.Fields[field])
+			tplData[tplVar] = f.EncodeFunc(r.Fields[field])
 		}
 	}
 
 	str := strutil.Replaces(f.template, tplData)
-
 	return []byte(str), nil
 }
 
-// parse "{{channel}}" to { "channel": "{{channel}}" }
+func (f *TextFormatter) renderColorByLevel(text string, level Level) string {
+	if theme, ok := f.ColorTheme[level]; ok {
+		return theme.Render(text)
+	}
+
+	return text
+}
+
+// parse string "{{channel}}" to map { "channel": "{{channel}}" }
 func parseFieldMap(format string) StringMap {
 	rgp := regexp.MustCompile(`{{\w+}}`)
 

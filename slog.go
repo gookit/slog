@@ -105,6 +105,18 @@ func (sl *SugaredLogger) Flush() error {
 	return nil
 }
 
+// Reset the logger
+func (sl *SugaredLogger) Reset() {
+	// sl = NewSugaredLogger(os.Stdout)
+
+	// reset handlers and processors
+	sl.Logger.Reset()
+
+	// NOTICE: use self as an log handler
+	sl.AddHandler(sl)
+	sl.formatter = DefaultFormatter
+}
+
 //
 // ------------------------------------------------------------
 // Global std logger operate
@@ -113,13 +125,27 @@ func (sl *SugaredLogger) Flush() error {
 
 // std logger is an SugaredLogger.
 // It is directly available without any additional configuration
-var std = NewSugaredLogger(os.Stdout, ErrorLevel).Configure(func(sl *SugaredLogger) {
-	sl.SetName("stdLogger")
-})
+var std = newStdLogger()
+
+func newStdLogger() *SugaredLogger  {
+	return NewSugaredLogger(os.Stdout, ErrorLevel).Configure(func(sl *SugaredLogger) {
+		sl.SetName("stdLogger")
+	})
+}
 
 // Std get std logger
 func Std() *SugaredLogger {
 	return std
+}
+
+// Reset the std logger
+func Reset()  {
+	std = newStdLogger()
+}
+
+// Reset the std logger
+func Configure(fn func(logger *SugaredLogger))  {
+	std.Configure(fn)
 }
 
 // Exit runs all the logger exit handlers and then terminates the program using os.Exit(code)
@@ -189,6 +215,16 @@ func Info(args ...interface{}) {
 // Info logs a message at level Info
 func Infof(format string, args ...interface{}) {
 	std.Logf(InfoLevel, format, args...)
+}
+
+// Notice logs a message at level Notice
+func Notice(args ...interface{}) {
+	std.Log(NoticeLevel, args...)
+}
+
+// Notice logs a message at level Notice
+func Noticef(format string, args ...interface{}) {
+	std.Logf(NoticeLevel, format, args...)
 }
 
 // Warn logs a message at level Warn

@@ -5,10 +5,10 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"time"
 
-	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/slog"
 )
 
@@ -23,7 +23,7 @@ var (
 	// userName = "unknownuser"
 )
 
-// MaxSize is the maximum size of a log file in bytes.
+// defaultMaxSize is the maximum size of a log file in bytes.
 const defaultMaxSize uint64 = 1024 * 1024 * 1800
 
 // FileHandler definition
@@ -81,11 +81,37 @@ func (h *FileHandler) Handle(r *slog.Record) error {
 	return err
 }
 
+func logName(tag string, t time.Time) string {
+	// return tag + t.Nanosecond()
+	return tag + t.Format("20060102T15:04:05Z07:00")
+}
+
+// from glog
+// stacks is a wrapper for runtime.Stack that attempts to recover the data for all goroutines.
+func stacks(all bool) []byte {
+	// We don't know how big the traces are, so grow a few times if they don't fit. Start large, though.
+	n := 10000
+	if all {
+		n = 100000
+	}
+
+	var trace []byte
+	for i := 0; i < 5; i++ {
+		trace = make([]byte, n)
+		nbytes := runtime.Stack(trace, all)
+		if nbytes < len(trace) {
+			return trace[:nbytes]
+		}
+		n *= 2
+	}
+	return trace
+}
+
 func create(tag string, t time.Time) (f *os.File, filename string, err error) {
 	// TODO ...
-	onceLogDir.Do(func() {
-		fsutil.Mkdir(filepath.Dir(h.fpath))
-	})
+	// onceLogDir.Do(func() {
+	// 	fsutil.Mkdir(filepath.Dir(h.fpath))
+	// })
 
 	dir := "some"
 

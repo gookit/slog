@@ -20,17 +20,17 @@ English instructions please read [README](README.md)
 
 - [Godoc for github](https://pkg.go.dev/github.com/gookit/slog?tab=doc)
 
-## Install
+## 安装
 
 ```bash
 go get github.com/gookit/slog
 ```
 
-## Usage
+## 使用
 
 `slog` 使用非常简单，无需任何配置即可使用
 
-## Quick Start
+## 快速开始
 
 ```go
 package main
@@ -47,7 +47,7 @@ func main() {
 }
 ```
 
-**Output:**
+**输出预览:**
 
 ```text
 [2020/07/16 12:19:33] [application] [INFO] info log message  
@@ -56,7 +56,48 @@ func main() {
 [2020/07/16 12:19:33] [application] [DEBUG] debug message  
 ```
 
-### Use JSON Format
+### 启用控制台颜色
+
+您可以在输出控制台日志时启用颜色输出，将会根据不同级别打印不同色彩。
+
+```go
+package main
+
+import (
+	"github.com/gookit/slog"
+)
+
+func main() {
+	slog.Configure(func(logger *slog.SugaredLogger) {
+		f := logger.Formatter().(*slog.TextFormatter)
+		f.EnableColor = true
+	})
+
+	slog.Trace("this is a simple log message")
+	slog.Debug("this is a simple log message")
+	slog.Info("this is a simple log message")
+	slog.Notice("this is a simple log message")
+	slog.Warn("this is a simple log message")
+	slog.Error("this is a simple log message")
+	slog.Fatal("this is a simple log message")
+}
+```
+
+**输出预览:**
+
+![](_example/images/console-color-log.png)
+
+
+上面是更改了默认的 `Formatter` 设置。你也可以追加 `ConsoleHandler` 来支持打印日志到控制台：
+
+```go
+l := slog.NewWithHandlers(handler.NewConsoleHandler(slog.AllLevels))
+
+l.Trace("this is a simple log message")
+l.Debug("this is a simple log message")
+```
+
+### 使用JSON格式
 
 ```go
 package main
@@ -85,7 +126,7 @@ func main() {
 }
 ```
 
-**Output:**
+**输出预览:**
 
 ```text
 {"channel":"application","data":{},"datetime":"2020/07/16 13:23:33","extra":{},"level":"INFO","message":"info log message"}
@@ -95,7 +136,9 @@ func main() {
 {"IP":"127.0.0.1","category":"service","channel":"application","datetime":"2020/07/16 13:23:33","extra":{},"level":"DEBUG","message":"debug message"}
 ```
 
-## Workflow
+## Introduction
+
+简易日志处理流程：
 
 ```text
          Processors
@@ -103,11 +146,51 @@ Logger -{
          Handlers -{ With Formatters
 ```
 
-## Processor
+### Processor
 
-## Handler
+`Processor` - 日志记录(`Record`)处理器。
 
-## Formatter
+你可以使用它在日志 `Record` 到达 `Handler` 处理之前，对Record进行额外的操作，比如：新增字段，添加扩展信息等
+
+这里使用内置的processor `slog.AddHostname` 作为示例，它可以在每条日志记录上添加新字段 `hostname`。
+
+```go
+slog.AddProcessor(slog.AddHostname())
+
+slog.Info("message")
+```
+
+输出类似：
+
+```
+{"channel":"application","data":{},"datetime":"2020/07/17 12:01:35","extra":{},"hostname":"InhereMac","level":"INFO","message":"message"}
+```
+
+### Handler
+
+`Handler` - 日志处理器，每条日志都会经过 `Handler.Handle()` 处理，在这里你可以将日志发送到 控制台，文件，远程服务器。
+
+> 你可以自定义任何想要的 `Handler`，只需要实现 `slog.Handler` 接口即可。
+
+```go
+// Handler interface definition
+type Handler interface {
+	// io.Closer
+	Flush() error
+	// IsHandling Checks whether the given record will be handled by this handler.
+	IsHandling(level Level) bool
+	// Handle a log record.
+	// all records may be passed to this method, and the handler should discard
+	// those that it does not want to handle.
+	Handle(*Record) error
+}
+```
+
+> 注意：一定要记得将 `Handler` 添加注册到 logger 实例上，日志记录才会经过 `Handler` 处理。
+
+### Formatter
+
+`Formatter` - 日志数据格式化。它通常设置于 `Handler` 中，可以用于格式化日志记录，将记录转成文本，JSON等，`Handler` 再将格式化后的数据写入到指定的地方。
 
 ## Refer
 

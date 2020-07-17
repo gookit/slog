@@ -40,6 +40,22 @@ func TestUseJSONFormat(t *testing.T) {
 	r.Debugf("debug %s", "message")
 }
 
+func TestConsoleLogWithColor(t *testing.T) {
+	slog.Reset()
+	slog.Configure(func(logger *slog.SugaredLogger) {
+		f := logger.Formatter().(*slog.TextFormatter)
+		f.EnableColor = true
+	})
+
+	slog.Trace("this is a simple log message")
+	slog.Debug("this is a simple log message")
+	slog.Info("this is a simple log message")
+	slog.Notice("this is a simple log message")
+	slog.Warn("this is a simple log message")
+	slog.Error("this is a simple log message")
+	slog.Fatal("this is a simple log message")
+}
+
 func TestNewConsoleHandler(t *testing.T) {
 	slog.AddHandler(handler.NewConsoleHandler(slog.AllLevels))
 

@@ -88,3 +88,17 @@ func getCaller(maxCallerDepth int) *runtime.Frame {
 	// if we got here, we failed to find the caller's context
 	return nil
 }
+
+// from glog
+// func timeoutFlush(timeout time.Duration) {
+// 	done := make(chan bool, 1)
+// 	go func() {
+// 		FlushAll() // calls logging.lockAndFlushAll()
+// 		done <- true
+// 	}()
+// 	select {
+// 	case <-done:
+// 	case <-time.After(timeout):
+// 		fmt.Fprintln(os.Stderr, "glog: Flush took longer than", timeout)
+// 	}
+// }
