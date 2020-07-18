@@ -13,8 +13,8 @@ A simple log library for Go.
 - Simple, directly available without configuration
 - Multiple `Handler` log handlers can be added at the same time to output logs to different places
 - You can arbitrarily extend the `Handler` `Formatter` you need
-- Support to support custom `Handler`
-- Support to support custom `Formatter`
+- Support to custom `Handler`
+- Support to custom `Formatter`
 
 ## GoDoc
 

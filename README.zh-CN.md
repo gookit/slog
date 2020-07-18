@@ -13,8 +13,8 @@ English instructions please read [README](README.md)
 - 简单，无需配置，开箱即用
 - 可以同时添加多个 `Handler` 日志处理器，输出日志到不同的地方
 - 可以任意扩展自己需要的 `Handler` `Formatter` 
-- 支持支持自定义 `Handler` 处理器
-- 支持支持自定义 `Formatter` 格式化处理
+- 支持自定义 `Handler` 处理器
+- 支持自定义 `Formatter` 格式化处理
 
 ## GoDoc
 
