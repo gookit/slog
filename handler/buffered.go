@@ -19,16 +19,27 @@ type BufferedHandler struct {
 }
 
 // NewBufferedHandler create new BufferedHandler
-func NewBufferedHandler(handler slog.WriterHandler) *BufferedHandler {
+func NewBufferedHandler(handler slog.WriterHandler, bufSize int) *BufferedHandler {
 	return &BufferedHandler{
-		buffer: bufio.NewWriter(handler.Writer()),
+		buffer: bufio.NewWriterSize(handler.Writer(), bufSize),
 		handler: handler,
+		// options
 		FlushInterval: defaultFlushInterval,
 	}
 }
 
 // Flush all buffers to the `h.handler.Writer()`
 func (h *BufferedHandler) Flush() error {
+	return h.buffer.Flush()
+}
+
+// Sync log records
+func (h *BufferedHandler) Sync() error {
+	return nil
+}
+
+// Sync log records
+func (h *BufferedHandler) Close() error {
 	return h.buffer.Flush()
 }
 

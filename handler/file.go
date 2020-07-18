@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -33,12 +34,17 @@ type FileHandler struct {
 	// log file path. eg: "/var/log/my-app.log"
 	fpath string
 	file  *os.File
+	bufio *bufio.Writer
 
 	useJSON bool
+	// UseBuffer on write log records
+	UseBuffer bool
 	// FileFlag for create. default: os.O_CREATE|os.O_WRONLY|os.O_APPEND
 	FileFlag int
 	// FileMode perm for create log file. (it's os.FileMode)
 	FileMode uint32
+	// BuffSize for enable buffer
+	BuffSize int
 	// file contents max size
 	MaxSize uint64
 }
@@ -96,19 +102,30 @@ func (h *FileHandler) Handle(r *slog.Record) (err error) {
 	var bts []byte
 	bts, err = h.Formatter().Format(r)
 	if err != nil {
-		return err
+		return
 	}
 
 	// create file
 	if h.file == nil {
 		h.file, err = os.OpenFile(h.fpath, h.FileFlag, os.FileMode(h.FileMode))
 		if err != nil {
-			return err
+			return
 		}
 	}
 
-	_, err = h.file.Write(bts)
-	return err
+	// direct write logs
+	if !h.UseBuffer {
+		_, err = h.file.Write(bts)
+		return
+	}
+
+	// enable buffer
+	if h.bufio == nil {
+		h.bufio = bufio.NewWriterSize(h.file, h.BuffSize)
+	}
+
+	_, err = h.bufio.Write(bts)
+	return
 }
 
 func logName(tag string, t time.Time) string {
