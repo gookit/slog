@@ -11,6 +11,4 @@ require (
 	go.uber.org/zap v1.15.0
 )
 
-replace (
-	github.com/gookit/slog => ../
-)
+replace github.com/gookit/slog => ../
