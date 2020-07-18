@@ -186,14 +186,11 @@ type Handler interface {
 ## Refer
 
 - https://github.com/golang/glog
-- https://github.com/Seldaek/monolog
-
-## Related
-
 - https://github.com/sirupsen/logrus
+- https://github.com/Seldaek/monolog
+- https://github.com/syyongx/llog
 - https://github.com/uber-go/zap
 - https://github.com/rs/zerolog
-- https://github.com/syyongx/llog
 
 ## LICENSE
 

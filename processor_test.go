@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAddProcessor(t *testing.T) {
+func TestLogger_AddProcessor(t *testing.T) {
 	buf := new(bytes.Buffer)
 
 	l := slog.JSONSugaredLogger(buf, slog.ErrorLevel)

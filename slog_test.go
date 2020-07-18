@@ -14,15 +14,42 @@ func ExampleNew() {
 	slog.Infof("info log %s", "message")
 }
 
-func TestUseTextFormat(t *testing.T) {
-	// sl := slog.NewSugaredLogger(os.Stdout, slog.ErrorLevel)
+func TestStd(t *testing.T) {
+	assert.Equal(t, "stdLogger", slog.Std().Name())
+
+	_, ok := slog.GetFormatter().(*slog.TextFormatter)
+	assert.True(t, ok)
+}
+
+func TestTextFormatNoColor(t *testing.T) {
+	defer slog.Reset()
+	slog.Configure(func(logger *slog.SugaredLogger) {
+		f := logger.Formatter.(*slog.TextFormatter)
+		f.EnableColor = false
+	})
+
 	slog.Info("info log message")
 	slog.Warn("warning log message")
 	slog.Infof("info log %s", "message")
 	slog.Debugf("debug %s", "message")
+	slog.Reset()
+}
+
+func TestTextFormatWithColor(t *testing.T) {
+	defer slog.Reset()
+
+	slog.Std().Trace("this is a simple log message")
+	slog.Trace("this is a simple log message")
+	slog.Debug("this is a simple log message")
+	slog.Info("this is a simple log message")
+	slog.Notice("this is a simple log message")
+	slog.Warn("this is a simple log message")
+	slog.Error("this is a simple log message")
+	slog.Fatal("this is a simple log message")
 }
 
 func TestUseJSONFormat(t *testing.T) {
+	defer slog.Reset()
 	slog.SetFormatter(slog.NewJSONFormatter())
 
 	slog.Info("info log message")
@@ -34,42 +61,32 @@ func TestUseJSONFormat(t *testing.T) {
 
 	r := slog.WithFields(slog.M{
 		"category": "service",
-		"IP": "127.0.0.1",
+		"IP":       "127.0.0.1",
 	})
 	r.Infof("info %s", "message")
 	r.Debugf("debug %s", "message")
 }
 
-func TestConsoleLogWithColor(t *testing.T) {
-	slog.Reset()
-	slog.Configure(func(logger *slog.SugaredLogger) {
-		f := logger.Formatter().(*slog.TextFormatter)
-		f.EnableColor = true
-	})
-
-	slog.Trace("this is a simple log message")
-	slog.Debug("this is a simple log message")
-	slog.Info("this is a simple log message")
-	slog.Notice("this is a simple log message")
-	slog.Warn("this is a simple log message")
-	slog.Error("this is a simple log message")
-	slog.Fatal("this is a simple log message")
-}
-
-func TestNewConsoleHandler(t *testing.T) {
+func TestAddHandler(t *testing.T) {
+	defer slog.Reset()
 	slog.AddHandler(handler.NewConsoleHandler(slog.AllLevels))
 
 	h2 := handler.NewConsoleHandler(slog.AllLevels)
 	h2.SetFormatter(slog.NewJSONFormatter().Configure(func(f *slog.JSONFormatter) {
 		f.Aliases = slog.StringMap{
-			"level": "levelName",
+			"level":   "levelName",
 			"message": "msg",
-			"data": "params",
+			"data":    "params",
 		}
 	}))
 
-	slog.AddHandler(h2)
+	slog.AddHandlers(h2)
 	slog.Infof("info %s", "message")
+}
+
+func TestAddProcessor(t *testing.T) {
+	defer slog.Reset()
+
 }
 
 func TestLevelName(t *testing.T) {
@@ -90,9 +107,9 @@ func TestName2Level(t *testing.T) {
 
 	// special names
 	tests := map[slog.Level]string{
-		slog.WarnLevel: "warn",
+		slog.WarnLevel:  "warn",
 		slog.ErrorLevel: "err",
-		slog.InfoLevel: "",
+		slog.InfoLevel:  "",
 	}
 	for wantLevel, name := range tests {
 		level, err := slog.Name2Level(name)

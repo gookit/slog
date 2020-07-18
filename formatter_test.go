@@ -34,11 +34,12 @@ func TestJSONFormatter(t *testing.T) {
 
 	l = slog.New()
 	h = handler.NewConsoleHandler(slog.AllLevels)
-	f = slog.NewJSONFormatter()
-	f.Aliases = slog.StringMap{
-		"level": "levelName",
-	}
-	f.PrettyPrint = true
+	f = slog.NewJSONFormatter(func(f *slog.JSONFormatter) {
+		f.Aliases = slog.StringMap{
+			"level": "levelName",
+		}
+		f.PrettyPrint = true
+	})
 
 	h.SetFormatter(f)
 	l.AddHandler(h)

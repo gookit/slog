@@ -196,17 +196,45 @@ type Handler interface {
 
 ```
 
+## New Logger
+
+你可以创建新的 Logger 实例：
+
+- 方式1：
+
+```go
+logger := slog.New()
+```
+
+- 方式2：
+
+```go
+logger := slog.NewWithName("myLogger")
+```
+
+- 方式3：
+
+```go
+package main
+
+import (
+	"github.com/gookit/slog"
+	"github.com/gookit/slog/handler"
+)
+
+func main() {
+	logger := slog.NewWithHandlers(handler.NewConsoleHandler(slog.AllLevels))
+}
+```
+
 ## Refer
 
 - https://github.com/golang/glog
-- https://github.com/Seldaek/monolog
-
-## Related
-
 - https://github.com/sirupsen/logrus
+- https://github.com/Seldaek/monolog
+- https://github.com/syyongx/llog
 - https://github.com/uber-go/zap
 - https://github.com/rs/zerolog
-- https://github.com/syyongx/llog
 
 ## LICENSE
 

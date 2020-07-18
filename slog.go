@@ -36,23 +36,23 @@ import (
 // Is a fast and usable Logger, which already contains the default formatting and handling capabilities
 type SugaredLogger struct {
 	*Logger
-	// output writer
-	Out   io.Writer
+	// Formatter log formatter, default use TextFormatter
+	Formatter
+	// Output output writer
+	Output   io.Writer
 	// Level for log handling.
 	// Greater than or equal to this level will be recorded
 	Level Level
-	// if not set, will use DefaultFormatter
-	formatter Formatter
 }
 
 // NewSugaredLogger create new SugaredLogger
-func NewSugaredLogger(out io.Writer, level Level) *SugaredLogger {
+func NewSugaredLogger(output io.Writer, level Level) *SugaredLogger {
 	sl := &SugaredLogger{
-		Out:    out,
 		Level:  level,
+		Output: output,
 		Logger: New(),
 		// default value
-		formatter: DefaultFormatter,
+		Formatter: NewTextFormatter(),
 	}
 
 	// NOTICE: use self as an log handler
@@ -64,7 +64,7 @@ func NewSugaredLogger(out io.Writer, level Level) *SugaredLogger {
 // JSONSugaredLogger create new SugaredLogger use JSONFormatter
 func JSONSugaredLogger(out io.Writer, level Level) *SugaredLogger {
 	sl := NewSugaredLogger(out, level)
-	sl.SetFormatter(NewJSONFormatter())
+	sl.Formatter = NewJSONFormatter()
 
 	return sl
 }
@@ -75,15 +75,6 @@ func (sl *SugaredLogger) Configure(fn func(sl *SugaredLogger)) *SugaredLogger {
 	return sl
 }
 
-// Formatter get formatter
-func (sl *SugaredLogger) Formatter() Formatter {
-	return sl.formatter
-}
-
-// SetFormatter to handler
-func (sl *SugaredLogger) SetFormatter(formatter Formatter) {
-	sl.formatter = formatter
-}
 
 // IsHandling Check if the current level can be handling
 func (sl *SugaredLogger) IsHandling(level Level) bool {
@@ -92,12 +83,12 @@ func (sl *SugaredLogger) IsHandling(level Level) bool {
 
 // Handle log record
 func (sl *SugaredLogger) Handle(record *Record) error {
-	bts, err := sl.formatter.Format(record)
+	bts, err := sl.Format(record)
 	if err != nil {
 		return err
 	}
 
-	_, err = sl.Out.Write(bts)
+	_, err = sl.Output.Write(bts)
 	return err
 }
 
@@ -116,7 +107,7 @@ func (sl *SugaredLogger) Reset() {
 
 	// NOTICE: use self as an log handler
 	sl.AddHandler(sl)
-	sl.formatter = DefaultFormatter
+	sl.Formatter = NewTextFormatter()
 }
 
 //
@@ -133,7 +124,7 @@ func newStdLogger() *SugaredLogger  {
 	return NewSugaredLogger(os.Stdout, ErrorLevel).Configure(func(sl *SugaredLogger) {
 		sl.SetName("stdLogger")
 		// auto enable console color
-		sl.formatter.(*TextFormatter).EnableColor = color.IsSupportColor()
+		sl.Formatter.(*TextFormatter).EnableColor = color.IsSupportColor()
 	})
 }
 
@@ -169,12 +160,12 @@ func AddHandlers(hs ...Handler) {
 
 // GetFormatter of the std logger
 func GetFormatter() Formatter {
-	return std.Formatter()
+	return std.Formatter
 }
 
 // SetFormatter to std logger
 func SetFormatter(f Formatter) {
-	std.SetFormatter(f)
+	std.Formatter = f
 }
 
 // AddProcessor to the logger
