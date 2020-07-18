@@ -204,12 +204,14 @@ type Handler interface {
 
 ```go
 logger := slog.New()
+// add handlers ...
 ```
 
 - 方式2：
 
 ```go
 logger := slog.NewWithName("myLogger")
+// add handlers ...
 ```
 
 - 方式3：
@@ -224,6 +226,7 @@ import (
 
 func main() {
 	logger := slog.NewWithHandlers(handler.NewConsoleHandler(slog.AllLevels))
+	logger.Info("message")
 }
 ```
 
