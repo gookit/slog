@@ -138,11 +138,11 @@ Logger -{
 
 ### Processor
 
-`Processor` - 日志记录(`Record`)处理器。
+`Processor` - Logging `Record` processor.
 
-你可以使用它在日志 `Record` 到达 `Handler` 处理之前，对Record进行额外的操作，比如：新增字段，添加扩展信息等
+You can use it to perform additional operations on the record before the log record reaches the Handler for processing, such as adding fields, adding extended information, etc.
 
-这里使用内置的processor `slog.AddHostname` 作为示例，它可以在每条日志记录上添加新字段 `hostname`。
+Here we use the built-in processor `slog.AddHostname` as an example, it can add a new field `hostname` to each log record.
 
 ```go
 slog.AddProcessor(slog.AddHostname())
@@ -150,7 +150,7 @@ slog.AddProcessor(slog.AddHostname())
 slog.Info("message")
 ```
 
-输出类似：
+**Output:**
 
 ```json
 {"channel":"application","level":"INFO","datetime":"2020/07/17 12:01:35","hostname":"InhereMac","data":{},"extra":{},"message":"message"}
@@ -158,9 +158,9 @@ slog.Info("message")
 
 ### Handler
 
-`Handler` - 日志处理器，每条日志都会经过 `Handler.Handle()` 处理，在这里你可以将日志发送到 控制台，文件，远程服务器。
+`Handler` - Log processor, each log will be processed by `Handler.Handle()`, where you can send the log to the console, file, or remote server.
 
-> 你可以自定义任何想要的 `Handler`，只需要实现 `slog.Handler` 接口即可。
+> You can customize any `Handler` you want, you only need to implement the `slog.Handler` interface.
 
 ```go
 // Handler interface definition
@@ -176,11 +176,12 @@ type Handler interface {
 }
 ```
 
-> 注意：一定要记得将 `Handler` 添加注册到 logger 实例上，日志记录才会经过 `Handler` 处理。
+> Note: Remember to add the `Handler` to the logger instance before the log records will be processed by the `Handler`.
 
 ### Formatter
 
-`Formatter` - 日志数据格式化。它通常设置于 `Handler` 中，可以用于格式化日志记录，将记录转成文本，JSON等，`Handler` 再将格式化后的数据写入到指定的地方。
+`Formatter` - Log data formatting.
+ It is usually set in `Handler`, which can be used to format log records, convert records into text, JSON, etc., `Handler` then writes the formatted data to the specified place.
 
 ## Refer
 
