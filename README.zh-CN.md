@@ -148,9 +148,7 @@ Logger -{
 
 ### Processor
 
-`Processor` - 日志记录(`Record`)处理器。
-
-你可以使用它在日志 `Record` 到达 `Handler` 处理之前，对Record进行额外的操作，比如：新增字段，添加扩展信息等
+`Processor` - 日志记录(`Record`)处理器。你可以使用它在日志 `Record` 到达 `Handler` 处理之前，对Record进行额外的操作，比如：新增字段，添加扩展信息等
 
 这里使用内置的processor `slog.AddHostname` 作为示例，它可以在每条日志记录上添加新字段 `hostname`。
 
@@ -162,8 +160,8 @@ slog.Info("message")
 
 输出类似：
 
-```
-{"channel":"application","data":{},"datetime":"2020/07/17 12:01:35","extra":{},"hostname":"InhereMac","level":"INFO","message":"message"}
+```json
+{"channel":"application","level":"INFO","datetime":"2020/07/17 12:01:35","hostname":"InhereMac","data":{},"extra":{},"message":"message"}
 ```
 
 ### Handler

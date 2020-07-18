@@ -128,7 +128,7 @@ func main() {
 
 ## Introduction
 
-slog handle workflow:
+slog handle workflow(like monolog):
 
 ```text
          Processors
@@ -152,8 +152,8 @@ slog.Info("message")
 
 输出类似：
 
-```
-{"channel":"application","data":{},"datetime":"2020/07/17 12:01:35","extra":{},"hostname":"InhereMac","level":"INFO","message":"message"}
+```json
+{"channel":"application","level":"INFO","datetime":"2020/07/17 12:01:35","hostname":"InhereMac","data":{},"extra":{},"message":"message"}
 ```
 
 ### Handler
