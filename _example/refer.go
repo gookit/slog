@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/gookit/slog"
 	"github.com/sirupsen/logrus"
 
 	"github.com/syyongx/llog"
@@ -24,13 +25,19 @@ func main() {
 	log.Println("raw log message")
 
 	// -- glog
-	glog.Infof("glog %s", "message")
+	glog.Infof("glog %s", "message message")
 
 	// -- llog
 	llog.NewLogger("llog test")
 
+	// -- llog
+	slog.WithFields(slog.M{
+		"omg":    true,
+		"number": 122,
+	}).Infof("slog %s", "message message")
+
 	// -- logrus
-	logrus.Debug("logrus message")
+	logrus.Debug("logrus message message")
 	logrus.WithFields(logrus.Fields{
 		"omg":    true,
 		"number": 122,

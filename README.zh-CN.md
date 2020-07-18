@@ -190,6 +190,12 @@ type Handler interface {
 
 `Formatter` - 日志数据格式化。它通常设置于 `Handler` 中，可以用于格式化日志记录，将记录转成文本，JSON等，`Handler` 再将格式化后的数据写入到指定的地方。
 
+## Add Handler
+
+```go
+
+```
+
 ## Refer
 
 - https://github.com/golang/glog

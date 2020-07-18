@@ -28,6 +28,8 @@ package slog
 import (
 	"io"
 	"os"
+
+	"github.com/gookit/color"
 )
 
 // SugaredLogger definition.
@@ -130,6 +132,8 @@ var std = newStdLogger()
 func newStdLogger() *SugaredLogger  {
 	return NewSugaredLogger(os.Stdout, ErrorLevel).Configure(func(sl *SugaredLogger) {
 		sl.SetName("stdLogger")
+		// auto enable console color
+		sl.formatter.(*TextFormatter).EnableColor = color.IsSupportColor()
 	})
 }
 

@@ -30,12 +30,15 @@ const defaultMaxSize uint64 = 1024 * 1024 * 1800
 type FileHandler struct {
 	BaseHandler
 
+	// log file path. eg: "/var/log/my-app.log"
 	fpath string
 	file  *os.File
 
 	useJSON bool
-	// perm for create log file
-	FilePerm int
+	// FileFlag for create. default: os.O_CREATE|os.O_WRONLY|os.O_APPEND
+	FileFlag int
+	// FileMode perm for create log file. (it's os.FileMode)
+	FileMode uint32
 	// file contents max size
 	MaxSize uint64
 }
@@ -48,15 +51,27 @@ func JSONFileHandler(fpath string) *FileHandler {
 // NewFileHandler create new FileHandler
 func NewFileHandler(fpath string, useJSON bool) *FileHandler {
 	h := &FileHandler{
-		fpath:   fpath,
-		useJSON: useJSON,
-		MaxSize: defaultMaxSize,
+		fpath:    fpath,
+		useJSON:  useJSON,
+		MaxSize:  defaultMaxSize,
+		FileMode: 0664, // default FileMode
+		FileFlag: os.O_CREATE | os.O_WRONLY | os.O_APPEND,
+		// base handler
+		BaseHandler: BaseHandler{
+			Levels: slog.AllLevels, // default log all levels
+		},
 	}
 
 	if useJSON {
 		h.SetFormatter(slog.NewJSONFormatter())
 	}
 
+	return h
+}
+
+// Configure the handler
+func (h *FileHandler) Configure(fn func(h *FileHandler)) *FileHandler {
+	fn(h)
 	return h
 }
 
@@ -70,11 +85,26 @@ func (h *FileHandler) Sync() error {
 	return h.file.Sync()
 }
 
+// Sync logs to disk file
+func (h *FileHandler) Flush() error {
+	// TODO flush buffers to h.file
+	return h.file.Sync()
+}
+
 // Handle the log record
-func (h *FileHandler) Handle(r *slog.Record) error {
-	bts, err := h.Formatter().Format(r)
+func (h *FileHandler) Handle(r *slog.Record) (err error) {
+	var bts []byte
+	bts, err = h.Formatter().Format(r)
 	if err != nil {
 		return err
+	}
+
+	// create file
+	if h.file == nil {
+		h.file, err = os.OpenFile(h.fpath, h.FileFlag, os.FileMode(h.FileMode))
+		if err != nil {
+			return err
+		}
 	}
 
 	_, err = h.file.Write(bts)

@@ -11,5 +11,6 @@ func TestNewFileHandler(t *testing.T) {
 	h := handler.NewFileHandler("./testdata/app.log", false)
 
 	l := slog.NewWithHandlers(h)
-	l.Info("message")
+	l.Info("info message")
+	l.Warn("warn message")
 }
