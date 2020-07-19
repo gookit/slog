@@ -10,8 +10,8 @@ import (
 type StreamHandler struct {
 	BaseHandler
 
-	// Out io.WriteCloser
-	Out io.Writer
+	// Output io.WriteCloser
+	Output io.Writer
 
 	UseLock bool
 }
@@ -19,7 +19,7 @@ type StreamHandler struct {
 // NewStreamHandler create new StreamHandler
 func NewStreamHandler(out io.Writer, levels []slog.Level) *StreamHandler {
 	return &StreamHandler{
-		Out: out,
+		Output: out,
 		BaseHandler: BaseHandler{
 			Levels: levels,
 		},
@@ -39,7 +39,7 @@ func (h *StreamHandler) Handle(record *slog.Record)  error {
 		return err
 	}
 
-	_, err = h.Out.Write(bts)
+	_, err = h.Output.Write(bts)
 	return err
 }
 

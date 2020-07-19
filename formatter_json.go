@@ -58,6 +58,8 @@ func (f *JSONFormatter) Format(r *Record) ([]byte,error) {
 			}
 
 			logData[outName] = r.Time.Format(f.TimeFormat)
+		case field == FieldKeyCaller && r.Caller != nil:
+			logData[outName] = formatCallerToString(r.Caller)
 		case field == FieldKeyLevel:
 			logData[outName] = r.LevelName
 		case field == FieldKeyChannel:

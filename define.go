@@ -55,17 +55,20 @@ const flushInterval = 30 * time.Second
 
 const (
 	FieldKeyTime = "time"
+	// FieldKeyDate  = "date"
 	FieldKeyData = "data"
 	FieldKeyFunc = "func"
 	FieldKeyFile = "file"
-	// FieldKeyDate  = "date"
 
-	FieldKeyDatetime = "datetime"
+	FieldKeyDatetime  = "datetime"
+	FieldKeyPosition  = "position"
+	FieldKeyTimestamp = "timestamp"
 
 	FieldKeyLevel = "level"
 	FieldKeyError = "error"
 	FieldKeyExtra = "extra"
 
+	FieldKeyCaller  = "caller"
 	FieldKeyChannel = "channel"
 	FieldKeyMessage = "message"
 )

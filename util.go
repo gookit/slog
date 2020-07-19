@@ -2,6 +2,8 @@ package slog
 
 import (
 	"bytes"
+	"fmt"
+	"path"
 	"runtime"
 	"strings"
 	"sync"
@@ -85,6 +87,13 @@ func getCaller(maxCallerDepth int) *runtime.Frame {
 
 	// if we got here, we failed to find the caller's context
 	return nil
+}
+
+func formatCallerToString(rf *runtime.Frame) string {
+	// TODO format different string
+
+	// eg: "logger_test.go:48"
+	return fmt.Sprintf("%s:%d", path.Base(rf.File), rf.Line)
 }
 
 // from glog

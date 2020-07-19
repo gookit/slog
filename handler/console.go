@@ -19,7 +19,7 @@ type ConsoleHandler struct {
 // NewConsoleHandler create new ConsoleHandler
 func NewConsoleHandler(levels []slog.Level) *ConsoleHandler {
 	h := &ConsoleHandler{}
-	h.Out = os.Stdout
+	h.Output = os.Stdout
 	h.Levels = levels
 
 	// create new formatter

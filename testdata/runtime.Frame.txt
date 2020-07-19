@@ -1,0 +1,9 @@
+*runtime.Frame {
+  PC: 0x73139f,
+  Func: &runtime.Func{opaque:struct {}{}},
+  Function: "github.com/gookit/slog_test.TestLogger_ReportCaller",
+  File: "F:/work/go/gookit/slog/logger_test.go",
+  Line: 47,
+  Entry: 0x7311b0,
+  funcInfo: "<runtime.funcInfo Value>",
+}

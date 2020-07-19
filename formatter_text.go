@@ -10,7 +10,7 @@ import (
 	"github.com/gookit/goutil/strutil"
 )
 
-const DefaultTemplate = "[{{datetime}}] [{{channel}}] [{{level}}] {{message}} {{data}} {{extra}}\n"
+const DefaultTemplate = "[{{datetime}}] [{{channel}}] [{{level}}] [{{caller}}] {{message}} {{data}} {{extra}}\n"
 
 // ColorTheme for format log to console
 var ColorTheme = map[Level]color.Color{
@@ -90,6 +90,8 @@ func (f *TextFormatter) formatNoColor(r *Record) ([]byte, error) {
 			}
 
 			tplData[tplVar] = r.Time.Format(f.TimeFormat)
+		case field == FieldKeyCaller && r.Caller != nil: // caller eg: "logger_test.go:48"
+			tplData[tplVar] = formatCallerToString(r.Caller)
 		case field == FieldKeyLevel:
 			tplData[tplVar] = r.LevelName
 		case field == FieldKeyChannel:
@@ -130,6 +132,8 @@ func (f *TextFormatter) formatWithColor(r *Record) ([]byte, error) {
 			}
 
 			tplData[tplVar] = r.Time.Format(f.TimeFormat)
+		case field == FieldKeyCaller && r.Caller != nil: // caller eg: "logger_test.go:48"
+			tplData[tplVar] = formatCallerToString(r.Caller)
 		case field == FieldKeyLevel:
 			tplData[tplVar] = f.renderColorByLevel(r.LevelName, r.Level)
 		case field == FieldKeyChannel:

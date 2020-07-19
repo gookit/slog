@@ -120,7 +120,7 @@ func (sl *SugaredLogger) Reset() {
 // It is directly available without any additional configuration
 var std = newStdLogger()
 
-func newStdLogger() *SugaredLogger  {
+func newStdLogger() *SugaredLogger {
 	return NewSugaredLogger(os.Stdout, ErrorLevel).Configure(func(sl *SugaredLogger) {
 		sl.SetName("stdLogger")
 		// auto enable console color

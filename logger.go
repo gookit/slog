@@ -35,6 +35,11 @@ func New() *Logger {
 	return NewWithName("")
 }
 
+// NewWithConfig create an new logger with config func
+func NewWithConfig(fn func(logger *Logger)) *Logger {
+	return New().Configure(fn)
+}
+
 // NewWithHandlers create an new logger with handlers
 func NewWithHandlers(hs ...Handler) *Logger {
 	logger := NewWithName("")
