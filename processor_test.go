@@ -13,7 +13,7 @@ import (
 func TestLogger_AddProcessor(t *testing.T) {
 	buf := new(bytes.Buffer)
 
-	l := slog.JSONSugaredLogger(buf, slog.ErrorLevel)
+	l := slog.NewJSONSugared(buf, slog.ErrorLevel)
 	l.AddProcessor(slog.AddHostname())
 	l.Info("message")
 

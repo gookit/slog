@@ -31,6 +31,8 @@ const defaultMaxSize uint64 = 1024 * 1024 * 1800
 type FileHandler struct {
 	BaseHandler
 
+	mu sync.Mutex
+
 	// log file path. eg: "/var/log/my-app.log"
 	fpath string
 	file  *os.File

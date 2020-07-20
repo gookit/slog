@@ -27,7 +27,7 @@ type Logger struct {
 	recordPool sync.Pool
 
 	exitHandlers []func()
-	ExitFunc     func(int)
+	ExitFunc     func(code int)
 }
 
 // New create an new logger

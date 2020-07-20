@@ -61,8 +61,8 @@ func NewSugaredLogger(output io.Writer, level Level) *SugaredLogger {
 	return sl
 }
 
-// JSONSugaredLogger create new SugaredLogger use JSONFormatter
-func JSONSugaredLogger(out io.Writer, level Level) *SugaredLogger {
+// NewJSONSugared create new SugaredLogger with JSONFormatter
+func NewJSONSugared(out io.Writer, level Level) *SugaredLogger {
 	sl := NewSugaredLogger(out, level)
 	sl.Formatter = NewJSONFormatter()
 
@@ -100,14 +100,14 @@ func (sl *SugaredLogger) Flush() error {
 
 // Reset the logger
 func (sl *SugaredLogger) Reset() {
-	// sl = NewSugaredLogger(os.Stdout)
+	*sl = *NewSugaredLogger(os.Stdout, ErrorLevel)
 
 	// reset handlers and processors
-	sl.Logger.Reset()
+	// sl.Logger.Reset()
 
 	// NOTICE: use self as an log handler
-	sl.AddHandler(sl)
-	sl.Formatter = NewTextFormatter()
+	// sl.AddHandler(sl)
+	// sl.Formatter = NewTextFormatter()
 }
 
 //

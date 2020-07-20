@@ -1,6 +1,9 @@
 package slog_test
 
 import (
+	"bytes"
+	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/gookit/slog"
@@ -15,10 +18,23 @@ func ExampleNew() {
 }
 
 func TestStd(t *testing.T) {
+	defer slog.Reset()
 	assert.Equal(t, "stdLogger", slog.Std().Name())
 
 	_, ok := slog.GetFormatter().(*slog.TextFormatter)
 	assert.True(t, ok)
+
+	slog.SetFormatter(slog.NewJSONFormatter())
+	_, ok = slog.GetFormatter().(*slog.JSONFormatter)
+	assert.True(t, ok)
+
+	buf := new(bytes.Buffer)
+	slog.Std().ExitFunc = func(code int) {
+		buf.WriteString("Exited,")
+		buf.WriteString(strconv.Itoa(code))
+	}
+	slog.Exit(34)
+	assert.Equal(t, "Exited,34", buf.String())
 }
 
 func TestTextFormatNoColor(t *testing.T) {
@@ -87,6 +103,34 @@ func TestAddHandler(t *testing.T) {
 func TestAddProcessor(t *testing.T) {
 	defer slog.Reset()
 
+	buf := new(bytes.Buffer)
+	slog.Configure(func(logger *slog.SugaredLogger) {
+		logger.Output = buf
+		logger.Formatter = slog.NewJSONFormatter()
+	})
+
+	slog.AddProcessor(slog.AddHostname())
+	slog.Trace("Trace message")
+	slog.Tracef("Tracef %s", "message")
+
+	str := buf.String()
+	buf.Reset()
+	fmt.Println(str)
+	assert.Contains(t, str, `"hostname":`)
+	assert.Contains(t, str, "Trace message")
+	assert.Contains(t, str, "Tracef message")
+
+	slog.AddProcessors(slog.ProcessorFunc(func(r *slog.Record) {
+		r.AddField("newField", "newValue")
+	}))
+	slog.Debug("Debug message")
+	slog.Debugf("Debugf %s", "message")
+	str = buf.String()
+	buf.Reset()
+
+	assert.Contains(t, str, `"newField":"newValue"`)
+	assert.Contains(t, str, "Debug message")
+	assert.Contains(t, str, "Debugf message")
 }
 
 func TestLevelName(t *testing.T) {

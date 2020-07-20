@@ -13,6 +13,7 @@ import (
 )
 
 const testFile = "./testdata/app.log"
+const testSubFile = "./testdata/subdir/app.log"
 
 func deleteIfExist(fpath string) {
 	if !fsutil.IsFile(fpath) {

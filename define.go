@@ -57,6 +57,7 @@ const (
 	FieldKeyTime = "time"
 	// FieldKeyDate  = "date"
 	FieldKeyData = "data"
+	// NOTICE: you must set `Logger.ReportCaller=true` for "func", "file"
 	FieldKeyFunc = "func"
 	FieldKeyFile = "file"
 
@@ -68,6 +69,7 @@ const (
 	FieldKeyError = "error"
 	FieldKeyExtra = "extra"
 
+	// NOTICE: you must set `Logger.ReportCaller=true` for "caller"
 	FieldKeyCaller  = "caller"
 	FieldKeyChannel = "channel"
 	FieldKeyMessage = "message"
@@ -116,6 +118,7 @@ var (
 		FieldKeyDatetime,
 		FieldKeyChannel,
 		FieldKeyLevel,
+		FieldKeyCaller,
 		FieldKeyMessage,
 		FieldKeyData,
 		FieldKeyExtra,
