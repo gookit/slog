@@ -1,9 +1,7 @@
 package handler_test
 
 import (
-	"fmt"
 	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/gookit/goutil/fsutil"
@@ -15,19 +13,8 @@ import (
 const testFile = "./testdata/app.log"
 const testSubFile = "./testdata/subdir/app.log"
 
-func deleteIfExist(fpath string) {
-	if !fsutil.IsFile(fpath) {
-		return
-	}
-
-	err := os.Remove(fpath)
-	if err != nil {
-		fmt.Println(err)
-	}
-}
-
 func TestNewFileHandler(t *testing.T) {
-	deleteIfExist(testFile)
+	assert.NoError(t, fsutil.DeleteIfFileExist(testFile))
 	h := handler.NewFileHandler(testFile, false)
 
 	l := slog.NewWithHandlers(h)

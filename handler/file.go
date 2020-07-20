@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 	"sync"
 	"time"
 
+	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/slog"
 )
 
@@ -109,6 +111,12 @@ func (h *FileHandler) Handle(r *slog.Record) (err error) {
 
 	// create file
 	if h.file == nil {
+		dPath := path.Dir(h.fpath)
+		err = fsutil.Mkdir(dPath, 0777)
+		if err != nil {
+			return
+		}
+
 		h.file, err = os.OpenFile(h.fpath, h.FileFlag, os.FileMode(h.FileMode))
 		if err != nil {
 			return

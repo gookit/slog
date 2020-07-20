@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/gookit/goutil/testutil"
 	"github.com/gookit/slog"
 	"github.com/stretchr/testify/assert"
 )
@@ -56,18 +57,37 @@ func TestRegisterExitHandler(t *testing.T) {
 	assert.Equal(t, "HANDLER3-HANDLER1-HANDLER2-Exited", buf.String())
 }
 
-// func TestExitHandlerWithError(t *testing.T) {
-// 	defer slog.Reset()
-//
-// 	slog.ResetExitHandlers(true)
-// 	assert.Len(t, slog.ExitHandlers(), 0)
-//
-// 	slog.RegisterExitHandler(func() {
-// 		panic("test error")
-// 	})
-//
-// 	slog.SetExitFunc(func(code int) {})
-// 	slog.Exit(23)
-//
-// 	testutil.RewriteStderr()
-// }
+func TestExitHandlerWithError(t *testing.T) {
+	defer slog.Reset()
+
+	slog.ResetExitHandlers(true)
+	assert.Len(t, slog.ExitHandlers(), 0)
+
+	slog.RegisterExitHandler(func() {
+		panic("test error")
+	})
+
+	slog.SetExitFunc(func(code int) {})
+
+	testutil.RewriteStderr()
+	slog.Exit(23)
+	str := testutil.RestoreStderr()
+	assert.Equal(t, "Run exit handler error: test error\n", str)
+}
+
+func TestLogger_ExitHandlerWithError(t *testing.T) {
+	l := slog.NewWithConfig(func(l *slog.Logger) {
+		l.ExitFunc = func(code int) {}
+	})
+
+	assert.Len(t, l.ExitHandlers(), 0)
+
+	l.RegisterExitHandler(func() {
+		panic("test error")
+	})
+
+	testutil.RewriteStderr()
+	l.Exit(23)
+	str := testutil.RestoreStderr()
+	assert.Equal(t, "Run exit handler error: test error\n", str)
+}
