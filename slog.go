@@ -148,6 +148,11 @@ func Exit(code int) {
 	std.Exit(code)
 }
 
+// SetExitFunc to the std logger
+func SetExitFunc(fn func(code int)) {
+	std.ExitFunc = fn
+}
+
 // AddHandler to the std logger
 func AddHandler(h Handler) {
 	std.AddHandler(h)
