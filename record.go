@@ -43,7 +43,7 @@ type Record struct {
 }
 
 var (
-	// Defines the key when adding errors using WithError.
+	// Define the key when adding errors using WithError.
 	ErrorKey   = "error"
 	bufferPool *sync.Pool
 )

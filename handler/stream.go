@@ -12,7 +12,6 @@ type StreamHandler struct {
 
 	// Output io.WriteCloser
 	Output io.Writer
-
 	UseLock bool
 }
 
@@ -28,8 +27,7 @@ func NewStreamHandler(out io.Writer, levels []slog.Level) *StreamHandler {
 
 // Close the handler
 func (h *StreamHandler) Close() error {
-	// return h.Out.Close()
-	return nil
+	return h.Flush()
 }
 
 // Handle log record

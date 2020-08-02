@@ -75,7 +75,6 @@ func (sl *SugaredLogger) Configure(fn func(sl *SugaredLogger)) *SugaredLogger {
 	return sl
 }
 
-
 // IsHandling Check if the current level can be handling
 func (sl *SugaredLogger) IsHandling(level Level) bool {
 	return level >= sl.Level
@@ -92,9 +91,25 @@ func (sl *SugaredLogger) Handle(record *Record) error {
 	return err
 }
 
+// Close all log handlers
+func (sl *SugaredLogger) Close() error {
+	sl.Logger.VisitAll(func(handler Handler) error {
+		if _, ok := handler.(*SugaredLogger); !ok {
+			_= handler.Close()
+		}
+		return nil
+	})
+	return nil
+}
+
 // Flush all logs
 func (sl *SugaredLogger) Flush() error {
-	sl.FlushAll()
+	sl.Logger.VisitAll(func(handler Handler) error {
+		if _, ok := handler.(*SugaredLogger); !ok {
+			_= handler.Flush()
+		}
+		return nil
+	})
 	return nil
 }
 

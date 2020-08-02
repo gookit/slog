@@ -7,21 +7,21 @@ import (
 )
 
 type lockWrapper struct {
+	sync.Mutex
 	disable bool
-	mu sync.Mutex
 }
 
 // Lock it
 func (l *lockWrapper) Lock() {
 	if !l.disable {
-		l.mu.Lock()
+		l.Mutex.Lock()
 	}
 }
 
 // Unlock it
 func (l *lockWrapper) Unlock() {
 	if !l.disable {
-		l.mu.Unlock()
+		l.Mutex.Unlock()
 	}
 }
 
@@ -93,6 +93,19 @@ func (h *GroupedHandler) IsHandling(level slog.Level) bool {
 func (h *GroupedHandler) Handle(record *slog.Record) error {
 	for _, handler := range h.handlers {
 		err := handler.Handle(record)
+
+		if h.IgnoreErr == false && err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Close log handlers
+func (h *GroupedHandler) Close() error {
+	for _, handler := range h.handlers {
+		err := handler.Close()
 
 		if h.IgnoreErr == false && err != nil {
 			return err
