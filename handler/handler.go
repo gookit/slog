@@ -1,8 +1,34 @@
 package handler
 
 import (
+	"sync"
+
 	"github.com/gookit/slog"
 )
+
+type lockWrapper struct {
+	disable bool
+	mu sync.Mutex
+}
+
+// Lock it
+func (l *lockWrapper) Lock() {
+	if !l.disable {
+		l.mu.Lock()
+	}
+}
+
+// Unlock it
+func (l *lockWrapper) Unlock() {
+	if !l.disable {
+		l.mu.Unlock()
+	}
+}
+
+// Enable locker
+func (l *lockWrapper) Enable(enable bool) {
+	l.disable = !enable
+}
 
 /********************************************************************************
  * Base handler
