@@ -59,11 +59,11 @@ func (f *JSONFormatter) Format(r *Record) ([]byte,error) {
 
 			logData[outName] = r.Time.Format(f.TimeFormat)
 		case field == FieldKeyCaller && r.Caller != nil:
-			logData[outName] = formatCallerToString(r.Caller)  // "logger_test.go:48"
+			logData[outName] = formatCaller(r.Caller, false) // "logger_test.go:48"
 		case field == FieldKeyFunc && r.Caller != nil:
 			logData[outName] = r.Caller.Function // "github.com/gookit/slog_test.TestLogger_ReportCaller"
 		case field == FieldKeyFile && r.Caller != nil:
-			logData[outName] = r.Caller.File // "/work/go/gookit/slog/logger_test.go"
+			logData[outName] = formatCaller(r.Caller, true) // "/work/go/gookit/slog/logger_test.go:48"
 		case field == FieldKeyLevel:
 			logData[outName] = r.LevelName
 		case field == FieldKeyChannel:

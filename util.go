@@ -89,8 +89,12 @@ func getCaller(maxCallerDepth int) *runtime.Frame {
 	return nil
 }
 
-func formatCallerToString(rf *runtime.Frame) string {
+func formatCaller(rf *runtime.Frame, fullPath bool) string {
 	// TODO format different string
+	if fullPath {
+		// eg: "/work/go/gookit/slog/logger_test.go:48"
+		return fmt.Sprintf("%s:%d", rf.File, rf.Line)
+	}
 
 	// eg: "logger_test.go:48"
 	return fmt.Sprintf("%s:%d", path.Base(rf.File), rf.Line)

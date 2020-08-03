@@ -91,7 +91,11 @@ func (f *TextFormatter) formatNoColor(r *Record) ([]byte, error) {
 
 			tplData[tplVar] = r.Time.Format(f.TimeFormat)
 		case field == FieldKeyCaller && r.Caller != nil: // caller eg: "logger_test.go:48"
-			tplData[tplVar] = formatCallerToString(r.Caller)
+			tplData[tplVar] = formatCaller(r.Caller, false)
+		case field == FieldKeyFunc && r.Caller != nil:
+			tplData[tplVar] = r.Caller.Function // "github.com/gookit/slog_test.TestLogger_ReportCaller"
+		case field == FieldKeyFile && r.Caller != nil:
+			tplData[tplVar] = formatCaller(r.Caller, true) // "/work/go/gookit/slog/logger_test.go:48"
 		case field == FieldKeyLevel:
 			tplData[tplVar] = r.LevelName
 		case field == FieldKeyChannel:
@@ -133,7 +137,11 @@ func (f *TextFormatter) formatWithColor(r *Record) ([]byte, error) {
 
 			tplData[tplVar] = r.Time.Format(f.TimeFormat)
 		case field == FieldKeyCaller && r.Caller != nil: // caller eg: "logger_test.go:48"
-			tplData[tplVar] = formatCallerToString(r.Caller)
+			tplData[tplVar] = formatCaller(r.Caller, false)
+		case field == FieldKeyFunc && r.Caller != nil:
+			tplData[tplVar] = r.Caller.Function // "github.com/gookit/slog_test.TestLogger_ReportCaller"
+		case field == FieldKeyFile && r.Caller != nil:
+			tplData[tplVar] = formatCaller(r.Caller, true) // "/work/go/gookit/slog/logger_test.go:48"
 		case field == FieldKeyLevel:
 			tplData[tplVar] = f.renderColorByLevel(r.LevelName, r.Level)
 		case field == FieldKeyChannel:
