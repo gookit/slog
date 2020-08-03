@@ -116,8 +116,28 @@ func (logger *Logger) lockAndFlushAll() {
 // logger.mu is held.
 func (logger *Logger) FlushAll() {
 	// Flush from fatal down, in case there's trouble flushing.
-	for _, handler := range logger.handlers {
+	logger.VisitAll(func(handler Handler) error {
 		_= handler.Flush() // ignore error
+		return nil
+	})
+}
+
+// Close the logger
+func (logger *Logger) Close() {
+	logger.VisitAll(func(handler Handler) error {
+		// Flush logs and then close
+		_= handler.Close() // ignore error
+		return nil
+	})
+}
+
+// VisitAll logger handlers
+func (logger *Logger) VisitAll(fn func(handler Handler) error) {
+	for _, handler := range logger.handlers {
+		// you can return nil for ignore error
+		if err := fn(handler); err != nil {
+			return
+		}
 	}
 }
 

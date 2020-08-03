@@ -11,7 +11,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/slog"
 )
 
@@ -41,8 +40,8 @@ type FileHandler struct {
 	bufio *bufio.Writer
 
 	useJSON bool
-	// UseBuffer on write log records
-	UseBuffer bool
+	// NoBuffer on write log records
+	NoBuffer bool
 	// FileFlag for create. default: os.O_CREATE|os.O_WRONLY|os.O_APPEND
 	FileFlag int
 	// FileMode perm for create log file. (it's os.FileMode)
@@ -95,15 +94,35 @@ func (h *FileHandler) Sync() error {
 	return h.file.Sync()
 }
 
+// Close handler, will be flush logs to file, then close file
+func (h *FileHandler) Close() error {
+	if err := h.Flush(); err != nil {
+		return err
+	}
+
+	return h.file.Close()
+}
+
 // Sync logs to disk file
 func (h *FileHandler) Flush() error {
-	// TODO flush buffers to h.file
+	// flush buffers to h.file
+	if h.bufio != nil {
+		err := h.bufio.Flush()
+		if err != nil {
+			return err
+		}
+	}
+
 	return h.file.Sync()
 }
 
 // Handle the log record
 func (h *FileHandler) Handle(r *slog.Record) (err error) {
 	var bts []byte
+
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
 	bts, err = h.Formatter().Format(r)
 	if err != nil {
 		return
@@ -112,7 +131,7 @@ func (h *FileHandler) Handle(r *slog.Record) (err error) {
 	// create file
 	if h.file == nil {
 		dPath := path.Dir(h.fpath)
-		err = fsutil.Mkdir(dPath, 0777)
+		err = os.MkdirAll(dPath, 0777)
 		if err != nil {
 			return
 		}
@@ -124,7 +143,7 @@ func (h *FileHandler) Handle(r *slog.Record) (err error) {
 	}
 
 	// direct write logs
-	if !h.UseBuffer {
+	if h.NoBuffer {
 		_, err = h.file.Write(bts)
 		return
 	}

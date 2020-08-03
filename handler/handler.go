@@ -1,8 +1,34 @@
 package handler
 
 import (
+	"sync"
+
 	"github.com/gookit/slog"
 )
+
+type lockWrapper struct {
+	sync.Mutex
+	disable bool
+}
+
+// Lock it
+func (l *lockWrapper) Lock() {
+	if !l.disable {
+		l.Mutex.Lock()
+	}
+}
+
+// Unlock it
+func (l *lockWrapper) Unlock() {
+	if !l.disable {
+		l.Mutex.Unlock()
+	}
+}
+
+// Enable locker
+func (l *lockWrapper) Enable(enable bool) {
+	l.disable = !enable
+}
 
 /********************************************************************************
  * Base handler
@@ -67,6 +93,19 @@ func (h *GroupedHandler) IsHandling(level slog.Level) bool {
 func (h *GroupedHandler) Handle(record *slog.Record) error {
 	for _, handler := range h.handlers {
 		err := handler.Handle(record)
+
+		if h.IgnoreErr == false && err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Close log handlers
+func (h *GroupedHandler) Close() error {
+	for _, handler := range h.handlers {
+		err := handler.Close()
 
 		if h.IgnoreErr == false && err != nil {
 			return err

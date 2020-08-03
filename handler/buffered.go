@@ -33,12 +33,7 @@ func (h *BufferedHandler) Flush() error {
 	return h.buffer.Flush()
 }
 
-// Sync log records
-func (h *BufferedHandler) Sync() error {
-	return nil
-}
-
-// Sync log records
+// Close log records
 func (h *BufferedHandler) Close() error {
 	return h.buffer.Flush()
 }

@@ -29,7 +29,9 @@ type WriterHandler interface {
 
 // Handler interface definition
 type Handler interface {
-	// io.Closer
+	// Close handler
+	io.Closer
+	// Flush logs to disk
 	Flush() error
 	// IsHandling Checks whether the given record will be handled by this handler.
 	IsHandling(level Level) bool
