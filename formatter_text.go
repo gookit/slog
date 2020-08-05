@@ -11,6 +11,7 @@ import (
 )
 
 const DefaultTemplate = "[{{datetime}}] [{{channel}}] [{{level}}] [{{caller}}] {{message}} {{data}} {{extra}}\n"
+const NamedTemplate = "{{datetime}} channel={{channel}} level={{level}} [file={{caller}}] message={{message}} data={{data}}\n"
 
 // ColorTheme for format log to console
 var ColorTheme = map[Level]color.Color{
@@ -25,8 +26,8 @@ var ColorTheme = map[Level]color.Color{
 
 // TextFormatter definition
 type TextFormatter struct {
-	// text template for output logs
-	template string
+	// Template text template for render output log messages
+	Template string
 	// field map, parsed from format string.
 	// eg: {"level": "{{level}}",}
 	fieldMap StringMap
@@ -54,7 +55,7 @@ func NewTextFormatter(template ...string) *TextFormatter {
 	}
 
 	return &TextFormatter{
-		template: fmtTpl,
+		Template: fmtTpl,
 		fieldMap: parseFieldMap(fmtTpl),
 		// default options
 		TimeFormat: DefaultTimeFormat,
@@ -122,7 +123,7 @@ func (f *TextFormatter) formatNoColor(r *Record) ([]byte, error) {
 	// TODO ... use r.Buffer
 	// strings.NewReplacer().WriteString(buf)
 
-	str := strutil.Replaces(f.template, tplData)
+	str := strutil.Replaces(f.Template, tplData)
 	return []byte(str), nil
 }
 
@@ -169,7 +170,7 @@ func (f *TextFormatter) formatWithColor(r *Record) ([]byte, error) {
 		}
 	}
 
-	str := strutil.Replaces(f.template, tplData)
+	str := strutil.Replaces(f.Template, tplData)
 	return []byte(str), nil
 }
 

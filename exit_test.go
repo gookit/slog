@@ -74,7 +74,7 @@ func TestExitHandlerWithError(t *testing.T) {
 
 func TestLogger_ExitHandlerWithError(t *testing.T) {
 	l := slog.NewWithConfig(func(l *slog.Logger) {
-		l.ExitFunc = func(code int) {}
+		l.ExitFunc = doNothing
 	})
 
 	assert.Len(t, l.ExitHandlers(), 0)

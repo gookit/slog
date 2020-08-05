@@ -11,6 +11,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var doNothing = func(code int) {
+	// do nothing
+}
+
 func ExampleNew() {
 	slog.Info("info log message")
 	slog.Warn("warning log message")
@@ -54,6 +58,19 @@ func TestTextFormatNoColor(t *testing.T) {
 func TestTextFormatWithColor(t *testing.T) {
 	defer slog.Reset()
 
+	slog.Configure(func(l *slog.SugaredLogger) {
+		l.Level = slog.PanicLevel
+		l.ExitFunc = doNothing
+	})
+
+	printLogs()
+
+	slog.GetFormatter().(*slog.TextFormatter).Template = slog.NamedTemplate
+
+	printLogs()
+}
+
+func printLogs() {
 	slog.Std().Trace("this is a simple log message")
 	slog.Trace("this is a simple log message")
 	slog.Debug("this is a simple log message")

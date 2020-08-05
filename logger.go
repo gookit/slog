@@ -374,6 +374,10 @@ func (logger *Logger) Panicf(format string, args ...interface{}) {
 }
 
 //
+// ---------------------------------------------------------------------------
+// Do handling log message
+// ---------------------------------------------------------------------------
+//
 
 // TODO use Record or *Record ...
 func (logger *Logger) write(level Level, r *Record) {
