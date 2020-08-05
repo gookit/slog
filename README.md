@@ -93,6 +93,18 @@ func main() {
 
 ![](_example/images/console-color-log.png)
 
+- change output format
+
+change the default logger output format.
+
+```go
+slog.GetFormatter().(*slog.TextFormatter).Template = slog.NamedTemplate
+```
+
+**Output:**
+
+![](_example/images/console-color-log1.png)
+
 ### Use JSON Format
 
 ```go

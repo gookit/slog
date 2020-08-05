@@ -103,6 +103,18 @@ l.Trace("this is a simple log message")
 l.Debug("this is a simple log message")
 ```
 
+- 更改日志输出样式
+
+更改默认的logger日志输出样式.
+
+```go
+slog.GetFormatter().(*slog.TextFormatter).Template = slog.NamedTemplate
+```
+
+**输出预览:**
+
+![](_example/images/console-color-log1.png)
+
 ### 使用JSON格式
 
 ```go
