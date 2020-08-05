@@ -142,6 +142,24 @@ Logger -{
 
 You can use it to perform additional operations on the record before the log record reaches the Handler for processing, such as adding fields, adding extended information, etc.
 
+definition for Processor:
+
+```go
+// Processor interface definition
+type Processor interface {
+	// Process record
+	Process(record *Record)
+}
+
+// ProcessorFunc wrapper definition
+type ProcessorFunc func(record *Record)
+
+// Process record
+func (fn ProcessorFunc) Process(record *Record) {
+	fn(record)
+}
+```
+
 Here we use the built-in processor `slog.AddHostname` as an example, it can add a new field `hostname` to each log record.
 
 ```go
@@ -165,7 +183,9 @@ slog.Info("message")
 ```go
 // Handler interface definition
 type Handler interface {
-	// io.Closer
+	// Close handler
+	io.Closer
+	// Flush logs to disk
 	Flush() error
 	// IsHandling Checks whether the given record will be handled by this handler.
 	IsHandling(level Level) bool
@@ -181,7 +201,25 @@ type Handler interface {
 ### Formatter
 
 `Formatter` - Log data formatting.
- It is usually set in `Handler`, which can be used to format log records, convert records into text, JSON, etc., `Handler` then writes the formatted data to the specified place.
+
+It is usually set in `Handler`, which can be used to format log records, convert records into text, JSON, etc., `Handler` then writes the formatted data to the specified place.
+
+Formatter definition:
+
+```go
+// Formatter interface
+type Formatter interface {
+	Format(record *Record) ([]byte, error)
+}
+
+// FormatterFunc wrapper definition
+type FormatterFunc func(r *Record) ([]byte, error)
+
+// Format an record
+func (fn FormatterFunc) Format(r *Record) ([]byte, error) {
+	return fn(r)
+}
+```
 
 ## Refer
 
