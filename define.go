@@ -29,12 +29,17 @@ func (l Level) Name() string {
 	return LevelName(l)
 }
 
+// LowerName get lower level name
+func (l Level) LowerName() string {
+	return strings.ToLower(LevelName(l))
+}
+
 // These are the different logging levels. You can set the logging level to log handler
 const (
-	// PanicLevel level, highest level of severity.
+	// PanicLevel level, highest level of severity. will call panic() if the logging level <= PanicLevel.
 	PanicLevel Level = 100
 	// FatalLevel level. Logs and then calls `logger.Exit(1)`. It will exit even if the
-	// logging level is set to Panic.
+	// logging level <= FatalLevel.
 	FatalLevel Level = 200
 	// ErrorLevel level. Runtime errors. Used for errors that should definitely be noted.
 	// Commonly used for hooks to send errors to an error tracking service.

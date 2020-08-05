@@ -39,7 +39,7 @@ type SugaredLogger struct {
 	// Formatter log formatter, default use TextFormatter
 	Formatter
 	// Output output writer
-	Output   io.Writer
+	Output io.Writer
 	// Level for log handling.
 	// Greater than or equal to this level will be recorded
 	Level Level
@@ -95,7 +95,7 @@ func (sl *SugaredLogger) Handle(record *Record) error {
 func (sl *SugaredLogger) Close() error {
 	sl.Logger.VisitAll(func(handler Handler) error {
 		if _, ok := handler.(*SugaredLogger); !ok {
-			_= handler.Close()
+			_ = handler.Close()
 		}
 		return nil
 	})
@@ -106,7 +106,7 @@ func (sl *SugaredLogger) Close() error {
 func (sl *SugaredLogger) Flush() error {
 	sl.Logger.VisitAll(func(handler Handler) error {
 		if _, ok := handler.(*SugaredLogger); !ok {
-			_= handler.Flush()
+			_ = handler.Flush()
 		}
 		return nil
 	})
@@ -138,6 +138,7 @@ var std = newStdLogger()
 func newStdLogger() *SugaredLogger {
 	return NewSugaredLogger(os.Stdout, ErrorLevel).Configure(func(sl *SugaredLogger) {
 		sl.SetName("stdLogger")
+		sl.ReportCaller = true
 		// auto enable console color
 		sl.Formatter.(*TextFormatter).EnableColor = color.IsSupportColor()
 	})
@@ -149,12 +150,14 @@ func Std() *SugaredLogger {
 }
 
 // Reset the std logger
-func Reset()  {
+func Reset() {
+	ResetExitHandlers(true)
+	// new std
 	std = newStdLogger()
 }
 
 // Reset the std logger
-func Configure(fn func(logger *SugaredLogger))  {
+func Configure(fn func(logger *SugaredLogger)) {
 	std.Configure(fn)
 }
 

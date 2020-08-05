@@ -139,7 +139,7 @@ func TestLevelName(t *testing.T) {
 		assert.Equal(t, wantName, realName)
 	}
 
-	assert.Equal(t, "unknown", slog.LevelName(20))
+	assert.Equal(t, "UNKNOWN", slog.LevelName(20))
 }
 
 func TestName2Level(t *testing.T) {

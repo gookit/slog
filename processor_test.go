@@ -17,7 +17,7 @@ func TestLogger_AddProcessor(t *testing.T) {
 	l.AddProcessor(slog.AddHostname())
 	l.Info("message")
 
-	hostname,_ := os.Hostname()
+	hostname, _ := os.Hostname()
 
 	// {"channel":"application","data":{},"datetime":"2020/07/17 12:01:35","extra":{},"hostname":"InhereMac","level":"INFO","message":"message"}
 	str := buf.String()

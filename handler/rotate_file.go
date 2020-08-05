@@ -17,7 +17,7 @@ const bufferSize = 256 * 1024
 // RotateFileHandler definition
 type RotateFileHandler struct {
 	FileHandler
-	logger *slog.Logger
+	logger  *slog.Logger
 	written uint64
 }
 
@@ -65,4 +65,3 @@ func (h *RotateFileHandler) rotateFile(now time.Time) error {
 	h.written += uint64(n)
 	return err
 }
-

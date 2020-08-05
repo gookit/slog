@@ -20,7 +20,8 @@ type Logger struct {
 
 	mu sync.Mutex
 
-	ReportCaller bool
+	ReportCaller   bool
+	LowerLevelName bool
 	MaxCallerDepth int
 
 	// Reusable empty record
@@ -117,7 +118,7 @@ func (logger *Logger) lockAndFlushAll() {
 func (logger *Logger) FlushAll() {
 	// Flush from fatal down, in case there's trouble flushing.
 	logger.VisitAll(func(handler Handler) error {
-		_= handler.Flush() // ignore error
+		_ = handler.Flush() // ignore error
 		return nil
 	})
 }
@@ -126,7 +127,7 @@ func (logger *Logger) FlushAll() {
 func (logger *Logger) Close() {
 	logger.VisitAll(func(handler Handler) error {
 		// Flush logs and then close
-		_= handler.Close() // ignore error
+		_ = handler.Close() // ignore error
 		return nil
 	})
 }
@@ -203,7 +204,7 @@ func (logger *Logger) PushHandler(h Handler) {
 }
 
 // SetHandlers for the logger
-func (logger *Logger) SetHandlers(hs []Handler)  {
+func (logger *Logger) SetHandlers(hs []Handler) {
 	logger.handlers = hs
 }
 
@@ -308,7 +309,7 @@ func (logger *Logger) Info(args ...interface{}) {
 }
 
 // Info logs a message at level Info
-func (logger *Logger) Infof(format string, args ...interface{})  {
+func (logger *Logger) Infof(format string, args ...interface{}) {
 	logger.Logf(InfoLevel, format, args...)
 }
 
@@ -318,7 +319,7 @@ func (logger *Logger) Trace(args ...interface{}) {
 }
 
 // Trace logs a message at level Trace
-func (logger *Logger) Tracef(format string, args ...interface{})  {
+func (logger *Logger) Tracef(format string, args ...interface{}) {
 	logger.Logf(TraceLevel, format, args...)
 }
 
@@ -328,7 +329,7 @@ func (logger *Logger) Error(args ...interface{}) {
 }
 
 // Error logs a message at level Error
-func (logger *Logger) Errorf(format string, args ...interface{})  {
+func (logger *Logger) Errorf(format string, args ...interface{}) {
 	logger.Logf(ErrorLevel, format, args...)
 }
 
@@ -338,7 +339,7 @@ func (logger *Logger) Notice(args ...interface{}) {
 }
 
 // Notice logs a message at level Notice
-func (logger *Logger) Noticef(format string, args ...interface{})  {
+func (logger *Logger) Noticef(format string, args ...interface{}) {
 	logger.Logf(NoticeLevel, format, args...)
 }
 
@@ -348,7 +349,7 @@ func (logger *Logger) Debug(args ...interface{}) {
 }
 
 // Debug logs a message at level Debug
-func (logger *Logger) Debugf(format string, args ...interface{})  {
+func (logger *Logger) Debugf(format string, args ...interface{}) {
 	logger.Logf(DebugLevel, format, args...)
 }
 
@@ -358,7 +359,7 @@ func (logger *Logger) Fatal(args ...interface{}) {
 }
 
 // Fatal logs a message at level Fatal
-func (logger *Logger) Fatalf(format string, args ...interface{})  {
+func (logger *Logger) Fatalf(format string, args ...interface{}) {
 	logger.Logf(FatalLevel, format, args...)
 }
 
@@ -368,7 +369,7 @@ func (logger *Logger) Panic(args ...interface{}) {
 }
 
 // Panic logs a message at level Panic
-func (logger *Logger) Panicf(format string, args ...interface{})  {
+func (logger *Logger) Panicf(format string, args ...interface{}) {
 	logger.Logf(PanicLevel, format, args...)
 }
 
@@ -388,6 +389,13 @@ func (logger *Logger) write(level Level, r *Record) {
 		return
 	}
 
+	// use lower level name
+	if logger.LowerLevelName {
+		r.LevelName = level.LowerName()
+	} else {
+		r.LevelName = level.Name()
+	}
+
 	if logger.ReportCaller {
 		logger.mu.Lock()
 		r.Caller = getCaller(logger.MaxCallerDepth)
@@ -403,7 +411,7 @@ func (logger *Logger) write(level Level, r *Record) {
 	for _, handler := range matchedHandlers {
 		err := handler.Handle(r)
 		if err != nil {
-			_,_ = fmt.Fprintf(os.Stderr, "Failed to dispatch handler: %v\n", err)
+			_, _ = fmt.Fprintf(os.Stderr, "Failed to dispatch handler: %v\n", err)
 			return
 		}
 	}
@@ -411,5 +419,8 @@ func (logger *Logger) write(level Level, r *Record) {
 	// If is Panic level
 	if level <= PanicLevel {
 		panic(r)
+		// If is FatalLevel
+	} else if level <= FatalLevel {
+		logger.Exit(1)
 	}
 }

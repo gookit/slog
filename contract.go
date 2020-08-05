@@ -57,7 +57,7 @@ type Processor interface {
 type ProcessorFunc func(record *Record)
 
 // Process record
-func (fn ProcessorFunc) Process(record *Record)  {
+func (fn ProcessorFunc) Process(record *Record) {
 	fn(record)
 }
 
@@ -100,7 +100,7 @@ type Formatter interface {
 type FormatterFunc func(r *Record) ([]byte, error)
 
 // Format an record
-func (fn FormatterFunc) Format(r *Record) ([]byte, error)  {
+func (fn FormatterFunc) Format(r *Record) ([]byte, error) {
 	return fn(r)
 }
 

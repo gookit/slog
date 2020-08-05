@@ -7,7 +7,7 @@ import (
 
 // AddHostname to record
 func AddHostname() Processor {
-	hostname,_ := os.Hostname()
+	hostname, _ := os.Hostname()
 
 	return ProcessorFunc(func(record *Record) {
 		record.AddField("hostname", hostname)

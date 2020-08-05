@@ -24,7 +24,7 @@ type JSONFormatter struct {
 func NewJSONFormatter(fn ...func(*JSONFormatter)) *JSONFormatter {
 	f := &JSONFormatter{
 		// Aliases: make(StringMap, 0),
-		Fields:  DefaultFields,
+		Fields:     DefaultFields,
 		TimeFormat: DefaultTimeFormat,
 	}
 
@@ -42,7 +42,7 @@ func (f *JSONFormatter) Configure(fn func(*JSONFormatter)) *JSONFormatter {
 }
 
 // Format an log record
-func (f *JSONFormatter) Format(r *Record) ([]byte,error) {
+func (f *JSONFormatter) Format(r *Record) ([]byte, error) {
 	logData := make(M, len(f.Fields))
 
 	for _, field := range f.Fields {
@@ -74,8 +74,8 @@ func (f *JSONFormatter) Format(r *Record) ([]byte,error) {
 			logData[outName] = r.Data
 		case field == FieldKeyExtra:
 			logData[outName] = r.Extra
-		// default:
-		// 	logData[outName] = r.Fields[field]
+			// default:
+			// 	logData[outName] = r.Fields[field]
 		}
 	}
 

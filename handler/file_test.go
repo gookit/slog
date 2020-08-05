@@ -15,7 +15,9 @@ const testSubFile = "./testdata/subdir/app.log"
 
 func TestNewFileHandler(t *testing.T) {
 	assert.NoError(t, fsutil.DeleteIfFileExist(testFile))
-	h := handler.NewFileHandler(testFile, false)
+	h := handler.NewFileHandler(testFile, false).Configure(func(h *handler.FileHandler) {
+		h.NoBuffer = true
+	})
 
 	l := slog.NewWithHandlers(h)
 	l.Info("info message")

@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	defaultMaxCallerDepth int = 25
+	defaultMaxCallerDepth  int = 25
 	defaultKnownSlogFrames int = 4
 )
 

@@ -306,7 +306,6 @@ func (r *Record) Panicf(format string, args ...interface{}) {
 
 func (r *Record) log(level Level, message string) {
 	r.Level = level
-	r.LevelName = level.String()
 	r.Message = message
 
 	var buffer *bytes.Buffer
@@ -315,10 +314,10 @@ func (r *Record) log(level Level, message string) {
 	buffer.Reset()
 	defer bufferPool.Put(buffer)
 
-	r.Buffer = buffer
+	// r.Buffer = buffer
 
-	// TODO
+	// do write log message
 	r.logger.write(level, r)
 
-	r.Buffer = nil
+	// r.Buffer = nil
 }

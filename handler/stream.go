@@ -11,7 +11,7 @@ type StreamHandler struct {
 	BaseHandler
 
 	// Output io.WriteCloser
-	Output io.Writer
+	Output  io.Writer
 	UseLock bool
 }
 
@@ -31,7 +31,7 @@ func (h *StreamHandler) Close() error {
 }
 
 // Handle log record
-func (h *StreamHandler) Handle(record *slog.Record)  error {
+func (h *StreamHandler) Handle(record *slog.Record) error {
 	bts, err := h.Formatter().Format(record)
 	if err != nil {
 		return err
@@ -40,6 +40,3 @@ func (h *StreamHandler) Handle(record *slog.Record)  error {
 	_, err = h.Output.Write(bts)
 	return err
 }
-
-
-

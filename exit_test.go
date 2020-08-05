@@ -12,7 +12,6 @@ import (
 func TestPrependExitHandler(t *testing.T) {
 	defer slog.Reset()
 
-	slog.ResetExitHandlers(true)
 	assert.Len(t, slog.ExitHandlers(), 0)
 
 	buf := new(bytes.Buffer)
@@ -34,7 +33,6 @@ func TestPrependExitHandler(t *testing.T) {
 func TestRegisterExitHandler(t *testing.T) {
 	defer slog.Reset()
 
-	slog.ResetExitHandlers(true)
 	assert.Len(t, slog.ExitHandlers(), 0)
 
 	buf := new(bytes.Buffer)
@@ -60,7 +58,6 @@ func TestRegisterExitHandler(t *testing.T) {
 func TestExitHandlerWithError(t *testing.T) {
 	defer slog.Reset()
 
-	slog.ResetExitHandlers(true)
 	assert.Len(t, slog.ExitHandlers(), 0)
 
 	slog.RegisterExitHandler(func() {
