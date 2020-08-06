@@ -7,6 +7,8 @@ github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/
 github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=
 github.com/gookit/color v1.2.6 h1:f6/ehoHPXwi2tuntjpBRhpBhFLL9YjrnB2m6RWsbCRg=
 github.com/gookit/color v1.2.6/go.mod h1:AhIE+pS6D4Ql0SQWbBeXPHw7gY0/sjHoA4s/n1KB7xg=
+github.com/gookit/color v1.2.7 h1:4qePMNWZhrmbfYJDix+J4V2l0iVW+6jQGjicELlN14E=
+github.com/gookit/color v1.2.7/go.mod h1:AhIE+pS6D4Ql0SQWbBeXPHw7gY0/sjHoA4s/n1KB7xg=
 github.com/gookit/goutil v0.2.10 h1:TALE7rnfKdf3JeEy5W22EENNlQ2TvnTWz2uVt7I8RUo=
 github.com/gookit/goutil v0.2.10/go.mod h1:Hk4DFtZTUY6CxsnMU3nysqUXYSm8KRattv4TqHXrUos=
 github.com/gookit/goutil v0.3.1 h1:VpWkYhJ4tHqhTwa1DV7JeVK0TNdw6pNh8HB06XxQx4c=
