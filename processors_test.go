@@ -35,4 +35,13 @@ func TestLogger_AddProcessor(t *testing.T) {
 	buf.Reset()
 	assert.Contains(t, str, `"message":"message2"`)
 	assert.Contains(t, str, `"memoryUsage":`)
+
+	l.ResetProcessors()
+	l.PushProcessor(slog.AddUniqueID("requestId"))
+	l.Info("message3")
+	str = buf.String()
+	buf.Reset()
+	assert.Contains(t, str, `"message":"message3"`)
+	assert.Contains(t, str, `"requestId":`)
+	fmt.Println(str)
 }
