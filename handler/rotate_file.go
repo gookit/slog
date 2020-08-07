@@ -19,6 +19,8 @@ type RotateFileHandler struct {
 	FileHandler
 	logger  *slog.Logger
 	written uint64
+	// RenameFunc for rotate file
+	RenameFunc func(fpath string) string
 }
 
 func (h *RotateFileHandler) Write(p []byte) (n int, err error) {

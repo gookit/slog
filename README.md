@@ -56,15 +56,15 @@ func main() {
 **Output:**
 
 ```text
-[2020/07/16 12:19:33] [application] [INFO] info log message  
-[2020/07/16 12:19:33] [application] [WARNING] warning log message  
-[2020/07/16 12:19:33] [application] [INFO] info log message  
-[2020/07/16 12:19:33] [application] [DEBUG] debug message  
+[2020/07/16 12:19:33] [application] [INFO] [main.go:7] info log message  
+[2020/07/16 12:19:33] [application] [WARNING] [main.go:8] warning log message  
+[2020/07/16 12:19:33] [application] [INFO] [main.go:9] info log message  
+[2020/07/16 12:19:33] [application] [DEBUG] [main.go:10] debug message  
 ```
 
-### Enable Console Color
+### Console Color
 
-You can enable color on output logs to console.
+You can enable color on output logs to console. _This is default_
 
 ```go
 package main
@@ -75,7 +75,7 @@ import (
 
 func main() {
 	slog.Configure(func(logger *slog.SugaredLogger) {
-		f := logger.Formatter().(*slog.TextFormatter)
+		f := logger.Formatter.(*slog.TextFormatter)
 		f.EnableColor = true
 	})
 
@@ -93,9 +93,9 @@ func main() {
 
 ![](_example/images/console-color-log.png)
 
-- change output format
+- Change output format
 
-change the default logger output format.
+Change the default logger output format.
 
 ```go
 slog.GetFormatter().(*slog.TextFormatter).Template = slog.NamedTemplate

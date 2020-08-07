@@ -10,7 +10,7 @@ const defaultFlushInterval = 1000
 
 // BufferedHandler definition
 type BufferedHandler struct {
-	BaseHandler
+	LevelsWithFormatter
 	number  int
 	buffer  *bufio.Writer
 	handler slog.Handler

@@ -30,7 +30,7 @@ const defaultMaxSize uint64 = 1024 * 1024 * 1800
 
 // FileHandler definition
 type FileHandler struct {
-	BaseHandler
+	LevelsWithFormatter
 
 	mu sync.Mutex
 
@@ -50,6 +50,8 @@ type FileHandler struct {
 	BuffSize int
 	// file contents max size
 	MaxSize uint64
+	// RenameFunc for rotate file
+	RenameFunc func(fpath string) string
 }
 
 // JSONFileHandler create new FileHandler with JSON formatter
@@ -65,8 +67,8 @@ func NewFileHandler(fpath string, useJSON bool) *FileHandler {
 		MaxSize:  defaultMaxSize,
 		FileMode: 0664, // default FileMode
 		FileFlag: os.O_CREATE | os.O_WRONLY | os.O_APPEND,
-		// base handler
-		BaseHandler: BaseHandler{
+		// init log levels
+		LevelsWithFormatter: LevelsWithFormatter{
 			Levels: slog.AllLevels, // default log all levels
 		},
 	}
@@ -89,11 +91,6 @@ func (h *FileHandler) Writer() io.Writer {
 	return h.file
 }
 
-// Sync logs to disk file
-func (h *FileHandler) Sync() error {
-	return h.file.Sync()
-}
-
 // Close handler, will be flush logs to file, then close file
 func (h *FileHandler) Close() error {
 	if err := h.Flush(); err != nil {
@@ -103,7 +100,7 @@ func (h *FileHandler) Close() error {
 	return h.file.Close()
 }
 
-// Sync logs to disk file
+// Flush logs to disk file
 func (h *FileHandler) Flush() error {
 	// flush buffers to h.file
 	if h.bufio != nil {

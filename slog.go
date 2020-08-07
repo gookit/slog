@@ -36,8 +36,8 @@ import (
 // Is a fast and usable Logger, which already contains the default formatting and handling capabilities
 type SugaredLogger struct {
 	*Logger
-	// Formatter log formatter, default use TextFormatter
-	Formatter
+	// Formatter log message formatter. default use TextFormatter
+	Formatter Formatter
 	// Output output writer
 	Output io.Writer
 	// Level for log handling.
@@ -82,7 +82,7 @@ func (sl *SugaredLogger) IsHandling(level Level) bool {
 
 // Handle log record
 func (sl *SugaredLogger) Handle(record *Record) error {
-	bts, err := sl.Format(record)
+	bts, err := sl.Formatter.Format(record)
 	if err != nil {
 		return err
 	}

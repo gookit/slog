@@ -25,39 +25,68 @@ func (l *lockWrapper) Unlock() {
 	}
 }
 
-// Enable locker
-func (l *lockWrapper) Enable(enable bool) {
+// EnableLock locker
+func (l *lockWrapper) EnableLock(enable bool) {
 	l.disable = !enable
 }
 
 /********************************************************************************
- * Base handler
+ * Common parts for handler
  ********************************************************************************/
 
-// BaseHandler definition
-type BaseHandler struct {
+// LevelsWithFormatter definition
+type LevelWithFormatter struct {
 	slog.Formattable
-	// Levels for log
+	// Level for log message. if current level >= Level will log message
+	Level slog.Level
+}
+
+// IsHandling Check if the current level can be handling
+func (h *LevelWithFormatter) IsHandling(level slog.Level) bool {
+	return level >= h.Level
+}
+
+// Flush logs to disk
+func (h *LevelWithFormatter) Flush() error {
+	return nil
+}
+
+// Close handler
+func (h *LevelWithFormatter) Close() error {
+	if err := h.Flush(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// LevelsWithFormatter definition
+type LevelsWithFormatter struct {
+	slog.Formattable
+	// Levels for log message
 	Levels []slog.Level
 }
 
-func (h *BaseHandler) Flush() error {
+// Flush logs to disk
+func (h *LevelsWithFormatter) Flush() error {
+	return nil
+}
+
+// Close handler
+func (h *LevelsWithFormatter) Close() error {
+	if err := h.Flush(); err != nil {
+		return err
+	}
 	return nil
 }
 
 // IsHandling Check if the current level can be handling
-func (h *BaseHandler) IsHandling(level slog.Level) bool {
+func (h *LevelsWithFormatter) IsHandling(level slog.Level) bool {
 	for _, l := range h.Levels {
 		if l == level {
 			return true
 		}
 	}
 	return false
-}
-
-// HandleBatch log records
-func (h *BaseHandler) HandleBatch(records []*slog.Record) error {
-	panic("implement me")
 }
 
 /********************************************************************************
@@ -67,8 +96,9 @@ func (h *BaseHandler) HandleBatch(records []*slog.Record) error {
 // GroupedHandler definition
 type GroupedHandler struct {
 	handlers []slog.Handler
-	// Levels for log
-	Levels    []slog.Level
+	// Levels for log message
+	Levels []slog.Level
+	// IgnoreErr on handling messages
 	IgnoreErr bool
 }
 

@@ -25,7 +25,7 @@ func TestLogger_AddHandlers(t *testing.T) {
 }
 
 type bufferHandler struct {
-	handler.BaseHandler
+	handler.LevelsWithFormatter
 }
 
 func (h *bufferHandler) Handle(*slog.Record) error {

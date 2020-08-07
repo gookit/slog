@@ -8,7 +8,7 @@ import (
 
 // StreamHandler definition
 type StreamHandler struct {
-	BaseHandler
+	LevelsWithFormatter
 
 	// Output io.WriteCloser
 	Output  io.Writer
@@ -19,7 +19,8 @@ type StreamHandler struct {
 func NewStreamHandler(out io.Writer, levels []slog.Level) *StreamHandler {
 	return &StreamHandler{
 		Output: out,
-		BaseHandler: BaseHandler{
+		// init log levels
+		LevelsWithFormatter: LevelsWithFormatter{
 			Levels: levels,
 		},
 	}
