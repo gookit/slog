@@ -160,7 +160,7 @@ Logger -{
 
 You can use it to perform additional operations on the record before the log record reaches the Handler for processing, such as adding fields, adding extended information, etc.
 
-definition for Processor:
+`Processor` definition:
 
 ```go
 // Processor interface definition
@@ -168,7 +168,11 @@ type Processor interface {
 	// Process record
 	Process(record *Record)
 }
+```
 
+`Processor` func wrapper definition:
+
+```go
 // ProcessorFunc wrapper definition
 type ProcessorFunc func(record *Record)
 
@@ -222,14 +226,18 @@ type Handler interface {
 
 It is usually set in `Handler`, which can be used to format log records, convert records into text, JSON, etc., `Handler` then writes the formatted data to the specified place.
 
-Formatter definition:
+`Formatter` definition:
 
 ```go
 // Formatter interface
 type Formatter interface {
 	Format(record *Record) ([]byte, error)
 }
+```
 
+`Formatter` function wrapper:
+
+```go
 // FormatterFunc wrapper definition
 type FormatterFunc func(r *Record) ([]byte, error)
 
@@ -238,6 +246,65 @@ func (fn FormatterFunc) Format(r *Record) ([]byte, error) {
 	return fn(r)
 }
 ```
+
+## Custom Logger
+
+### Create New Logger
+
+You can create a new instance of `slog.Logger`:
+
+- Method 1：
+
+```go
+l := slog.New()
+// add handlers ...
+h1 := handler.NewConsoleHandler(slog.AllLevels)
+l.AddHandlers(h1)
+```
+
+- Method 2：
+
+```go
+l := slog.NewWithName("myLogger")
+// add handlers ...
+h1 := handler.NewConsoleHandler(slog.AllLevels)
+l.AddHandlers(h1)
+```
+
+- Method 3：
+
+```go
+package main
+
+import (
+	"github.com/gookit/slog"
+	"github.com/gookit/slog/handler"
+)
+
+func main() {
+	l := slog.NewWithHandlers(handler.NewConsoleHandler(slog.AllLevels))
+	l.Info("message")
+}
+```
+
+### Create New Handler
+
+you only need implement the `slog.Handler` interface:
+
+```go
+type bufferHandler struct {
+	handler.LevelsWithFormatter
+}
+
+func (h *bufferHandler) Handle(r *slog.Record) error {
+	// you can write log message to file or send to remote.
+}
+```
+
+### Create New Processor
+
+### Create New Formatter
+
 
 ## Refer
 

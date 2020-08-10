@@ -93,7 +93,6 @@ func main() {
 
 ![](_example/images/console-color-log.png)
 
-
 上面是更改了默认的 `Formatter` 设置。你也可以追加 `ConsoleHandler` 来支持打印日志到控制台：
 
 ```go
@@ -114,6 +113,8 @@ slog.GetFormatter().(*slog.TextFormatter).Template = slog.NamedTemplate
 **输出预览:**
 
 ![](_example/images/console-color-log1.png)
+
+> 注意： `slog.TextFormatter` 使用模板字符串来格式化输出日志，因此新增字段输出需要同时调整模板
 
 ### 使用JSON格式
 
@@ -191,7 +192,7 @@ slog.Info("message")
 ```go
 // Handler interface definition
 type Handler interface {
-	// io.Closer
+	io.Closer
 	Flush() error
 	// IsHandling Checks whether the given record will be handled by this handler.
 	IsHandling(level Level) bool
@@ -208,28 +209,47 @@ type Handler interface {
 
 `Formatter` - 日志数据格式化。它通常设置于 `Handler` 中，可以用于格式化日志记录，将记录转成文本，JSON等，`Handler` 再将格式化后的数据写入到指定的地方。
 
-## Add Handler
+`Formatter` 接口定义如下:
 
 ```go
-
+// Formatter interface
+type Formatter interface {
+	Format(record *Record) ([]byte, error)
+}
 ```
 
-## New Logger
+函数包装类型：
 
-你可以创建新的 Logger 实例：
+```go
+// FormatterFunc wrapper definition
+type FormatterFunc func(r *Record) ([]byte, error)
+
+// Format an record
+func (fn FormatterFunc) Format(r *Record) ([]byte, error) {
+	return fn(r)
+}
+```
+
+## 创建自定义实例
+
+你可以创建一个全新的 `slog.Logger` 实例：
 
 - 方式1：
 
 ```go
-logger := slog.New()
+l := slog.New()
 // add handlers ...
+h1 := handler.NewConsoleHandler(slog.AllLevels)
+l.AddHandlers(h1)
 ```
 
 - 方式2：
 
 ```go
-logger := slog.NewWithName("myLogger")
+l := slog.NewWithName("myLogger")
 // add handlers ...
+h1 := handler.NewConsoleHandler(slog.AllLevels)
+l.AddHandlers(h1)
 ```
 
 - 方式3：
@@ -243,8 +263,8 @@ import (
 )
 
 func main() {
-	logger := slog.NewWithHandlers(handler.NewConsoleHandler(slog.AllLevels))
-	logger.Info("message")
+	l := slog.NewWithHandlers(handler.NewConsoleHandler(slog.AllLevels))
+	l.Info("message")
 }
 ```
 
