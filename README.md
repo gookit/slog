@@ -292,19 +292,31 @@ func main() {
 you only need implement the `slog.Handler` interface:
 
 ```go
-type bufferHandler struct {
+type MyHandler struct {
 	handler.LevelsWithFormatter
 }
 
-func (h *bufferHandler) Handle(r *slog.Record) error {
+func (h *MyHandler) Handle(r *slog.Record) error {
 	// you can write log message to file or send to remote.
 }
+```
+
+add handler to default logger:
+
+```go
+slog.AddHander(&MyHandler{})
+```
+
+or add to custom logger:
+
+```go
+l := slog.New()
+l.AddHander(&MyHandler{})
 ```
 
 ### Create New Processor
 
 ### Create New Formatter
-
 
 ## Refer
 

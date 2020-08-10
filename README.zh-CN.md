@@ -230,7 +230,9 @@ func (fn FormatterFunc) Format(r *Record) ([]byte, error) {
 }
 ```
 
-## 创建自定义实例
+## 自定义
+
+## 创建自定义 Logger实例
 
 你可以创建一个全新的 `slog.Logger` 实例：
 
@@ -267,6 +269,37 @@ func main() {
 	l.Info("message")
 }
 ```
+
+### 创建自定义 Handler
+
+you only need implement the `slog.Handler` interface:
+
+```go
+type MyHandler struct {
+	handler.LevelsWithFormatter
+}
+
+func (h *MyHandler) Handle(r *slog.Record) error {
+	// you can write log message to file or send to remote.
+}
+```
+
+add handler to default logger:
+
+```go
+slog.AddHander(&MyHandler{})
+```
+
+or add to custom logger:
+
+```go
+l := slog.New()
+l.AddHander(&MyHandler{})
+```
+
+### 创建自定义 Processor
+
+### 创建自定义 Formatter
 
 ## Refer
 
