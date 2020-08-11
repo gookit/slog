@@ -292,6 +292,13 @@ func main() {
 you only need implement the `slog.Handler` interface:
 
 ```go
+package mypkg
+
+import (
+	"github.com/gookit/slog"
+	"github.com/gookit/slog/handler"
+)
+
 type MyHandler struct {
 	handler.LevelsWithFormatter
 }
@@ -316,7 +323,73 @@ l.AddHander(&MyHandler{})
 
 ### Create New Processor
 
+you only need implement the `slog.Processor` interface:
+
+```go
+package mypkg
+
+import (
+	"github.com/gookit/slog"
+	"github.com/gookit/slog/handler"
+)
+
+// AddHostname to record
+func AddHostname() slog.Processor {
+	hostname, _ := os.Hostname()
+
+	return slog.ProcessorFunc(func(record *slog.Record) {
+		record.AddField("hostname", hostname)
+	})
+}
+```
+
+add the processor:
+
+```go
+slog.AddProcessor(mypkg.AddHostname())
+```
+
+or:
+
+```go
+l := slog.New()
+l.AddProcessor(mypkg.AddHostname())
+```
+
 ### Create New Formatter
+
+you only need implement the `slog.Formatter` interface:
+
+```go
+package mypkg
+
+import (
+	"github.com/gookit/slog"
+)
+
+type MyFormatter struct {
+}
+
+func (f *Formatter) Format(r *slog.Record) error {
+	// format Record to text/JSON or other format.
+}
+```
+
+add the formatter:
+
+```go
+slog.SetFormatter(&mypkg.MyFormatter{})
+```
+
+OR:
+
+```go
+l := slog.New()
+h := &MyHandler{}
+h.SetFormatter(&mypkg.MyFormatter{})
+
+l.AddHander(h)
+```
 
 ## Refer
 
