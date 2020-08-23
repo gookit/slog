@@ -24,7 +24,12 @@ func (h *SysLog) Handle(record *slog.Record) error {
 }
 
 func NewSysLog(priority syslog.Priority, tag string) *SysLog {
+	slWriter, err := syslog.New(priority, tag)
+	if err != nil {
+		panic(err)
+	}
+
 	return &SysLog{
-		slWriter: syslog.New(priority, tag),
+		slWriter: slWriter,
 	}
 }
