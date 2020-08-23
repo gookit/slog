@@ -1,3 +1,5 @@
+// +build !windows,!nacl,!plan9
+
 package handler
 
 import (
@@ -18,7 +20,7 @@ func (h *SysLog) Handle(record *slog.Record) error {
 		return err
 	}
 
-	return h.slWriter.Info(bts)
+	return h.slWriter.Info(string(bts))
 }
 
 func NewSysLog(priority syslog.Priority, tag string) *SysLog {
