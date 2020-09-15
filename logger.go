@@ -288,6 +288,21 @@ func (logger *Logger) Logf(level Level, format string, args ...interface{}) {
 	logger.releaseRecord(r)
 }
 
+// Print logs a message at level PrintLevel
+func (logger *Logger) Print(args ...interface{}) {
+	logger.Log(PrintLevel, args...)
+}
+
+// Println logs a message at level PrintLevel
+func (logger *Logger) Println(args ...interface{}) {
+	logger.Log(PrintLevel, args...)
+}
+
+// Printf logs a message at level PrintLevel
+func (logger *Logger) Printf(format string, args ...interface{}) {
+	logger.Logf(PrintLevel, format, args...)
+}
+
 // Warning logs a message at level Warn
 func (logger *Logger) Warning(args ...interface{}) {
 	logger.Warn(args...)

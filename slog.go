@@ -215,6 +215,21 @@ func WithFields(fields M) *Record {
 
 // -------------------------- Add log messages with level -----------------------------
 
+// Print logs a message at level PrintLevel
+func Print(args ...interface{}) {
+	std.Log(PrintLevel, args...)
+}
+
+// Println logs a message at level PrintLevel
+func Println(args ...interface{}) {
+	std.Log(PrintLevel, args...)
+}
+
+// Printf logs a message at level PrintLevel
+func Printf(format string, args ...interface{}) {
+	std.Logf(PrintLevel, format, args...)
+}
+
 // Trace logs a message at level Trace
 func Trace(args ...interface{}) {
 	std.Log(TraceLevel, args...)

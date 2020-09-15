@@ -7,10 +7,9 @@ import (
 	"github.com/gookit/slog"
 )
 
-
 // MultiFileHandler definition
 type MultiFileHandler struct {
-	mu sync.Mutex
+	mu    sync.Mutex
 	bufio *bufio.Writer
 
 	// FileDir for save log files

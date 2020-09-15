@@ -231,6 +231,9 @@ var (
 		TraceLevel,
 	}
 
+	// PrintLevel for use logger.Print / Printf / Println
+	PrintLevel = NoticeLevel
+
 	// LevelNames all level mapping name
 	LevelNames = map[Level]string{
 		PanicLevel:  "PANIC",
