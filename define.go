@@ -232,7 +232,7 @@ var (
 	}
 
 	// PrintLevel for use logger.Print / Printf / Println
-	PrintLevel = NoticeLevel
+	PrintLevel = InfoLevel
 
 	// LevelNames all level mapping name
 	LevelNames = map[Level]string{
