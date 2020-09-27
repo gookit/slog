@@ -10,7 +10,7 @@ func ExampleNewMultiFileHandler() {
 		FileDir: "testdata/multifiles",
 		FileLevels: map[string]slog.Levels{
 			"error.log": {slog.ErrorLevel, slog.WarnLevel},
-			"info.log": {slog.InfoLevel, slog.NoticeLevel, slog.DebugLevel, slog.TraceLevel},
+			"info.log":  {slog.InfoLevel, slog.NoticeLevel, slog.DebugLevel, slog.TraceLevel},
 		},
 	}
 

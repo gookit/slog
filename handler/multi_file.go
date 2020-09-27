@@ -33,9 +33,7 @@ type MultiFileHandler struct {
 
 // NewMultiFileHandler instance
 func NewMultiFileHandler() *MultiFileHandler {
-	return &MultiFileHandler{
-
-	}
+	return &MultiFileHandler{}
 }
 
 // IsHandling Check if the current level can be handling

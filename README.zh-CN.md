@@ -75,7 +75,7 @@ import (
 
 func main() {
 	slog.Configure(func(logger *slog.SugaredLogger) {
-		f := logger.Formatter().(*slog.TextFormatter)
+		f := logger.Formatter.(*slog.TextFormatter)
 		f.EnableColor = true
 	})
 
