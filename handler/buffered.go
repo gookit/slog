@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bufio"
+	"sync"
 
 	"github.com/gookit/slog"
 )
@@ -11,11 +12,14 @@ const defaultFlushInterval = 1000
 // BufferedHandler definition
 type BufferedHandler struct {
 	LevelsWithFormatter
-	number  int
+
+	mu sync.Mutex
+
 	buffer  *bufio.Writer
-	handler slog.Handler
-	// options
-	FlushInterval int
+	handler slog.WriterHandler
+	// options:
+	// BuffSize for buffer
+	BuffSize int
 }
 
 // NewBufferedHandler create new BufferedHandler
@@ -24,18 +28,30 @@ func NewBufferedHandler(handler slog.WriterHandler, bufSize int) *BufferedHandle
 		buffer:  bufio.NewWriterSize(handler.Writer(), bufSize),
 		handler: handler,
 		// options
-		FlushInterval: defaultFlushInterval,
+		BuffSize: bufSize,
 	}
 }
 
 // Flush all buffers to the `h.handler.Writer()`
 func (h *BufferedHandler) Flush() error {
-	return h.buffer.Flush()
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	err := h.buffer.Flush()
+	if err != nil {
+		return err
+	}
+
+	return h.handler.Flush()
 }
 
 // Close log records
 func (h *BufferedHandler) Close() error {
-	return h.buffer.Flush()
+	if err := h.Flush(); err != nil {
+		return err
+	}
+
+	return h.handler.Close()
 }
 
 // Handle log record
@@ -45,10 +61,17 @@ func (h *BufferedHandler) Handle(record *slog.Record) error {
 		return err
 	}
 
-	h.number++
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	if h.buffer == nil {
+		h.buffer = bufio.NewWriterSize(h.handler.Writer(), h.BuffSize)
+	}
+
 	_, err = h.buffer.Write(bts)
 
-	if h.number >= h.FlushInterval {
+	// flush logs
+	if h.buffer.Buffered() >= h.BuffSize {
 		return h.Flush()
 	}
 

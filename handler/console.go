@@ -31,7 +31,7 @@ func NewConsoleHandler(levels []slog.Level) *ConsoleHandler {
 	return h
 }
 
-// SetColorTheme to the formatter
-func (h *ConsoleHandler) ConfigFormatter(fn func(formatter *slog.TextFormatter)) {
-	fn(h.Formatter().(*slog.TextFormatter))
+// TextFormatter get the formatter
+func (h *ConsoleHandler) TextFormatter() *slog.TextFormatter {
+	return h.Formatter().(*slog.TextFormatter)
 }

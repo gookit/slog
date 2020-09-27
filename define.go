@@ -35,6 +35,19 @@ func (l Level) LowerName() string {
 	return strings.ToLower(LevelName(l))
 }
 
+// Levels level list
+type Levels []Level
+
+// Contains given level
+func (ls Levels) Contains(level Level) bool {
+	for _, l := range ls {
+		if l == level {
+			return true
+		}
+	}
+	return false
+}
+
 // SyncWriter is the interface satisfied by logging destinations.
 type SyncWriter interface {
 	Sync() error
@@ -51,6 +64,7 @@ type FlushSyncWriter interface {
 // WriterHandler is the interface satisfied by logging destinations.
 type WriterHandler interface {
 	Handler
+	// the output writer
 	Writer() io.Writer
 }
 
@@ -60,15 +74,17 @@ type WriterHandler interface {
 
 // Handler interface definition
 type Handler interface {
-	// Close handler
+	// Close handler.
+	// You should first call Flush() on close logic.
+	// Refer the FileHandler.Close() handle
 	io.Closer
 	// Flush logs to disk
 	Flush() error
 	// IsHandling Checks whether the given record will be handled by this handler.
 	IsHandling(level Level) bool
 	// Handle a log record.
-	// all records may be passed to this method, and the handler should discard
-	// those that it does not want to handle.
+	// All records may be passed to this method, and the handler should discard
+	// Those that it does not want to handle.
 	Handle(*Record) error
 	// HandleBatch Handles a set of records at once. TODO need ?
 	// HandleBatch([]*Record) error

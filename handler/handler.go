@@ -1,3 +1,5 @@
+// Package handler provide some common log handlers.
+// eg: file, console, multi_file, rotate_file, stream, syslog, email
 package handler
 
 import (
