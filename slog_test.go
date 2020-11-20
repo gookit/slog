@@ -42,10 +42,9 @@ func TestTextFormatNoColor(t *testing.T) {
 		f.EnableColor = false
 	})
 
-	slog.Info("info log message")
-	slog.Warn("warning log message")
-	slog.Infof("info log %s", "message")
-	slog.Debugf("debug %s", "message")
+	printLogs("print log message")
+	printfLogs("print log with %s", "params")
+
 	slog.Reset()
 }
 
@@ -57,22 +56,34 @@ func TestTextFormatWithColor(t *testing.T) {
 		l.ExitFunc = doNothing
 	})
 
-	printLogs()
+	printLogs("this is a simple log message")
+	slog.Std().Trace("this is a simple log message")
 
 	slog.GetFormatter().(*slog.TextFormatter).Template = slog.NamedTemplate
-
-	printLogs()
+	printfLogs("print log with %s", "params")
 }
 
-func printLogs() {
-	slog.Std().Trace("this is a simple log message")
-	slog.Trace("this is a simple log message")
-	slog.Debug("this is a simple log message")
-	slog.Info("this is a simple log message")
-	slog.Notice("this is a simple log message")
-	slog.Warn("this is a simple log message")
-	slog.Error("this is a simple log message")
-	slog.Fatal("this is a simple log message")
+func printLogs(msg string) {
+	slog.Print(msg)
+	slog.Println(msg)
+	slog.Trace(msg)
+	slog.Debug(msg)
+	slog.Info(msg)
+	slog.Notice(msg)
+	slog.Warn(msg)
+	slog.Error(msg)
+	slog.Fatal(msg)
+}
+
+func printfLogs(msg string, args ...interface{}) {
+	slog.Printf(msg, args...)
+	slog.Tracef(msg, args...)
+	slog.Debugf(msg, args...)
+	slog.Infof(msg, args...)
+	slog.Noticef(msg, args...)
+	slog.Warnf(msg, args...)
+	slog.Errorf(msg, args...)
+	slog.Fatalf(msg, args...)
 }
 
 func TestUseJSONFormat(t *testing.T) {
