@@ -1,6 +1,9 @@
 package slog_test
 
-import "github.com/gookit/slog"
+import (
+	"github.com/gookit/slog"
+	"github.com/gookit/slog/handler"
+)
 
 func Example_quickStart() {
 	slog.Info("info log message")
@@ -41,4 +44,13 @@ func Example_useJSONFormat() {
 	})
 	r.Infof("info %s", "message")
 	r.Debugf("debug %s", "message")
+}
+
+func ExampleNew() {
+	mylog := slog.New()
+	mylog.AddHandler(handler.NewFileHandler("app.log", false))
+
+	mylog.Info("info log message")
+	mylog.Warn("warning log message")
+	mylog.Infof("info log %s", "message")
 }

@@ -75,6 +75,8 @@ func NewFileHandler(fpath string, useJSON bool) *FileHandler {
 
 	if useJSON {
 		h.SetFormatter(slog.NewJSONFormatter())
+	} else {
+		h.SetFormatter(slog.NewTextFormatter())
 	}
 
 	return h

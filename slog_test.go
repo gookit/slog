@@ -15,12 +15,6 @@ var doNothing = func(code int) {
 	// do nothing
 }
 
-func ExampleNew() {
-	slog.Info("info log message")
-	slog.Warn("warning log message")
-	slog.Infof("info log %s", "message")
-}
-
 func TestStd(t *testing.T) {
 	defer slog.Reset()
 	assert.Equal(t, "stdLogger", slog.Std().Name())
