@@ -25,7 +25,7 @@ func NewConsoleHandler(levels []slog.Level) *ConsoleHandler {
 	// create new formatter
 	f := slog.NewTextFormatter()
 	// enable color on console
-	f.EnableColor = color.IsSupportColor()
+	f.EnableColor = color.SupportColor()
 
 	h.SetFormatter(f)
 	return h
