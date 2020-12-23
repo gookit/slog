@@ -140,7 +140,7 @@ func newStdLogger() *SugaredLogger {
 		sl.SetName("stdLogger")
 		sl.ReportCaller = true
 		// auto enable console color
-		sl.Formatter.(*TextFormatter).EnableColor = color.IsSupportColor()
+		sl.Formatter.(*TextFormatter).EnableColor = color.SupportColor()
 	})
 }
 
