@@ -28,7 +28,7 @@ func TestJSONFormatter(t *testing.T) {
 		"field2": "abc",
 	}
 
-	l.WithFields(fields).Info("info message")
+	l.WithFields(fields).Info("info", "message")
 
 	// PrettyPrint=true
 

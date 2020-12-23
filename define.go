@@ -317,3 +317,13 @@ func Name2Level(ln string) (Level, error) {
 	var l Level
 	return l, fmt.Errorf("invalid log Level: %q", ln)
 }
+
+// MustLevelByName convert name to level
+func MustLevelByName(ln string) Level {
+	l, err := Name2Level(ln)
+	if err != nil {
+		 return InfoLevel
+	}
+
+	return l
+}

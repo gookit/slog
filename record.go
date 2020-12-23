@@ -226,7 +226,8 @@ func (r *Record) NewBuffer() *bytes.Buffer {
 
 // Log an message with level
 func (r *Record) Log(level Level, args ...interface{}) {
-	r.log(level, fmt.Sprint(args...))
+	// r.log(level, fmt.Sprint(args...))
+	r.log(level, formatArgsWithSpaces(args))
 }
 
 // Log an message with level

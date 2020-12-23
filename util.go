@@ -113,3 +113,17 @@ func formatCaller(rf *runtime.Frame, fullPath bool) string {
 // 		fmt.Fprintln(os.Stderr, "glog: Flush took longer than", timeout)
 // 	}
 // }
+
+// it like Println, will add spaces for each argument
+func formatArgsWithSpaces(args []interface{}) (message string) {
+	if ln := len(args); ln == 0 {
+		message = ""
+	} else if ln == 1 {
+		message = fmt.Sprint(args[0])
+	} else {
+		message = fmt.Sprintln(args...)
+		// clear last "\n"
+		message = message[:len(message)-1]
+	}
+	return
+}

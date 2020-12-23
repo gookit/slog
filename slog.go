@@ -171,6 +171,21 @@ func SetExitFunc(fn func(code int)) {
 	std.ExitFunc = fn
 }
 
+// SetLogLevel for the std logger
+func SetLogLevel(l Level) {
+	std.Level = l
+}
+
+// SetFormatter to std logger
+func SetFormatter(f Formatter) {
+	std.Formatter = f
+}
+
+// GetFormatter of the std logger
+func GetFormatter() Formatter {
+	return std.Formatter
+}
+
 // AddHandler to the std logger
 func AddHandler(h Handler) {
 	std.AddHandler(h)
@@ -179,16 +194,6 @@ func AddHandler(h Handler) {
 // AddHandlers to the std logger
 func AddHandlers(hs ...Handler) {
 	std.AddHandlers(hs...)
-}
-
-// GetFormatter of the std logger
-func GetFormatter() Formatter {
-	return std.Formatter
-}
-
-// SetFormatter to std logger
-func SetFormatter(f Formatter) {
-	std.Formatter = f
 }
 
 // AddProcessor to the logger

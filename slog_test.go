@@ -22,6 +22,7 @@ func TestStd(t *testing.T) {
 	_, ok := slog.GetFormatter().(*slog.TextFormatter)
 	assert.True(t, ok)
 
+	slog.SetLogLevel(slog.WarnLevel)
 	slog.SetFormatter(slog.NewJSONFormatter())
 	_, ok = slog.GetFormatter().(*slog.JSONFormatter)
 	assert.True(t, ok)
