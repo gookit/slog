@@ -98,6 +98,9 @@ func formatCaller(rf *runtime.Frame, field string) (cs string) {
 		return fmt.Sprintf("%s:%d", rf.File, rf.Line)
 	case FieldKeyFLine: // eg: "logger_test.go:48"
 		return fmt.Sprintf("%s:%d", path.Base(rf.File), rf.Line)
+	case FieldKeyFcName: // eg: "logger_test.go:48"
+		ss := strings.Split(rf.Function, ".")
+		return fmt.Sprintf("%s", ss[len(ss)-1])
 	}
 
 	return fmt.Sprintf("%s:%d", rf.File, rf.Line)
