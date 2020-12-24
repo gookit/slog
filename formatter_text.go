@@ -66,6 +66,12 @@ func NewTextFormatter(template ...string) *TextFormatter {
 	}
 }
 
+// SetTemplate set the log format template and update field-map
+func (f *TextFormatter) SetTemplate(fmtTpl string) {
+	f.Template = fmtTpl
+	f.fieldMap = parseFieldMap(fmtTpl)
+}
+
 // FieldMap get export field map
 func (f *TextFormatter) FieldMap() StringMap {
 	return f.fieldMap

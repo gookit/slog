@@ -48,6 +48,35 @@ func (ls Levels) Contains(level Level) bool {
 	return false
 }
 
+// LoggerFace interface
+type LoggerFace interface {
+	Print(args ...interface{})
+	Printf(format string, args ...interface{})
+	Debug(args ...interface{})
+	Debugf(format string, args ...interface{})
+	Info(args ...interface{})
+	Infof(format string, args ...interface{})
+	Warn(args ...interface{})
+	Warnf(format string, args ...interface{})
+	Error(args ...interface{})
+	Errorf(format string, args ...interface{})
+	Fatal(args ...interface{})
+	Fatalf(format string, args ...interface{})
+}
+
+// FullLoggerFace interface
+type FullLoggerFace interface {
+	LoggerFace
+	Log(level Level, args ...interface{})
+	Logf(level Level, format string, args ...interface{})
+	Trace(args ...interface{})
+	Tracef(format string, args ...interface{})
+	Notice(args ...interface{})
+	Noticef(format string, args ...interface{})
+	Panic(args ...interface{})
+	Panicf(format string, args ...interface{})
+}
+
 // SyncWriter is the interface satisfied by logging destinations.
 type SyncWriter interface {
 	Sync() error
@@ -207,14 +236,16 @@ const (
 	FieldKeyData = "data"
 
 	// NOTICE: you must set `Logger.ReportCaller=true` for reporting caller
-	// FieldKeyCaller eg: "logger_test.go:48"
+	// FieldKeyCaller eg: "logger_test.go:48->TestLogger_ReportCaller"
 	FieldKeyCaller = "caller"
-	// FieldKeyPos eg: "logger_test.go:48"
-	FieldKeyPos = "position"
+	// FieldKeySpos eg: "logger_test.go:48"
+	FieldKeySPos = "shortpos"
 	// FieldKeyPkg "github.com/gookit/slog_test"
 	FieldKeyPkg = "package"
 	// FieldKeyFunc eg: "github.com/gookit/slog_test.TestLogger_ReportCaller"
 	FieldKeyFunc = "func"
+	// FieldKeyFunc eg: "TestLogger_ReportCaller"
+	FieldKeyFcName = "fcname"
 	// FieldKeyFile "/work/go/gookit/slog/logger_test.go:48"
 	FieldKeyFile = "file"
 
@@ -328,7 +359,7 @@ func Name2Level(ln string) (Level, error) {
 func MustLevelByName(ln string) Level {
 	l, err := Name2Level(ln)
 	if err != nil {
-		 return InfoLevel
+		return InfoLevel
 	}
 
 	return l

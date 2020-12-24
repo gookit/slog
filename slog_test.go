@@ -49,6 +49,14 @@ func TestTextFormatNoColor(t *testing.T) {
 	slog.Reset()
 }
 
+type logTest struct {
+	*slog.SugaredLogger
+}
+
+func (l logTest) testPrint() {
+	l.Logger.Info("print testing")
+}
+
 func TestTextFormatWithColor(t *testing.T) {
 	defer slog.Reset()
 
@@ -60,8 +68,22 @@ func TestTextFormatWithColor(t *testing.T) {
 	printLogs("this is a simple log message")
 	slog.Std().Trace("this is a simple log message")
 
-	slog.GetFormatter().(*slog.TextFormatter).Template = slog.NamedTemplate
+	lt := &logTest{
+		slog.Std(),
+	}
+	lt.testPrint()
+
+	slog.GetFormatter().(*slog.TextFormatter).SetTemplate(slog.NamedTemplate)
 	printfLogs("print log with %s", "params")
+
+	tpl := "[{{datetime}}] [{{channel}}] [{{level}}] [{{func}}] {{message}} {{data}} {{extra}}\n"
+	slog.GetFormatter().(*slog.TextFormatter).SetTemplate(tpl)
+	printfLogs("print log with %s", "params")
+
+	lt = &logTest{
+		slog.Std(),
+	}
+	lt.testPrint()
 }
 
 func printLogs(msg string) {
