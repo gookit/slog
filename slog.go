@@ -171,6 +171,11 @@ func SetExitFunc(fn func(code int)) {
 	std.ExitFunc = fn
 }
 
+// Flush log messages
+func Flush() error {
+	return std.Flush()
+}
+
 // SetLogLevel for the std logger
 func SetLogLevel(l Level) {
 	std.Level = l
