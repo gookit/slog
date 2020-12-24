@@ -205,20 +205,26 @@ const (
 	FieldKeyTime = "time"
 	// FieldKeyDate  = "date"
 	FieldKeyData = "data"
-	// NOTICE: you must set `Logger.ReportCaller=true` for "func", "file"
+
+	// NOTICE: you must set `Logger.ReportCaller=true` for reporting caller
+	// FieldKeyCaller eg: "logger_test.go:48"
+	FieldKeyCaller = "caller"
+	// FieldKeyPos eg: "logger_test.go:48"
+	FieldKeyPos = "position"
+	// FieldKeyPkg "github.com/gookit/slog_test"
+	FieldKeyPkg = "package"
+	// FieldKeyFunc eg: "github.com/gookit/slog_test.TestLogger_ReportCaller"
 	FieldKeyFunc = "func"
+	// FieldKeyFile "/work/go/gookit/slog/logger_test.go:48"
 	FieldKeyFile = "file"
 
 	FieldKeyDatetime  = "datetime"
-	FieldKeyPosition  = "position"
 	FieldKeyTimestamp = "timestamp"
 
 	FieldKeyLevel = "level"
 	FieldKeyError = "error"
 	FieldKeyExtra = "extra"
 
-	// NOTICE: you must set `Logger.ReportCaller=true` for "caller"
-	FieldKeyCaller  = "caller"
 	FieldKeyChannel = "channel"
 	FieldKeyMessage = "message"
 )
