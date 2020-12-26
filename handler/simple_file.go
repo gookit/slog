@@ -38,17 +38,14 @@ func NewSimpleFileHandler(filepath string) (*SimpleFileHandler, error) {
 // Handle the log record
 func (h *SimpleFileHandler) Handle(r *slog.Record) (err error) {
 	var bts []byte
-
 	bts, err = h.Formatter().Format(r)
 	if err != nil {
 		return
 	}
 
 	// if enable lock
-	if h.LockEnabled() {
-		h.Lock()
-		defer h.Unlock()
-	}
+	h.Lock()
+	defer h.Unlock()
 
 	// direct write logs
 	_, err = h.file.Write(bts)

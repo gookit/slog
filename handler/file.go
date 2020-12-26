@@ -2,14 +2,11 @@ package handler
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"os"
 	"path"
 	"path/filepath"
-	"runtime"
 	"sync"
-	"time"
 
 	"github.com/gookit/slog"
 )
@@ -24,6 +21,11 @@ var (
 	hName = "unknownHost" // TODO
 	// uName = "unknownUser"
 )
+
+// bufferSize sizes the buffer associated with each log file. It's large
+// so that log records can accumulate without the logging thread blocking
+// on disk I/O. The flushDaemon will block instead.
+const bufferSize = 256 * 1024
 
 var (
 	// DefaultMaxSize is the maximum size of a log file in bytes.
@@ -72,7 +74,7 @@ func NewFileHandler(filepath string, useJSON bool) (*FileHandler, error) {
 	h := &FileHandler{
 		fpath:   filepath,
 		useJSON: useJSON,
-		// MaxSize:  DefaultMaxSize,
+		BuffSize:  bufferSize,
 		// FileMode: DefaultFilePerm, // default FileMode
 		// FileFlag: DefaultFileFlags,
 		// init log levels
@@ -149,10 +151,8 @@ func (h *FileHandler) Handle(r *slog.Record) (err error) {
 	}
 
 	// if enable lock
-	if h.LockEnabled() {
-		h.Lock()
-		defer h.Unlock()
-	}
+	h.Lock()
+	defer h.Unlock()
 
 	// create file
 	// if h.file == nil {
@@ -175,57 +175,6 @@ func (h *FileHandler) Handle(r *slog.Record) (err error) {
 
 	_, err = h.bufio.Write(bts)
 	return
-}
-
-func logName(tag string, t time.Time) string {
-	// return tag + t.Nanosecond()
-	return tag + t.Format("20060102T15:04:05Z07:00")
-}
-
-// from glog
-// stacks is a wrapper for runtime.Stack that attempts to recover the data for all goroutines.
-func stacks(all bool) []byte {
-	// We don't know how big the traces are, so grow a few times if they don't fit. Start large, though.
-	n := 10000
-	if all {
-		n = 100000
-	}
-
-	var trace []byte
-	for i := 0; i < 5; i++ {
-		trace = make([]byte, n)
-		nbytes := runtime.Stack(trace, all)
-		if nbytes < len(trace) {
-			return trace[:nbytes]
-		}
-		n *= 2
-	}
-	return trace
-}
-
-func create(tag string, t time.Time) (f *os.File, filename string, err error) {
-	// TODO ...
-	// onceLogDir.Do(func() {
-	// 	fsutil.Mkdir(fpath.Dir(h.fpath))
-	// })
-
-	dir := "some"
-
-	// name, link := logName(tag, t)
-	name := "xxx.log"
-	var lastErr error
-
-	fName := filepath.Join(dir, name)
-	f, err = os.Create(fName)
-	if err == nil {
-		// symlink := fpath.Join(dir, link)
-		// os.Remove(symlink)        // ignore err
-		// os.Symlink(name, symlink) // ignore err
-		return f, fName, nil
-	}
-	lastErr = err
-
-	return nil, "", fmt.Errorf("log: cannot create log file, error: %v", lastErr)
 }
 
 func openFile(filepath string, flag int, mode int) (*os.File, error) {

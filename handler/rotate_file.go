@@ -1,19 +1,12 @@
 package handler
 
 import (
-	"bytes"
-	"fmt"
+	"bufio"
 	"os"
-	"runtime"
 	"time"
 
 	"github.com/gookit/slog"
 )
-
-// bufferSize sizes the buffer associated with each log file. It's large
-// so that log records can accumulate without the logging thread blocking
-// on disk I/O. The flushDaemon will block instead.
-const bufferSize = 256 * 1024
 
 // RotateFileHandler struct definition
 type RotateFileHandler struct {
@@ -23,64 +16,116 @@ type RotateFileHandler struct {
 	written uint64
 	// file contents max size
 	MaxSize uint64
-	// RenameFunc for rotate file
+	// RenameFunc build filename for rotate file
 	RenameFunc func(baseFile string) string
 }
 
+// NewRotateFileHandler instance
 func NewRotateFileHandler(filepath string) (*RotateFileHandler, error) {
 	h := &RotateFileHandler{
 		MaxSize: DefaultMaxSize,
 		FileHandler: FileHandler{
 			fpath: filepath,
+			BuffSize:  bufferSize,
+			// init log levels
+			LevelsWithFormatter: LevelsWithFormatter{
+				Levels: slog.AllLevels, // default log all levels
+			},
+		},
+		// build new filename. eg: "error.log" => "error.log.0102150405"
+		RenameFunc: func(baseFile string) string {
+			// 2006-01-02 15-04-05
+			suffix := time.Now().Format("0102150405")
+			return baseFile + "." + suffix
 		},
 	}
 
+	file, err := openFile(filepath, DefaultFileFlags, DefaultFilePerm)
+	if err != nil {
+		return nil, err
+	}
+
+	h.file = file
 	return h, nil
 }
 
-func (h *RotateFileHandler) Write(p []byte) (n int, err error) {
-	if h.written+uint64(len(p)) >= h.MaxSize {
-		if err := h.rotateFile(time.Now()); err != nil {
-			return 0, err
-		}
-	}
+// func (h *RotateFileHandler) Write(p []byte) (n int, err error) {
+// 	if h.written+uint64(len(p)) >= h.MaxSize {
+// 		if err := h.rotateFile(time.Now()); err != nil {
+// 			return 0, err
+// 		}
+// 	}
+//
+// 	n, err = h.file.Write(p)
+// 	h.written += uint64(n)
+// 	return
+// }
 
-	n, err = h.file.Write(p)
-	h.written += uint64(n)
-	// if err != nil {
-	// 	h.logger.Exit(err)
-	// }
-	return
-}
-
-// -------- refer from glog package
-// rotateFile closes the syncBuffer's file and starts a new one.
-func (h *RotateFileHandler) rotateFile(now time.Time) error {
-	if h.file != nil {
-		h.Flush()
-		h.file.Close()
-	}
-
-	var err error
-	h.file, _, err = create("INFO", now)
-	h.written = 0
+// Handle the log record
+func (h *RotateFileHandler) Handle(r *slog.Record) (err error) {
+	var bts []byte
+	bts, err = h.Formatter().Format(r)
 	if err != nil {
 		return err
 	}
 
-	// init writer
-	// h.Writer = bufio.NewWriterSize(h.file, bufferSize)
+	// if lock enabled
+	h.Lock()
+	defer h.Unlock()
 
-	// Write header.
-	var buf bytes.Buffer
-	fmt.Fprintf(&buf, "Log file created at: %s\n", now.Format("2006/01/02 15:04:05"))
-	fmt.Fprintf(&buf, "Running on machine: %s\n", hName)
-	fmt.Fprintf(&buf, "Binary: Built with %s %s for %s/%s\n", runtime.Compiler, runtime.Version(), runtime.GOOS, runtime.GOARCH)
-	fmt.Fprintf(&buf, "Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg\n")
-	n, err := h.file.Write(buf.Bytes())
+	var n int
 
-	h.written += uint64(n)
-	return err
+	// direct write logs to file
+	if h.NoBuffer {
+		n, err = h.file.Write(bts)
+	} else {
+		// enable buffer
+		if h.bufio == nil {
+			h.bufio = bufio.NewWriterSize(h.file, h.BuffSize)
+		}
+
+		n, err = h.bufio.Write(bts)
+	}
+
+	if err == nil {
+		h.written += uint64(n)
+		err = h.doRotatingFile()
+	}
+	return
+}
+
+// rotateFile closes the syncBuffer's file and starts a new one.
+func (h *RotateFileHandler) doRotatingFile() error {
+	if h.written < h.MaxSize {
+		return nil
+	}
+
+	// close file
+	if err := h.Close(); err != nil {
+		return err
+	}
+
+	// rename current to new file
+	newFilepath := h.RenameFunc(h.baseFile)
+	err := os.Rename(h.baseFile, newFilepath)
+	if err != nil {
+		return err
+	}
+
+	// reopen file
+	h.file, err = openFile(h.baseFile, DefaultFileFlags, DefaultFilePerm)
+	if err != nil {
+		return err
+	}
+
+	// enable buffer
+	if h.bufio == nil {
+		h.bufio = bufio.NewWriterSize(h.file, h.BuffSize)
+	}
+
+	// reset h.written
+	h.written = 0
+	return nil
 }
 
 // log file examples:
@@ -180,10 +225,8 @@ func (h *TimeRotateFileHandler) Handle(r *slog.Record) (err error) {
 	}
 
 	// if enable lock
-	if h.LockEnabled() {
-		h.Lock()
-		defer h.Unlock()
-	}
+	h.Lock()
+	defer h.Unlock()
 
 	// do rotating file
 	if err = h.doRotatingFile(); err != nil {

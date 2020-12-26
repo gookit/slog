@@ -26,8 +26,10 @@ More usage please see README.
 package slog
 
 import (
+	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/gookit/color"
 )
@@ -174,6 +176,25 @@ func SetExitFunc(fn func(code int)) {
 // Flush log messages
 func Flush() error {
 	return std.Flush()
+}
+
+// TimeoutFlush flush logs on limit time.
+// from glog package
+func TimeoutFlush(timeout time.Duration) {
+	done := make(chan bool, 1)
+	go func() {
+		// TODO handle error ?
+		err := std.Flush() // calls logging.lockAndFlushAll()
+		_,_= fmt.Fprintln(os.Stderr, "slog: Flush logs error.", err)
+
+		done <- true
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(timeout):
+		_,_ = fmt.Fprintln(os.Stderr, "slog: Flush took longer than", timeout)
+	}
 }
 
 // SetLogLevel for the std logger

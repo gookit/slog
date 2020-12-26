@@ -2,7 +2,6 @@ package handler
 
 import (
 	"bufio"
-	"sync"
 
 	"github.com/gookit/slog"
 )
@@ -11,9 +10,8 @@ const defaultFlushInterval = 1000
 
 // BufferedHandler definition
 type BufferedHandler struct {
+	lockWrapper
 	LevelsWithFormatter
-
-	mu sync.Mutex
 
 	buffer  *bufio.Writer
 	handler slog.WriterHandler
@@ -34,11 +32,10 @@ func NewBufferedHandler(handler slog.WriterHandler, bufSize int) *BufferedHandle
 
 // Flush all buffers to the `h.handler.Writer()`
 func (h *BufferedHandler) Flush() error {
-	h.mu.Lock()
-	defer h.mu.Unlock()
+	h.Lock()
+	defer h.Unlock()
 
-	err := h.buffer.Flush()
-	if err != nil {
+	if err := h.buffer.Flush(); err != nil {
 		return err
 	}
 
@@ -61,8 +58,8 @@ func (h *BufferedHandler) Handle(record *slog.Record) error {
 		return err
 	}
 
-	h.mu.Lock()
-	defer h.mu.Unlock()
+	h.Lock()
+	defer h.Unlock()
 
 	if h.buffer == nil {
 		h.buffer = bufio.NewWriterSize(h.handler.Writer(), h.BuffSize)

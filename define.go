@@ -206,6 +206,11 @@ func (f *Formattable) SetFormatter(formatter Formatter) {
 	f.formatter = formatter
 }
 
+// FormatRecord to bytes
+func (f *Formattable) FormatRecord(record *Record) ([]byte, error){
+	return f.Formatter().Format(record)
+}
+
 // These are the different logging levels. You can set the logging level to log handler
 const (
 	// PanicLevel level, highest level of severity. will call panic() if the logging level <= PanicLevel.

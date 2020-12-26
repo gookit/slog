@@ -8,13 +8,28 @@ import (
 	"github.com/gookit/slog"
 )
 
-type SysLog struct {
-	LevelsWithFormatter
-
+// SysLogHandler struct
+type SysLogHandler struct {
+	LevelWithFormatter
 	slWriter *syslog.Writer
 }
 
-func (h *SysLog) Handle(record *slog.Record) error {
+// NewSysLogHandler instance
+func NewSysLogHandler(priority syslog.Priority, tag string) (*SysLogHandler, error) {
+	slWriter, err := syslog.New(priority, tag)
+	if err != nil {
+		return nil, err
+	}
+
+	h := &SysLogHandler{
+		slWriter: slWriter,
+	}
+
+	return h, nil
+}
+
+// Handle an record
+func (h *SysLogHandler) Handle(record *slog.Record) error {
 	bts, err := h.Formatter().Format(record)
 	if err != nil {
 		return err
@@ -23,13 +38,10 @@ func (h *SysLog) Handle(record *slog.Record) error {
 	return h.slWriter.Info(string(bts))
 }
 
-func NewSysLog(priority syslog.Priority, tag string) *SysLog {
-	slWriter, err := syslog.New(priority, tag)
-	if err != nil {
-		panic(err)
-	}
+func (h *SysLogHandler) Close() error {
+	return h.slWriter.Close()
+}
 
-	return &SysLog{
-		slWriter: slWriter,
-	}
+func (h *SysLogHandler) Flush() error {
+	return nil
 }

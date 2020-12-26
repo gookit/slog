@@ -17,7 +17,7 @@ type lockWrapper struct {
 
 // Lock it
 func (l *lockWrapper) Lock() {
-	if !l.disable {
+	if false == l.disable {
 		l.Mutex.Lock()
 	}
 }

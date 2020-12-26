@@ -33,7 +33,12 @@ func NewStreamHandler(out io.Writer, levels []slog.Level) *StreamHandler {
 
 // Close the handler
 func (h *StreamHandler) Close() error {
-	return h.Flush()
+	return nil
+}
+
+// Flush the handler
+func (h *StreamHandler) Flush() error {
+	return nil
 }
 
 // Handle log record

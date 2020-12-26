@@ -106,19 +106,28 @@ func formatCaller(rf *runtime.Frame, field string) (cs string) {
 	return fmt.Sprintf("%s:%d", rf.File, rf.Line)
 }
 
-// from glog
-// func timeoutFlush(timeout time.Duration) {
-// 	done := make(chan bool, 1)
-// 	go func() {
-// 		FlushAll() // calls logging.lockAndFlushAll()
-// 		done <- true
-// 	}()
-// 	select {
-// 	case <-done:
-// 	case <-time.After(timeout):
-// 		fmt.Fprintln(os.Stderr, "glog: Flush took longer than", timeout)
-// 	}
-// }
+// from glog package
+// stacks is a wrapper for runtime.
+// Stack that attempts to recover the data for all goroutines.
+func getCallStacks(all bool) []byte {
+	// We don't know how big the traces are, so grow a few times if they don't fit.
+	// Start large, though.
+	n := 10000
+	if all {
+		n = 100000
+	}
+
+	var trace []byte
+	for i := 0; i < 5; i++ {
+		trace = make([]byte, n)
+		bts := runtime.Stack(trace, all)
+		if bts < len(trace) {
+			return trace[:bts]
+		}
+		n *= 2
+	}
+	return trace
+}
 
 // it like Println, will add spaces for each argument
 func formatArgsWithSpaces(args []interface{}) (message string) {
