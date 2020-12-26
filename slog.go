@@ -309,3 +309,13 @@ func Fatal(args ...interface{}) {
 func Fatalf(format string, args ...interface{}) {
 	std.Logf(FatalLevel, format, args...)
 }
+
+// Panic logs a message at level Panic
+func Panic(args ...interface{}) {
+	std.Log(PanicLevel, args...)
+}
+
+// Panic logs a message at level Panic
+func Panicf(format string, args ...interface{}) {
+	std.Logf(PanicLevel, format, args...)
+}
