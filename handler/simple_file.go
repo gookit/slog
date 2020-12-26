@@ -19,10 +19,15 @@ type SimpleFileHandler struct {
 }
 
 // NewSimpleFileHandler instance
+//
 // Usage:
 // 	h, err := NewSimpleFileHandler("", DefaultFileFlags)
 // custom file flags
 // 	h, err := NewSimpleFileHandler("", os.O_CREATE | os.O_WRONLY | os.O_APPEND)
+// custom formatter
+//	h.SetFormatter(slog.NewJSONFormatter())
+//	slog.PushHandler(h)
+//	slog.Info("log message")
 func NewSimpleFileHandler(filepath string, flag int) (*SimpleFileHandler, error) {
 	dir := path.Dir(filepath)
 	// if err := os.MkdirAll(dir, 0777); err != nil {
@@ -52,7 +57,7 @@ func (h *SimpleFileHandler) Handle(r *slog.Record) (err error) {
 		return
 	}
 
-	// if use lock
+	// if enable lock
 	if h.LockEnabled() {
 		h.Lock()
 		defer h.Unlock()

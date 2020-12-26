@@ -34,9 +34,9 @@ const (
 
 // FileHandler definition
 type FileHandler struct {
+	lockWrapper
+	// LevelsWithFormatter support limit log levels and formatter
 	LevelsWithFormatter
-
-	mu sync.Mutex
 
 	// log file path. eg: "/var/log/my-app.log"
 	fpath string
@@ -64,13 +64,13 @@ func JSONFileHandler(fpath string) *FileHandler {
 }
 
 // NewFileHandler create new FileHandler
-func NewFileHandler(fpath string, useJSON bool) *FileHandler {
+func NewFileHandler(filepath string, useJSON bool) *FileHandler {
 	h := &FileHandler{
-		fpath:    fpath,
+		fpath:    filepath,
 		useJSON:  useJSON,
 		MaxSize:  defaultMaxSize,
 		FileMode: 0664, // default FileMode
-		FileFlag: os.O_CREATE | os.O_WRONLY | os.O_APPEND,
+		FileFlag: DefaultFileFlags,
 		// init log levels
 		LevelsWithFormatter: LevelsWithFormatter{
 			Levels: slog.AllLevels, // default log all levels
@@ -122,13 +122,15 @@ func (h *FileHandler) Flush() error {
 // Handle the log record
 func (h *FileHandler) Handle(r *slog.Record) (err error) {
 	var bts []byte
-
-	h.mu.Lock()
-	defer h.mu.Unlock()
-
 	bts, err = h.Formatter().Format(r)
 	if err != nil {
 		return
+	}
+
+	// if enable lock
+	if h.LockEnabled() {
+		h.Lock()
+		defer h.Unlock()
 	}
 
 	// create file
