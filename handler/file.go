@@ -21,19 +21,64 @@ var (
 	pid = os.Getpid()
 	// program name
 	pName = filepath.Base(os.Args[0])
-	host  = "unknownHost" // TODO
-	// userName = "unknownuser"
+	hName = "unknownHost" // TODO
+	// uName = "unknownUser"
 )
 
-// defaultMaxSize is the maximum size of a log file in bytes.
-const defaultMaxSize uint64 = 1024 * 1024 * 1800
-
-const (
+var (
+	// DefaultMaxSize is the maximum size of a log file in bytes.
+	DefaultMaxSize uint64 = 1024 * 1024 * 1800
+	// perm and flags for create log file
+	DefaultFilePerm  = 0664
 	DefaultFileFlags = os.O_CREATE | os.O_WRONLY | os.O_APPEND
 )
 
+type fileHandler struct {
+	fpath string
+	file  *os.File
+}
+
+func newFileHandler(fpath string) *fileHandler {
+	return &fileHandler{fpath: fpath}
+}
+
+// ReopenFile the log file
+func (h *fileHandler) ReopenFile() error {
+	if h.file != nil {
+		h.file.Close()
+	}
+
+	file, err := openFile(h.fpath, DefaultFileFlags, DefaultFilePerm)
+	if err != nil {
+		return err
+	}
+
+	h.file = file
+	return err
+}
+
+// Writer return *os.File
+func (h *fileHandler) Writer() io.Writer {
+	return h.file
+}
+
+// Close handler, will be flush logs to file, then close file
+func (h *fileHandler) Close() error {
+	if err := h.file.Sync(); err != nil {
+		return err
+	}
+
+	return h.file.Close()
+}
+
+// Flush logs to disk file
+func (h *fileHandler) Flush() error {
+	return h.file.Sync()
+}
+
 // FileHandler definition
 type FileHandler struct {
+	// fileHandler
 	lockWrapper
 	// LevelsWithFormatter support limit log levels and formatter
 	LevelsWithFormatter
@@ -46,31 +91,33 @@ type FileHandler struct {
 	useJSON bool
 	// NoBuffer on write log records
 	NoBuffer bool
-	// FileFlag for create. default: os.O_CREATE|os.O_WRONLY|os.O_APPEND
-	FileFlag int
-	// FileMode perm for create log file. (it's os.FileMode)
-	FileMode uint32
 	// BuffSize for enable buffer
 	BuffSize int
-	// file contents max size
-	MaxSize uint64
-	// RenameFunc for rotate file
-	RenameFunc func(fpath string) string
 }
 
 // JSONFileHandler create new FileHandler with JSON formatter
-func JSONFileHandler(fpath string) *FileHandler {
-	return NewFileHandler(fpath, true)
+func JSONFileHandler(filepath string) (*FileHandler, error) {
+	return NewFileHandler(filepath, true)
+}
+
+// MustFileHandler create file handler
+func MustFileHandler(filepath string, useJSON bool) *FileHandler {
+	h, err := NewFileHandler(filepath, useJSON)
+	if err != nil {
+		panic(err)
+	}
+
+	return h
 }
 
 // NewFileHandler create new FileHandler
-func NewFileHandler(filepath string, useJSON bool) *FileHandler {
+func NewFileHandler(filepath string, useJSON bool) (*FileHandler, error) {
 	h := &FileHandler{
-		fpath:    filepath,
-		useJSON:  useJSON,
-		MaxSize:  defaultMaxSize,
-		FileMode: 0664, // default FileMode
-		FileFlag: DefaultFileFlags,
+		fpath:   filepath,
+		useJSON: useJSON,
+		// MaxSize:  DefaultMaxSize,
+		// FileMode: DefaultFilePerm, // default FileMode
+		// FileFlag: DefaultFileFlags,
 		// init log levels
 		LevelsWithFormatter: LevelsWithFormatter{
 			Levels: slog.AllLevels, // default log all levels
@@ -83,13 +130,30 @@ func NewFileHandler(filepath string, useJSON bool) *FileHandler {
 		h.SetFormatter(slog.NewTextFormatter())
 	}
 
-	return h
+	file, err := openFile(filepath, DefaultFileFlags, DefaultFilePerm)
+	if err != nil {
+		return nil, err
+	}
+
+	h.file = file
+	return h, nil
 }
 
 // Configure the handler
 func (h *FileHandler) Configure(fn func(h *FileHandler)) *FileHandler {
 	fn(h)
 	return h
+}
+
+// ReopenFile the log file
+func (h *FileHandler) ReopenFile() error {
+	file, err := openFile(h.fpath, DefaultFileFlags, DefaultFilePerm)
+	if err != nil {
+		return err
+	}
+
+	h.file = file
+	return err
 }
 
 // Writer return *os.File
@@ -134,18 +198,12 @@ func (h *FileHandler) Handle(r *slog.Record) (err error) {
 	}
 
 	// create file
-	if h.file == nil {
-		dPath := path.Dir(h.fpath)
-		err = os.MkdirAll(dPath, 0777)
-		if err != nil {
-			return
-		}
-
-		h.file, err = os.OpenFile(h.fpath, h.FileFlag, os.FileMode(h.FileMode))
-		if err != nil {
-			return
-		}
-	}
+	// if h.file == nil {
+	// 	h.file, err = openFile(h.fpath, h.FileFlag, h.FileMode)
+	// 	if err != nil {
+	// 		return
+	// 	}
+	// }
 
 	// direct write logs
 	if h.NoBuffer {
@@ -191,7 +249,7 @@ func stacks(all bool) []byte {
 func create(tag string, t time.Time) (f *os.File, filename string, err error) {
 	// TODO ...
 	// onceLogDir.Do(func() {
-	// 	fsutil.Mkdir(filepath.Dir(h.fpath))
+	// 	fsutil.Mkdir(fpath.Dir(h.fpath))
 	// })
 
 	dir := "some"
@@ -203,7 +261,7 @@ func create(tag string, t time.Time) (f *os.File, filename string, err error) {
 	fName := filepath.Join(dir, name)
 	f, err = os.Create(fName)
 	if err == nil {
-		// symlink := filepath.Join(dir, link)
+		// symlink := fpath.Join(dir, link)
 		// os.Remove(symlink)        // ignore err
 		// os.Symlink(name, symlink) // ignore err
 		return f, fName, nil
@@ -211,4 +269,20 @@ func create(tag string, t time.Time) (f *os.File, filename string, err error) {
 	lastErr = err
 
 	return nil, "", fmt.Errorf("log: cannot create log file, error: %v", lastErr)
+}
+
+func openFile(filepath string, flag int, mode int) (*os.File, error) {
+	fileDir := path.Dir(filepath)
+
+	// if err := os.Mkdir(dir, 0777); err != nil {
+	if err := os.MkdirAll(fileDir, 0777); err != nil {
+		return nil, err
+	}
+
+	file, err := os.OpenFile(filepath, flag, os.FileMode(mode))
+	if err != nil {
+		return nil, err
+	}
+
+	return file, nil
 }

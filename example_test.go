@@ -48,7 +48,7 @@ func Example_useJSONFormat() {
 
 func ExampleNew() {
 	mylog := slog.New()
-	mylog.AddHandler(handler.NewFileHandler("app.log", false))
+	mylog.AddHandler(handler.MustFileHandler("app.log", false))
 
 	mylog.Info("info log message")
 	mylog.Warn("warning log message")

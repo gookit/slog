@@ -16,6 +16,11 @@ type StreamHandler struct {
 }
 
 // NewStreamHandler create new StreamHandler
+// Usage:
+// 	buf := new(bytes.Buffer)
+// 	h := handler.NewStreamHandler(&buf, slog.AllLevels)
+//	f, err := os.OpenFile("my.log", ...)
+// 	h := handler.NewStreamHandler(f, slog.AllLevels)
 func NewStreamHandler(out io.Writer, levels []slog.Level) *StreamHandler {
 	return &StreamHandler{
 		Output: out,

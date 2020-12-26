@@ -37,6 +37,18 @@ func (l *lockWrapper) LockEnabled() bool {
 	return l.disable == false
 }
 
+type emptyHandler struct {}
+
+// Flush logs to disk
+func (h *emptyHandler) Flush() error {
+	return nil
+}
+
+// Close handler
+func (h *emptyHandler) Close() error {
+	return nil
+}
+
 /********************************************************************************
  * Common parts for handler
  ********************************************************************************/
@@ -54,19 +66,6 @@ type LevelWithFormatter struct {
 // IsHandling Check if the current level can be handling
 func (h *LevelWithFormatter) IsHandling(level slog.Level) bool {
 	return level >= h.Level
-}
-
-// Flush logs to disk
-func (h *LevelWithFormatter) Flush() error {
-	return nil
-}
-
-// Close handler
-func (h *LevelWithFormatter) Close() error {
-	if err := h.Flush(); err != nil {
-		return err
-	}
-	return nil
 }
 
 // LevelsWithFormatter struct definition
