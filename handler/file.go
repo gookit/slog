@@ -28,6 +28,10 @@ var (
 // defaultMaxSize is the maximum size of a log file in bytes.
 const defaultMaxSize uint64 = 1024 * 1024 * 1800
 
+const (
+	DefaultFileFlags = os.O_CREATE | os.O_WRONLY | os.O_APPEND
+)
+
 // FileHandler definition
 type FileHandler struct {
 	LevelsWithFormatter

@@ -27,16 +27,24 @@ func (l *lockWrapper) Unlock() {
 	}
 }
 
-// EnableLock locker
-func (l *lockWrapper) EnableLock(enable bool) {
-	l.disable = !enable
+// UseLock locker
+func (l *lockWrapper) UseLock(enable bool) {
+	l.disable = false == enable
+}
+
+// LockEnabled status
+func (l *lockWrapper) LockEnabled() bool {
+	return l.disable == false
 }
 
 /********************************************************************************
  * Common parts for handler
  ********************************************************************************/
 
-// LevelsWithFormatter definition
+// LevelsWithFormatter struct definition
+//
+// - support set log formatter
+// - support setting multi log levels
 type LevelWithFormatter struct {
 	slog.Formattable
 	// Level for log message. if current level >= Level will log message
@@ -61,7 +69,10 @@ func (h *LevelWithFormatter) Close() error {
 	return nil
 }
 
-// LevelsWithFormatter definition
+// LevelsWithFormatter struct definition
+//
+// - support set log formatter
+// - only support set one log level
 type LevelsWithFormatter struct {
 	slog.Formattable
 	// Levels for log message
