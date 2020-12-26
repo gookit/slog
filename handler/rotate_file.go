@@ -120,7 +120,7 @@ func (rt rotateType) String() string {
 // refer http://hg.python.org/cpython/file/2.7/Lib/logging/handlers.py
 // refer https://github.com/flike/golog/blob/master/filehandler.go
 type TimeRotateFileHandler struct {
-	fileHandler
+	fileWrapper
 	lockWrapper
 
 	LevelWithFormatter
@@ -158,7 +158,7 @@ func NewTimeRotateFileHandler(filepath string, rotateTime rotateType) (*TimeRota
 		h.suffixFormat = "20060102_1504"
 	}
 
-	fh := fileHandler{fpath: filepath}
+	fh := fileWrapper{fpath: filepath}
 	if err := fh.ReopenFile(); err != nil {
 		return nil, err
 	}
@@ -185,6 +185,13 @@ func (h *TimeRotateFileHandler) Handle(r *slog.Record) (err error) {
 		defer h.Unlock()
 	}
 
+	// do rotating file
+	if err = h.doRotatingFile(); err != nil {
+		return
+	}
+
+	// TODO use buffer
+
 	// direct write logs
 	_, err = h.file.Write(bts)
 	return
@@ -194,20 +201,20 @@ func (h *TimeRotateFileHandler) doRotatingFile() error {
 	now := time.Now()
 
 	if h.nextRotatingAt <= now.Unix() {
-		err := h.file.Close()
-		if err != nil {
+		// close file
+		if err := h.Close(); err != nil {
 			return err
 		}
 
-		// move current to new file
+		// rename current to new file
 		newFilepath := h.baseFile + "." + now.Format(h.suffixFormat)
-		err = os.Rename(h.baseFile, newFilepath)
+		err := os.Rename(h.baseFile, newFilepath)
 		if err != nil {
 			return err
 		}
 
 		// reopen file
-		h.file, err = os.OpenFile(h.baseFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		h.file, err = openFile(h.baseFile, DefaultFileFlags, DefaultFilePerm)
 		if err != nil {
 			return err
 		}

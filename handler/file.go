@@ -33,52 +33,9 @@ var (
 	DefaultFileFlags = os.O_CREATE | os.O_WRONLY | os.O_APPEND
 )
 
-type fileHandler struct {
-	fpath string
-	file  *os.File
-}
-
-func newFileHandler(fpath string) *fileHandler {
-	return &fileHandler{fpath: fpath}
-}
-
-// ReopenFile the log file
-func (h *fileHandler) ReopenFile() error {
-	if h.file != nil {
-		h.file.Close()
-	}
-
-	file, err := openFile(h.fpath, DefaultFileFlags, DefaultFilePerm)
-	if err != nil {
-		return err
-	}
-
-	h.file = file
-	return err
-}
-
-// Writer return *os.File
-func (h *fileHandler) Writer() io.Writer {
-	return h.file
-}
-
-// Close handler, will be flush logs to file, then close file
-func (h *fileHandler) Close() error {
-	if err := h.file.Sync(); err != nil {
-		return err
-	}
-
-	return h.file.Close()
-}
-
-// Flush logs to disk file
-func (h *fileHandler) Flush() error {
-	return h.file.Sync()
-}
-
 // FileHandler definition
 type FileHandler struct {
-	// fileHandler
+	// fileWrapper
 	lockWrapper
 	// LevelsWithFormatter support limit log levels and formatter
 	LevelsWithFormatter

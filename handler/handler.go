@@ -3,6 +3,8 @@
 package handler
 
 import (
+	"io"
+	"os"
 	"sync"
 
 	"github.com/gookit/slog"
@@ -49,6 +51,49 @@ func (h *emptyHandler) Close() error {
 	return nil
 }
 
+type fileWrapper struct {
+	fpath string
+	file  *os.File
+}
+
+// func newFileHandler(fpath string) *fileWrapper {
+// 	return &fileWrapper{fpath: fpath}
+// }
+
+// ReopenFile the log file
+func (h *fileWrapper) ReopenFile() error {
+	if h.file != nil {
+		h.file.Close()
+	}
+
+	file, err := openFile(h.fpath, DefaultFileFlags, DefaultFilePerm)
+	if err != nil {
+		return err
+	}
+
+	h.file = file
+	return err
+}
+
+// Writer return *os.File
+func (h *fileWrapper) Writer() io.Writer {
+	return h.file
+}
+
+// Close handler, will be flush logs to file, then close file
+func (h *fileWrapper) Close() error {
+	if err := h.file.Sync(); err != nil {
+		return err
+	}
+
+	return h.file.Close()
+}
+
+// Flush logs to disk file
+func (h *fileWrapper) Flush() error {
+	return h.file.Sync()
+}
+
 /********************************************************************************
  * Common parts for handler
  ********************************************************************************/
@@ -76,19 +121,6 @@ type LevelsWithFormatter struct {
 	slog.Formattable
 	// Levels for log message
 	Levels []slog.Level
-}
-
-// Flush logs to disk
-func (h *LevelsWithFormatter) Flush() error {
-	return nil
-}
-
-// Close handler
-func (h *LevelsWithFormatter) Close() error {
-	if err := h.Flush(); err != nil {
-		return err
-	}
-	return nil
 }
 
 // IsHandling Check if the current level can be handling

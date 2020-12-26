@@ -6,7 +6,7 @@ import (
 
 // SimpleFileHandler struct
 type SimpleFileHandler struct {
-	fileHandler
+	fileWrapper
 	lockWrapper
 	// LevelWithFormatter support level and formatter
 	LevelWithFormatter
@@ -23,13 +23,13 @@ type SimpleFileHandler struct {
 //	slog.PushHandler(h)
 //	slog.Info("log message")
 func NewSimpleFileHandler(filepath string) (*SimpleFileHandler, error) {
-	fh := fileHandler{fpath: filepath}
+	fh := fileWrapper{fpath: filepath}
 	if err := fh.ReopenFile(); err != nil {
 		return nil, err
 	}
 
 	h := &SimpleFileHandler{
-		fileHandler: fh,
+		fileWrapper: fh,
 	}
 
 	return h, nil
@@ -53,14 +53,4 @@ func (h *SimpleFileHandler) Handle(r *slog.Record) (err error) {
 	// direct write logs
 	_, err = h.file.Write(bts)
 	return
-}
-
-// Close handler, will be flush logs to file, then close file
-func (h *SimpleFileHandler) Close() error {
-	return h.fileHandler.Close()
-}
-
-// Flush logs to disk file
-func (h *SimpleFileHandler) Flush() error {
-	return h.fileHandler.Flush()
 }
