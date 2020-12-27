@@ -53,16 +53,3 @@ func TestNewSimpleFileHandler(t *testing.T) {
 	assert.True(t, fsutil.IsFile(fpath))
 	// assert.NoError(t, os.Remove(fpath))
 }
-
-func TestNewTimeRotateFileHandler(t *testing.T) {
-	fpath := "./testdata/time-rotate-file.log"
-	h, err := handler.NewTimeRotateFileHandler(fpath, handler.EveryMinute)
-	assert.NoError(t, err)
-
-	l := slog.NewWithHandlers(h)
-	l.Info("info", "message")
-	l.Warn("warn message")
-
-	assert.True(t, fsutil.IsFile(fpath))
-	// assert.NoError(t, os.Remove(fpath))
-}

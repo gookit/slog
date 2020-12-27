@@ -207,7 +207,7 @@ func (f *Formattable) SetFormatter(formatter Formatter) {
 }
 
 // FormatRecord to bytes
-func (f *Formattable) FormatRecord(record *Record) ([]byte, error){
+func (f *Formattable) FormatRecord(record *Record) ([]byte, error) {
 	return f.Formatter().Format(record)
 }
 

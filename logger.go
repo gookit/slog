@@ -118,6 +118,11 @@ func (logger *Logger) lockAndFlushAll() {
 	logger.mu.Unlock()
 }
 
+// Flush flushes all the logs to disk. alias of the FlushAll()
+func (logger *Logger) Flush() {
+	logger.FlushAll()
+}
+
 // FlushAll flushes all the logs and attempts to "sync" their data to disk.
 // logger.mu is held.
 func (logger *Logger) FlushAll() {

@@ -22,10 +22,10 @@ var (
 	// uName = "unknownUser"
 )
 
-// bufferSize sizes the buffer associated with each log file. It's large
+// defaultBufferSize sizes the buffer associated with each log file. It's large
 // so that log records can accumulate without the logging thread blocking
 // on disk I/O. The flushDaemon will block instead.
-const bufferSize = 256 * 1024
+const defaultBufferSize = 256 * 1024
 
 var (
 	// DefaultMaxSize is the maximum size of a log file in bytes.
@@ -72,9 +72,9 @@ func MustFileHandler(filepath string, useJSON bool) *FileHandler {
 // NewFileHandler create new FileHandler
 func NewFileHandler(filepath string, useJSON bool) (*FileHandler, error) {
 	h := &FileHandler{
-		fpath:   filepath,
-		useJSON: useJSON,
-		BuffSize:  bufferSize,
+		fpath:    filepath,
+		useJSON:  useJSON,
+		BuffSize: defaultBufferSize,
 		// FileMode: DefaultFilePerm, // default FileMode
 		// FileFlag: DefaultFileFlags,
 		// init log levels

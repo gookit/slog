@@ -12,7 +12,7 @@ type StreamHandler struct {
 	LevelsWithFormatter
 
 	// Output io.WriteCloser
-	Output  io.Writer
+	Output io.Writer
 }
 
 // NewStreamHandler create new StreamHandler

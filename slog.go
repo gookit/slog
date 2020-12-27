@@ -185,7 +185,7 @@ func TimeoutFlush(timeout time.Duration) {
 	go func() {
 		// TODO handle error ?
 		err := std.Flush() // calls logging.lockAndFlushAll()
-		_,_= fmt.Fprintln(os.Stderr, "slog: Flush logs error.", err)
+		_, _ = fmt.Fprintln(os.Stderr, "slog: Flush logs error.", err)
 
 		done <- true
 	}()
@@ -193,7 +193,7 @@ func TimeoutFlush(timeout time.Duration) {
 	select {
 	case <-done:
 	case <-time.After(timeout):
-		_,_ = fmt.Fprintln(os.Stderr, "slog: Flush took longer than", timeout)
+		_, _ = fmt.Fprintln(os.Stderr, "slog: Flush took longer than", timeout)
 	}
 }
 

@@ -3,6 +3,7 @@
 package handler
 
 import (
+	"bufio"
 	"io"
 	"os"
 	"sync"
@@ -39,7 +40,7 @@ func (l *lockWrapper) LockEnabled() bool {
 	return l.disable == false
 }
 
-type emptyHandler struct {}
+type emptyHandler struct{}
 
 // Flush logs to disk
 func (h *emptyHandler) Flush() error {
@@ -82,7 +83,7 @@ func (h *fileWrapper) Writer() io.Writer {
 
 // Close handler, will be flush logs to file, then close file
 func (h *fileWrapper) Close() error {
-	if err := h.file.Sync(); err != nil {
+	if err := h.Flush(); err != nil {
 		return err
 	}
 
@@ -92,6 +93,39 @@ func (h *fileWrapper) Close() error {
 // Flush logs to disk file
 func (h *fileWrapper) Flush() error {
 	return h.file.Sync()
+}
+
+type bufFileWrapper struct {
+	fileWrapper
+	bufio *bufio.Writer
+
+	written uint64
+	// NoBuffer on write log records
+	NoBuffer bool
+	// BuffSize for enable buffer
+	BuffSize int
+}
+
+// Flush logs to disk file
+func (h *bufFileWrapper) Flush() error {
+	// flush buffers to h.file
+	if h.bufio != nil {
+		err := h.bufio.Flush()
+		if err != nil {
+			return err
+		}
+	}
+
+	return h.file.Sync()
+}
+
+// Close handler, will be flush logs to file, then close file
+func (h *bufFileWrapper) Close() error {
+	if err := h.Flush(); err != nil {
+		return err
+	}
+
+	return h.file.Close()
 }
 
 /********************************************************************************
@@ -164,16 +198,15 @@ func (h *GroupedHandler) IsHandling(level slog.Level) bool {
 }
 
 // Handle log record
-func (h *GroupedHandler) Handle(record *slog.Record) error {
+func (h *GroupedHandler) Handle(record *slog.Record) (err error) {
 	for _, handler := range h.handlers {
-		err := handler.Handle(record)
+		err = handler.Handle(record)
 
 		if h.IgnoreErr == false && err != nil {
 			return err
 		}
 	}
-
-	return nil
+	return
 }
 
 // Close log handlers
