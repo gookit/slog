@@ -66,6 +66,11 @@ func NewWithName(name string) *Logger {
 	return logger
 }
 
+// NewRecord get new logger record
+func (logger *Logger) NewRecord() *Record {
+	return newRecord(logger)
+}
+
 func (logger *Logger) newRecord() *Record {
 	return logger.recordPool.Get().(*Record)
 }

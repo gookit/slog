@@ -22,7 +22,7 @@ func AddHostname() Processor {
 
 // AddUniqueID to record
 func AddUniqueID(fieldName string) Processor {
-	h := md5.New()
+	hs := md5.New()
 
 	return ProcessorFunc(func(record *Record) {
 		rb, err := strutil.RandomBytes(32)
@@ -31,9 +31,9 @@ func AddUniqueID(fieldName string) Processor {
 			return
 		}
 
-		h.Write(rb)
-		randomId := hex.EncodeToString(h.Sum(nil))
-		h.Reset()
+		hs.Write(rb)
+		randomId := hex.EncodeToString(hs.Sum(nil))
+		hs.Reset()
 
 		record.AddField(fieldName, randomId)
 	})

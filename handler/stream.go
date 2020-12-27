@@ -8,11 +8,11 @@ import (
 
 // StreamHandler definition
 type StreamHandler struct {
+	lockWrapper
 	LevelsWithFormatter
 
 	// Output io.WriteCloser
 	Output  io.Writer
-	UseLock bool
 }
 
 // NewStreamHandler create new StreamHandler
@@ -47,6 +47,9 @@ func (h *StreamHandler) Handle(record *slog.Record) error {
 	if err != nil {
 		return err
 	}
+
+	h.Lock()
+	defer h.Unlock()
 
 	_, err = h.Output.Write(bts)
 	return err

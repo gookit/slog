@@ -91,9 +91,9 @@ func getCaller(maxCallerDepth int) *runtime.Frame {
 
 func formatCaller(rf *runtime.Frame, field string) (cs string) {
 	switch field {
-	case FieldKeyCaller: // eg: "logger_test.go:48->TestLogger_ReportCaller"
+	case FieldKeyCaller: // eg: "logger_test.go:48.TestLogger_ReportCaller"
 		ss := strings.Split(rf.Function, ".")
-		return fmt.Sprintf("%s:%d->%s", path.Base(rf.File), rf.Line, ss[len(ss)-1])
+		return fmt.Sprintf("%s:%d.%s", path.Base(rf.File), rf.Line, ss[len(ss)-1])
 	case FieldKeyFile: // eg: "/work/go/gookit/slog/logger_test.go:48"
 		return fmt.Sprintf("%s:%d", rf.File, rf.Line)
 	case FieldKeyFLine: // eg: "logger_test.go:48"
