@@ -24,13 +24,13 @@
 - Support to custom log message `Formatter`
   - Built-in `json` `text` two log record formatting `Formatter`
 - Has built-in common log write processing program
-  -`console` outputs logs to the console, supports color output
-  -`stream` outputs logs to the specified `io.Writer`
-  -`simple_file` outputs logs to the specified file, no buffer Write directly to file
-  -`file` outputs log to a specified file. By default, `buffer` is enabled. Buffer writing
-  -`size_rotate_file` outputs log to a specified file, and supports splitting files by size. By default, `buffer` is enabled.
-  -`time_rotate_file` outputs logs to a specified file, and supports splitting files by time. By default, `buffer` is enabled.
-  -`rotate_file` outputs logs to a specified file, and supports splitting files by time and size. By default, `buffer` is enabled.
+  - `console` outputs logs to the console, supports color output
+  - `stream` outputs logs to the specified `io.Writer`
+  - `simple_file` outputs logs to the specified file, no buffer Write directly to file
+  - `file` outputs log to a specified file. By default, `buffer` is enabled. Buffer writing
+  - `size_rotate_file` outputs log to a specified file, and supports splitting files by size. By default, `buffer` is enabled.
+  - `time_rotate_file` outputs logs to a specified file, and supports splitting files by time. By default, `buffer` is enabled.
+  - `rotate_file` outputs logs to a specified file, and supports splitting files by time and size. By default, `buffer` is enabled.
 
 ## GoDoc
 
