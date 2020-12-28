@@ -6,7 +6,7 @@
 [![Unit-Tests](https://github.com/gookit/slog/workflows/Unit-Tests/badge.svg)](https://github.com/gookit/slog/actions)
 [![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/gookit/slog)](https://github.com/gookit/slog)
 
-Go 实现的简单、开箱即用的日志库
+📑 Go 实现的开箱即用，易扩展、可配置的日志库
 
 > 项目实现参考了 [Seldaek/monolog](https://github.com/Seldaek/monolog) and [sirupsen/logrus](https://github.com/sirupsen/logrus) ，非常感谢它们。
 
@@ -17,17 +17,20 @@ English instructions please read [README](README.md)
 ## 功能特色
 
 - 简单，无需配置，开箱即用
-- 可以同时添加多个 `Handler` 日志处理器，输出日志到不同的地方
+- 支持常用的日志级别处理。如： `trace` `info` `warn` `error` `fatal`
+- 支持同时添加多个 `Handler` 日志处理，输出日志到不同的地方
 - 可以任意扩展自己需要的 `Handler` `Formatter` 
-- 支持自定义 `Handler` 处理器
+- 支持自定义 `Handler` 处理程器
 - 支持自定义 `Formatter` 格式化处理
-- 内置常用日志写入处理程序
+  - 内置了 `json` `text` 两个日志记录格式化 `Formatter`
+- 已经内置了常用的日志写入处理程序
   - `console` 输出日志到控制台，支持色彩输出
+  - `stream` 输出日志到指定的 `io.Writer`
   - `simple_file` 输出日志到指定文件，无缓冲直接写入文件
   - `file` 输出日志到指定文件，默认启用 `buffer` 缓冲写入
-  - `rotate_file`
-  - `size_rotate_file`
-  - `time_rotate_file` 
+  - `size_rotate_file` 输出日志到指定文件，并且支持按大小分割文件。默认启用 `buffer` 缓冲写入
+  - `time_rotate_file` 输出日志到指定文件，并且支持按时间分割文件。默认启用 `buffer` 缓冲写入
+  - `rotate_file` 输出日志到指定文件，并且同时支持按时间、按大小分割文件。默认启用 `buffer` 缓冲写入
 
 ## GoDoc
 
@@ -162,7 +165,78 @@ func main() {
 {"IP":"127.0.0.1","category":"service","channel":"application","datetime":"2020/07/16 13:23:33","extra":{},"level":"DEBUG","message":"debug message"}
 ```
 
-## Introduction
+## 自定义日志
+
+## 创建自定义 Logger实例
+
+你可以创建一个全新的 `slog.Logger` 实例：
+
+- 方式1：
+
+```go
+l := slog.New()
+// add handlers ...
+h1 := handler.NewConsoleHandler(slog.AllLevels)
+l.AddHandlers(h1)
+```
+
+- 方式2：
+
+```go
+l := slog.NewWithName("myLogger")
+// add handlers ...
+h1 := handler.NewConsoleHandler(slog.AllLevels)
+l.AddHandlers(h1)
+```
+
+- 方式3：
+
+```go
+package main
+
+import (
+	"github.com/gookit/slog"
+	"github.com/gookit/slog/handler"
+)
+
+func main() {
+	l := slog.NewWithHandlers(handler.NewConsoleHandler(slog.AllLevels))
+	l.Info("message")
+}
+```
+
+### 创建自定义 Handler
+
+you only need implement the `slog.Handler` interface:
+
+```go
+type MyHandler struct {
+	handler.LevelsWithFormatter
+}
+
+func (h *MyHandler) Handle(r *slog.Record) error {
+	// you can write log message to file or send to remote.
+}
+```
+
+add handler to default logger:
+
+```go
+slog.AddHander(&MyHandler{})
+```
+
+or add to custom logger:
+
+```go
+l := slog.New()
+l.AddHander(&MyHandler{})
+```
+
+### 创建自定义 Processor
+
+### 创建自定义 Formatter
+
+## 架构说明
 
 简易日志处理流程：
 
@@ -236,77 +310,6 @@ func (fn FormatterFunc) Format(r *Record) ([]byte, error) {
 	return fn(r)
 }
 ```
-
-## 自定义
-
-## 创建自定义 Logger实例
-
-你可以创建一个全新的 `slog.Logger` 实例：
-
-- 方式1：
-
-```go
-l := slog.New()
-// add handlers ...
-h1 := handler.NewConsoleHandler(slog.AllLevels)
-l.AddHandlers(h1)
-```
-
-- 方式2：
-
-```go
-l := slog.NewWithName("myLogger")
-// add handlers ...
-h1 := handler.NewConsoleHandler(slog.AllLevels)
-l.AddHandlers(h1)
-```
-
-- 方式3：
-
-```go
-package main
-
-import (
-	"github.com/gookit/slog"
-	"github.com/gookit/slog/handler"
-)
-
-func main() {
-	l := slog.NewWithHandlers(handler.NewConsoleHandler(slog.AllLevels))
-	l.Info("message")
-}
-```
-
-### 创建自定义 Handler
-
-you only need implement the `slog.Handler` interface:
-
-```go
-type MyHandler struct {
-	handler.LevelsWithFormatter
-}
-
-func (h *MyHandler) Handle(r *slog.Record) error {
-	// you can write log message to file or send to remote.
-}
-```
-
-add handler to default logger:
-
-```go
-slog.AddHander(&MyHandler{})
-```
-
-or add to custom logger:
-
-```go
-l := slog.New()
-l.AddHander(&MyHandler{})
-```
-
-### 创建自定义 Processor
-
-### 创建自定义 Formatter
 
 ## Refer
 

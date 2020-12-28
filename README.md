@@ -6,7 +6,7 @@
 [![Unit-Tests](https://github.com/gookit/slog/workflows/Unit-Tests/badge.svg)](https://github.com/gookit/slog/actions)
 [![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/gookit/slog)](https://github.com/gookit/slog)
 
-A simple log library for Go.
+📑 Lightweight, easy to extend, configurable logging library written in Go
 
 > Inspired the projects [Seldaek/monolog](https://github.com/Seldaek/monolog) and [sirupsen/logrus](https://github.com/sirupsen/logrus). Thank you very much
 
@@ -17,16 +17,20 @@ A simple log library for Go.
 ## Features
 
 - Simple, directly available without configuration
-- Multiple `Handler` log handlers can be added at the same time to output logs to different places
-- You can arbitrarily extend the `Handler` `Formatter` you need
+- Support common log level processing. eg: `trace` `info` `warn` `error` `fatal`
+- Supports adding multiple `Handler` log processing at the same time, outputting logs to different places
+- Support any extension of `Handler` `Formatter` as needed
 - Support to custom log messages `Handler`
 - Support to custom log message `Formatter`
-- Built-in commonly used log write handlers
-  - `console`
-  - `buffer file`
-  - `rotate_file`
-  - `size_rotate_file`
-  - `time_rotate_file` 
+  - Built-in `json` `text` two log record formatting `Formatter`
+- Has built-in common log write processing program
+  -`console` outputs logs to the console, supports color output
+  -`stream` outputs logs to the specified `io.Writer`
+  -`simple_file` outputs logs to the specified file, no buffer Write directly to file
+  -`file` outputs log to a specified file. By default, `buffer` is enabled. Buffer writing
+  -`size_rotate_file` outputs log to a specified file, and supports splitting files by size. By default, `buffer` is enabled.
+  -`time_rotate_file` outputs logs to a specified file, and supports splitting files by time. By default, `buffer` is enabled.
+  -`rotate_file` outputs logs to a specified file, and supports splitting files by time and size. By default, `buffer` is enabled.
 
 ## GoDoc
 
