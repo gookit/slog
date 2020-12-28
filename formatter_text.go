@@ -89,8 +89,10 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 			}
 
 			tplData[tplVar] = r.Time.Format(f.TimeFormat)
-		case field == FieldKeyCaller && r.Caller != nil: // caller eg: "logger_test.go:48.TestLogger_ReportCaller"
-			tplData[tplVar] = formatCaller(r.Caller, field)
+		case field == FieldKeyCaller && r.Caller != nil:
+			tplData[tplVar] = formatCaller(r.Caller, field) // caller eg: "logger_test.go:48,TestLogger_ReportCaller"
+		case field == FieldKeyFLine && r.Caller != nil:
+			tplData[tplVar] = formatCaller(r.Caller, field) // "logger_test.go:48"
 		case field == FieldKeyFunc && r.Caller != nil:
 			tplData[tplVar] = r.Caller.Function // "github.com/gookit/slog_test.TestLogger_ReportCaller"
 		case field == FieldKeyFile && r.Caller != nil:
@@ -111,10 +113,6 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 			} else {
 				tplData[tplVar] = r.Message
 			}
-			// tplData[tplVar] = r.Message
-			// if r.Level <= NoticeLevel {
-			//
-			// }
 		case field == FieldKeyData:
 			if f.FullDisplay || len(r.Data) > 0 {
 				tplData[tplVar] = f.EncodeFunc(r.Data)
