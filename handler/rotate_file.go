@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"bufio"
 	"os"
 	"time"
 
@@ -117,18 +116,8 @@ func (h *RotateFileHandler) Handle(r *slog.Record) (err error) {
 
 	var n int
 
-	// direct write logs to file
-	if h.NoBuffer {
-		n, err = h.file.Write(bts)
-	} else {
-		// enable buffer
-		if h.bufio == nil {
-			h.bufio = bufio.NewWriterSize(h.file, h.BuffSize)
-		}
-
-		n, err = h.bufio.Write(bts)
-	}
-
+	// write logs
+	n, err = h.Write(bts)
 	if err == nil {
 		h.written += uint64(n)
 

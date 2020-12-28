@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"bufio"
 	"os"
 	"time"
 
@@ -156,17 +155,8 @@ func (h *TimeRotateFileHandler) Handle(r *slog.Record) (err error) {
 	h.Lock()
 	defer h.Unlock()
 
-	// direct write logs to file
-	if h.NoBuffer {
-		_, err = h.file.Write(bts)
-	} else {
-		// enable buffer
-		if h.bufio == nil {
-			h.bufio = bufio.NewWriterSize(h.file, h.BuffSize)
-		}
-
-		_, err = h.bufio.Write(bts)
-	}
+	// write logs
+	_, err = h.Write(bts)
 
 	// do rotating file
 	if err == nil {

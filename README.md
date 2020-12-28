@@ -21,6 +21,12 @@ A simple log library for Go.
 - You can arbitrarily extend the `Handler` `Formatter` you need
 - Support to custom log messages `Handler`
 - Support to custom log message `Formatter`
+- Built-in commonly used log write handlers
+  - `console`
+  - `buffer file`
+  - `rotate_file`
+  - `size_rotate_file`
+  - `time_rotate_file` 
 
 ## GoDoc
 

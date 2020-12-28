@@ -21,6 +21,13 @@ English instructions please read [README](README.md)
 - 可以任意扩展自己需要的 `Handler` `Formatter` 
 - 支持自定义 `Handler` 处理器
 - 支持自定义 `Formatter` 格式化处理
+- 内置常用日志写入处理程序
+  - `console` 输出日志到控制台，支持色彩输出
+  - `simple_file` 输出日志到指定文件，无缓冲直接写入文件
+  - `file` 输出日志到指定文件，默认启用 `buffer` 缓冲写入
+  - `rotate_file`
+  - `size_rotate_file`
+  - `time_rotate_file` 
 
 ## GoDoc
 

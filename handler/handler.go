@@ -11,6 +11,28 @@ import (
 	"github.com/gookit/slog"
 )
 
+// var (
+// 	// program pid
+// 	pid = os.Getpid()
+// 	// program name
+// 	pName = filepath.Base(os.Args[0])
+// 	hName = "unknownHost" // TODO
+// 	// uName = "unknownUser"
+// )
+
+// defaultBufferSize sizes the buffer associated with each log file. It's large
+// so that log records can accumulate without the logging thread blocking
+// on disk I/O. The flushDaemon will block instead.
+const defaultBufferSize = 256 * 1024
+
+var (
+	// DefaultMaxSize is the maximum size of a log file in bytes.
+	DefaultMaxSize uint64 = 1024 * 1024 * 1800
+	// perm and flags for create log file
+	DefaultFilePerm  = 0664
+	DefaultFileFlags = os.O_CREATE | os.O_WRONLY | os.O_APPEND
+)
+
 type lockWrapper struct {
 	sync.Mutex
 	disable bool
@@ -104,6 +126,27 @@ type bufFileWrapper struct {
 	NoBuffer bool
 	// BuffSize for enable buffer
 	BuffSize int
+}
+
+// CloseBuffer for write logs
+func (h *bufFileWrapper) CloseBuffer() {
+	h.NoBuffer = true
+}
+
+// Write logs
+func (h *bufFileWrapper) Write(bts []byte) (n int, err error) {
+	// direct write logs to file
+	if h.NoBuffer {
+		n, err = h.file.Write(bts)
+	} else {
+		// enable buffer
+		if h.bufio == nil && h.BuffSize > 0 {
+			h.bufio = bufio.NewWriterSize(h.file, h.BuffSize)
+		}
+
+		n, err = h.bufio.Write(bts)
+	}
+	return
 }
 
 // Flush logs to disk file
