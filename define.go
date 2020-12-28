@@ -48,10 +48,19 @@ func (ls Levels) Contains(level Level) bool {
 	return false
 }
 
+// BaseLoggerFace interface
+type BaseLoggerFace interface {
+	Print(v ...interface{})
+	Printf(format string, v ...interface{})
+	Fatal(v ...interface{})
+	Fatalf(format string, v ...interface{})
+	Panic(v ...interface{})
+	Panicf(format string, v ...interface{})
+}
+
 // LoggerFace interface
 type LoggerFace interface {
-	Print(args ...interface{})
-	Printf(format string, args ...interface{})
+	BaseLoggerFace
 	Debug(args ...interface{})
 	Debugf(format string, args ...interface{})
 	Info(args ...interface{})
@@ -60,8 +69,6 @@ type LoggerFace interface {
 	Warnf(format string, args ...interface{})
 	Error(args ...interface{})
 	Errorf(format string, args ...interface{})
-	Fatal(args ...interface{})
-	Fatalf(format string, args ...interface{})
 }
 
 // FullLoggerFace interface
@@ -73,8 +80,6 @@ type FullLoggerFace interface {
 	Tracef(format string, args ...interface{})
 	Notice(args ...interface{})
 	Noticef(format string, args ...interface{})
-	Panic(args ...interface{})
-	Panicf(format string, args ...interface{})
 }
 
 // SyncWriter is the interface satisfied by logging destinations.

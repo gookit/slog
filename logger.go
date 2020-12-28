@@ -111,6 +111,24 @@ func (logger *Logger) FlushDaemon() {
 	}
 }
 
+// FlushTimeout flush logs on limit time.
+// refer from glog package
+func (logger *Logger) FlushTimeout(timeout time.Duration) {
+	done := make(chan bool, 1)
+	go func() {
+		logger.FlushAll() // calls logger.lockAndFlushAll()
+		// _, _ = fmt.Fprintln(os.Stderr, "slog: Flush logs error.", err)
+
+		done <- true
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(timeout):
+		_, _ = fmt.Fprintln(os.Stderr, "slog: Flush took longer than", timeout)
+	}
+}
+
 // lockAndFlushAll is like flushAll but locks l.mu first.
 func (logger *Logger) lockAndFlushAll() {
 	logger.mu.Lock()

@@ -26,7 +26,6 @@ More usage please see README.
 package slog
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"time"
@@ -77,6 +76,18 @@ func (sl *SugaredLogger) Configure(fn func(sl *SugaredLogger)) *SugaredLogger {
 	return sl
 }
 
+// Reset the logger
+func (sl *SugaredLogger) Reset() {
+	*sl = *NewSugaredLogger(os.Stdout, ErrorLevel)
+
+	// reset handlers and processors
+	// sl.Logger.Reset()
+
+	// NOTICE: use self as an log handler
+	// sl.AddHandler(sl)
+	// sl.Formatter = NewTextFormatter()
+}
+
 // IsHandling Check if the current level can be handling
 func (sl *SugaredLogger) IsHandling(level Level) bool {
 	return level >= sl.Level
@@ -104,8 +115,13 @@ func (sl *SugaredLogger) Close() error {
 	return nil
 }
 
-// Flush all logs
+// FlushAll all logs. alias of the FlushAll()
 func (sl *SugaredLogger) Flush() error {
+	return sl.FlushAll()
+}
+
+// Flush all logs
+func (sl *SugaredLogger) FlushAll() error {
 	sl.Logger.VisitAll(func(handler Handler) error {
 		if _, ok := handler.(*SugaredLogger); !ok {
 			_ = handler.Flush()
@@ -113,18 +129,6 @@ func (sl *SugaredLogger) Flush() error {
 		return nil
 	})
 	return nil
-}
-
-// Reset the logger
-func (sl *SugaredLogger) Reset() {
-	*sl = *NewSugaredLogger(os.Stdout, ErrorLevel)
-
-	// reset handlers and processors
-	// sl.Logger.Reset()
-
-	// NOTICE: use self as an log handler
-	// sl.AddHandler(sl)
-	// sl.Formatter = NewTextFormatter()
 }
 
 //
@@ -178,23 +182,17 @@ func Flush() error {
 	return std.Flush()
 }
 
-// TimeoutFlush flush logs on limit time.
-// from glog package
-func TimeoutFlush(timeout time.Duration) {
-	done := make(chan bool, 1)
-	go func() {
-		// TODO handle error ?
-		err := std.Flush() // calls logging.lockAndFlushAll()
-		_, _ = fmt.Fprintln(os.Stderr, "slog: Flush logs error.", err)
+// FlushTimeout flush logs with timeout.
+func FlushTimeout(timeout time.Duration) {
+	std.FlushTimeout(timeout)
+}
 
-		done <- true
-	}()
-
-	select {
-	case <-done:
-	case <-time.After(timeout):
-		_, _ = fmt.Fprintln(os.Stderr, "slog: Flush took longer than", timeout)
-	}
+// FlushDaemon run flush handle on daemon
+//
+// Usage:
+// 	go slog.FlushDaemon()
+func FlushDaemon() {
+	std.FlushDaemon()
 }
 
 // SetLogLevel for the std logger

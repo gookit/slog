@@ -5,6 +5,7 @@ import (
 )
 
 // SimpleFileHandler struct
+// - no buffer, will direct write logs to file.
 type SimpleFileHandler struct {
 	fileWrapper
 	lockWrapper

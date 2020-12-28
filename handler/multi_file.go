@@ -2,14 +2,13 @@ package handler
 
 import (
 	"bufio"
-	"sync"
 
 	"github.com/gookit/slog"
 )
 
 // MultiFileHandler definition
 type MultiFileHandler struct {
-	mu    sync.Mutex
+	lockWrapper
 	bufio *bufio.Writer
 
 	// FileDir for save log files
@@ -21,10 +20,6 @@ type MultiFileHandler struct {
 	FileLevels map[string]slog.Levels
 	// NoBuffer on write log records
 	NoBuffer bool
-	// FileFlag for create. default: os.O_CREATE|os.O_WRONLY|os.O_APPEND
-	FileFlag int
-	// FileMode perm for create log file. (it's os.FileMode)
-	FileMode uint32
 	// BuffSize for enable buffer
 	BuffSize int
 	// file contents max size

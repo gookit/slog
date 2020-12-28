@@ -28,9 +28,10 @@ func main() {
 	glog.Infof("glog %s", "message message")
 
 	// -- llog
-	llog.NewLogger("llog test")
+	llog.NewLogger("llog test").Info("llog message message")
 
-	// -- llog
+	// -- slog
+	slog.Debug("slog message message")
 	slog.WithFields(slog.M{
 		"omg":    true,
 		"number": 122,
@@ -45,7 +46,6 @@ func main() {
 
 	// -- zerolog
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-
 	zlog.Debug().
 		Str("Scale", "833 cents").
 		Float64("Interval", 833.09).

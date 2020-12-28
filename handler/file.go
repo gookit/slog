@@ -6,12 +6,12 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"sync"
 
 	"github.com/gookit/slog"
 )
 
-var onceLogDir sync.Once
+// TODO use this ... ?
+// var onceLogDir sync.Once
 
 var (
 	// program pid
