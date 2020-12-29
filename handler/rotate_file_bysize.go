@@ -61,7 +61,7 @@ func NewSizeRotateFileHandler(filepath string, maxSize uint64) (*SizeRotateFileH
 		RenameFunc: defaultNewLogfileFunc,
 	}
 
-	file, err := openFile(filepath, DefaultFileFlags, DefaultFilePerm)
+	file, err := QuickOpenFile(filepath)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func (h *SizeRotateFileHandler) bySizeRotatingFile() error {
 	}
 
 	// reopen file
-	h.file, err = openFile(h.fpath, DefaultFileFlags, DefaultFilePerm)
+	h.file, err = QuickOpenFile(h.fpath)
 	if err != nil {
 		return err
 	}

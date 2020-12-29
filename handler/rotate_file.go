@@ -145,7 +145,7 @@ func (h *RotateFileHandler) bySizeRotatingFile() error {
 	}
 
 	// reopen file
-	h.file, err = openFile(h.fpath, DefaultFileFlags, DefaultFilePerm)
+	h.file, err = QuickOpenFile(h.fpath)
 	if err != nil {
 		return err
 	}
@@ -179,7 +179,7 @@ func (h *RotateFileHandler) byTimeRotatingFile() error {
 	}
 
 	// reopen file
-	h.file, err = openFile(h.fpath, DefaultFileFlags, DefaultFilePerm)
+	h.file, err = QuickOpenFile(h.fpath)
 	if err != nil {
 		return err
 	}

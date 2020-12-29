@@ -182,7 +182,7 @@ func (h *TimeRotateFileHandler) byTimeRotatingFile() error {
 	}
 
 	// reopen file
-	h.file, err = openFile(h.fpath, DefaultFileFlags, DefaultFilePerm)
+	h.file, err = QuickOpenFile(h.fpath)
 	if err != nil {
 		return err
 	}

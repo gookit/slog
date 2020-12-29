@@ -47,14 +47,14 @@ func TestConsoleHandlerNoColor(t *testing.T) {
 }
 
 func TestNewBufferedHandler(t *testing.T) {
-	fpath := "./testdata/buffered-simple-file.log"
+	fpath := "./testdata/buffered-os-file.log"
 	assert.NoError(t, fsutil.DeleteIfFileExist(fpath))
 
-	h, err := handler.NewSimpleFile(fpath)
+	file, err := handler.QuickOpenFile(fpath)
 	assert.NoError(t, err)
 	assert.True(t, fsutil.IsFile(fpath))
 
-	bh := handler.NewBufferedHandler(h, 128)
+	bh := handler.NewBufferedHandler(file, 128)
 
 	// new logger
 	l := slog.NewWithHandlers(bh)
@@ -75,7 +75,7 @@ func TestNewBufferedHandler(t *testing.T) {
 }
 
 func TestBufferWrapper(t *testing.T) {
-	fpath := "./testdata/buffered-simple-file.log"
+	fpath := "./testdata/buffer-wrapper-simple-file.log"
 	assert.NoError(t, fsutil.DeleteIfFileExist(fpath))
 
 	h, err := handler.NewSimpleFile(fpath)

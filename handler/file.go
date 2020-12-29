@@ -66,7 +66,7 @@ func NewFileHandler(filepath string, useJSON bool) (*FileHandler, error) {
 		h.SetFormatter(slog.NewTextFormatter())
 	}
 
-	file, err := openFile(filepath, DefaultFileFlags, DefaultFilePerm)
+	file, err := QuickOpenFile(h.fpath)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (h *FileHandler) Configure(fn func(h *FileHandler)) *FileHandler {
 
 // ReopenFile the log file
 func (h *FileHandler) ReopenFile() error {
-	file, err := openFile(h.fpath, DefaultFileFlags, DefaultFilePerm)
+	file, err := OpenFile(h.fpath, DefaultFileFlags, DefaultFilePerm)
 	if err != nil {
 		return err
 	}
@@ -133,7 +133,7 @@ func (h *FileHandler) Handle(r *slog.Record) (err error) {
 
 	// create file
 	// if h.file == nil {
-	// 	h.file, err = openFile(h.fpath, h.FileFlag, h.FileMode)
+	// 	h.file, err = OpenFile(h.fpath, h.FileFlag, h.FileMode)
 	// 	if err != nil {
 	// 		return
 	// 	}
@@ -154,7 +154,13 @@ func (h *FileHandler) Handle(r *slog.Record) (err error) {
 	return
 }
 
-func openFile(filepath string, flag int, mode int) (*os.File, error) {
+// QuickOpenFile like os.OpenFile
+func QuickOpenFile(filepath string) (*os.File, error) {
+	return OpenFile(filepath, DefaultFileFlags, DefaultFilePerm)
+}
+
+// OpenFile like os.OpenFile
+func OpenFile(filepath string, flag int, perm int) (*os.File, error) {
 	fileDir := path.Dir(filepath)
 
 	// if err := os.Mkdir(dir, 0777); err != nil {
@@ -162,7 +168,7 @@ func openFile(filepath string, flag int, mode int) (*os.File, error) {
 		return nil, err
 	}
 
-	file, err := os.OpenFile(filepath, flag, os.FileMode(mode))
+	file, err := os.OpenFile(filepath, flag, os.FileMode(perm))
 	if err != nil {
 		return nil, err
 	}

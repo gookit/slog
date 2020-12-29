@@ -90,7 +90,7 @@ func (h *fileWrapper) ReopenFile() error {
 		h.file.Close()
 	}
 
-	file, err := openFile(h.fpath, DefaultFileFlags, DefaultFilePerm)
+	file, err := QuickOpenFile(h.fpath)
 	if err != nil {
 		return err
 	}
