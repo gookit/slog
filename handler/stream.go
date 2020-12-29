@@ -25,9 +25,7 @@ func NewStreamHandler(out io.Writer, levels []slog.Level) *StreamHandler {
 	return &StreamHandler{
 		Output: out,
 		// init log levels
-		LevelsWithFormatter: LevelsWithFormatter{
-			Levels: levels,
-		},
+		LevelsWithFormatter: newLvsFormatter(levels),
 	}
 }
 

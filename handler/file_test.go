@@ -43,6 +43,7 @@ func TestNewFileHandler(t *testing.T) {
 
 func TestNewSimpleFileHandler(t *testing.T) {
 	fpath := "./testdata/simple-file.log"
+	assert.NoError(t, fsutil.DeleteIfFileExist(fpath))
 	h, err := handler.NewSimpleFileHandler(fpath)
 	assert.NoError(t, err)
 
@@ -52,4 +53,9 @@ func TestNewSimpleFileHandler(t *testing.T) {
 
 	assert.True(t, fsutil.IsFile(fpath))
 	// assert.NoError(t, os.Remove(fpath))
+	bts, err := ioutil.ReadFile(testFile)
+	assert.NoError(t, err)
+
+	str := string(bts)
+	assert.Contains(t, str, "[INFO]")
 }

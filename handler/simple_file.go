@@ -13,6 +13,21 @@ type SimpleFileHandler struct {
 	LevelWithFormatter
 }
 
+// MustSimpleFile new instance
+func MustSimpleFile(filepath string) *SimpleFileHandler {
+	h, err := NewSimpleFileHandler(filepath)
+	if err != nil {
+		panic(err)
+	}
+
+	return h
+}
+
+// NewSimpleFileHandler new instance
+func NewSimpleFile(filepath string) (*SimpleFileHandler, error) {
+	return NewSimpleFileHandler(filepath)
+}
+
 // NewSimpleFileHandler instance
 //
 // Usage:

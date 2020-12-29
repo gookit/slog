@@ -16,6 +16,11 @@ type ConsoleHandler struct {
 	StreamHandler
 }
 
+// NewConsole create new ConsoleHandler
+func NewConsole(levels []slog.Level) *ConsoleHandler {
+	return NewConsoleHandler(levels)
+}
+
 // NewConsoleHandler create new ConsoleHandler
 func NewConsoleHandler(levels []slog.Level) *ConsoleHandler {
 	h := &ConsoleHandler{}

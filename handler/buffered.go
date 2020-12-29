@@ -6,31 +6,31 @@ import (
 	"github.com/gookit/slog"
 )
 
-const defaultFlushInterval = 1000
-
 // BufferedHandler definition
 type BufferedHandler struct {
 	lockWrapper
 	LevelsWithFormatter
 
 	buffer  *bufio.Writer
-	handler slog.WriterHandler
-	// options:
-	// BuffSize for buffer
-	BuffSize int
+	fcWriter slog.FlushCloseWriter
+
+	// BuffSize the buffer contents size
+	// BuffSize int
 }
 
 // NewBufferedHandler create new BufferedHandler
-func NewBufferedHandler(handler slog.WriterHandler, bufSize int) *BufferedHandler {
+func NewBufferedHandler(fcWriter slog.FlushCloseWriter, bufSize int) *BufferedHandler {
 	return &BufferedHandler{
-		buffer:  bufio.NewWriterSize(handler.Writer(), bufSize),
-		handler: handler,
+		buffer:  bufio.NewWriterSize(fcWriter.Writer(), bufSize),
+		fcWriter: fcWriter,
 		// options
-		BuffSize: bufSize,
+		// BuffSize: bufSize,
+		// log levels
+		LevelsWithFormatter: newLvsFormatter(slog.AllLevels),
 	}
 }
 
-// Flush all buffers to the `h.handler.Writer()`
+// Flush all buffers to the `h.fcWriter.Writer()`
 func (h *BufferedHandler) Flush() error {
 	h.Lock()
 	defer h.Unlock()
@@ -39,7 +39,7 @@ func (h *BufferedHandler) Flush() error {
 		return err
 	}
 
-	return h.handler.Flush()
+	return h.fcWriter.Flush()
 }
 
 // Close log records
@@ -48,7 +48,7 @@ func (h *BufferedHandler) Close() error {
 		return err
 	}
 
-	return h.handler.Close()
+	return h.fcWriter.Close()
 }
 
 // Handle log record
@@ -61,16 +61,10 @@ func (h *BufferedHandler) Handle(record *slog.Record) error {
 	h.Lock()
 	defer h.Unlock()
 
-	if h.buffer == nil {
-		h.buffer = bufio.NewWriterSize(h.handler.Writer(), h.BuffSize)
-	}
+	// if h.buffer == nil {
+	// 	h.buffer = bufio.NewWriterSize(h.fcWriter.Writer(), h.BuffSize)
+	// }
 
 	_, err = h.buffer.Write(bts)
-
-	// flush logs
-	if h.buffer.Buffered() >= h.BuffSize {
-		return h.Flush()
-	}
-
 	return err
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"strings"
-	"time"
 )
 
 // M short name of map[string]interface{}
@@ -95,9 +94,19 @@ type FlushSyncWriter interface {
 	io.Writer
 }
 
-// WriterHandler is the interface satisfied by logging destinations.
-type WriterHandler interface {
+// FlushCloseWriter is the interface satisfied by logging destinations.
+type FlushCloseWriter interface {
+	Close() error
+	Flush() error
+	// the output writer
+	Writer() io.Writer
+}
+
+// FormatterWriterHandler interface
+type FormatterWriterHandler interface {
 	Handler
+	// record formatter
+	Formatter() Formatter
 	// the output writer
 	Writer() io.Writer
 }
@@ -120,8 +129,6 @@ type Handler interface {
 	// All records may be passed to this method, and the handler should discard
 	// Those that it does not want to handle.
 	Handle(*Record) error
-	// HandleBatch Handles a set of records at once. TODO need ?
-	// HandleBatch([]*Record) error
 }
 
 //
@@ -237,8 +244,6 @@ const (
 	// TraceLevel level. Designates finer-grained informational events than the Debug.
 	TraceLevel Level = 800
 )
-
-const flushInterval = 30 * time.Second
 
 const (
 	FieldKeyTime = "time"

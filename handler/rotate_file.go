@@ -53,12 +53,9 @@ func NewRotateFileHandler(filepath string, rt rotateTime) (*RotateFileHandler, e
 		rotateTime: rt,
 		// file contents size
 		MaxSize: DefaultMaxSize,
-		// init log levels
-		LevelsWithFormatter: LevelsWithFormatter{
-			Levels: slog.AllLevels, // default log all levels
-		},
-
-		// build new filename.
+		// default log all levels
+		LevelsWithFormatter: newLvsFormatter(slog.AllLevels),
+		// build new log filename.
 		// eg: "error.log" => "error.log.010215_00001"
 		RenameFunc: defaultNewLogfileFunc,
 	}

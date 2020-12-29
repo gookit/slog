@@ -40,10 +40,12 @@ type Record struct {
 	// Caller information
 	Caller *runtime.Frame
 	// Formatted []byte
+
+	// stacks []byte
 }
 
 var (
-	// Define the key when adding errors using WithError.
+	// ErrorKey Define the key when adding errors using WithError.
 	ErrorKey   = "error"
 	bufferPool *sync.Pool
 )
@@ -321,4 +323,6 @@ func (r *Record) log(level Level, message string) {
 	r.logger.write(level, r)
 
 	// r.Buffer = nil
+	// TODO release on here ??
+	// r.logger.releaseRecord(r)
 }

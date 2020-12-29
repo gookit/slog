@@ -39,38 +39,39 @@ type lockWrapper struct {
 }
 
 // Lock it
-func (l *lockWrapper) Lock() {
-	if false == l.disable {
-		l.Mutex.Lock()
+func (lw *lockWrapper) Lock() {
+	if false == lw.disable {
+		lw.Mutex.Lock()
 	}
 }
 
 // Unlock it
-func (l *lockWrapper) Unlock() {
-	if !l.disable {
-		l.Mutex.Unlock()
+func (lw *lockWrapper) Unlock() {
+	if !lw.disable {
+		lw.Mutex.Unlock()
 	}
 }
 
 // UseLock locker
-func (l *lockWrapper) UseLock(enable bool) {
-	l.disable = false == enable
+func (lw *lockWrapper) UseLock(enable bool) {
+	lw.disable = false == enable
 }
 
 // LockEnabled status
-func (l *lockWrapper) LockEnabled() bool {
-	return l.disable == false
+func (lw *lockWrapper) LockEnabled() bool {
+	return lw.disable == false
 }
 
-type emptyHandler struct{}
+// NopFlushClose no operation. provide empty Flush(), Close() methods
+type NopFlushClose struct{}
 
 // Flush logs to disk
-func (h *emptyHandler) Flush() error {
+func (h *NopFlushClose) Flush() error {
 	return nil
 }
 
 // Close handler
-func (h *emptyHandler) Close() error {
+func (h *NopFlushClose) Close() error {
 	return nil
 }
 
@@ -175,14 +176,19 @@ func (h *bufFileWrapper) Close() error {
  * Common parts for handler
  ********************************************************************************/
 
-// LevelsWithFormatter struct definition
+// LevelWithFormatter struct definition
 //
 // - support set log formatter
-// - support setting multi log levels
+// - only support set one log level
 type LevelWithFormatter struct {
 	slog.Formattable
 	// Level for log message. if current level >= Level will log message
 	Level slog.Level
+}
+
+// create new instance
+func newLvFormatter(lv slog.Level) LevelWithFormatter {
+	return LevelWithFormatter{Level: lv}
 }
 
 // IsHandling Check if the current level can be handling
@@ -193,11 +199,16 @@ func (h *LevelWithFormatter) IsHandling(level slog.Level) bool {
 // LevelsWithFormatter struct definition
 //
 // - support set log formatter
-// - only support set one log level
+// - support setting multi log levels
 type LevelsWithFormatter struct {
 	slog.Formattable
 	// Levels for log message
 	Levels []slog.Level
+}
+
+// create new instance
+func newLvsFormatter(lvs []slog.Level) LevelsWithFormatter {
+	return LevelsWithFormatter{Levels: lvs}
 }
 
 // IsHandling Check if the current level can be handling

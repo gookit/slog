@@ -55,10 +55,9 @@ func NewFileHandler(filepath string, useJSON bool) (*FileHandler, error) {
 		BuffSize: defaultBufferSize,
 		// FileMode: DefaultFilePerm, // default FileMode
 		// FileFlag: DefaultFileFlags,
-		// init log levels
-		LevelsWithFormatter: LevelsWithFormatter{
-			Levels: slog.AllLevels, // default log all levels
-		},
+
+		// default log all levels
+		LevelsWithFormatter: newLvsFormatter(slog.AllLevels),
 	}
 
 	if useJSON {

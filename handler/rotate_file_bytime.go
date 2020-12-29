@@ -110,10 +110,8 @@ func NewTimeRotateFile(filepath string, rt rotateTime) (*TimeRotateFileHandler, 
 func NewTimeRotateFileHandler(filepath string, rt rotateTime) (*TimeRotateFileHandler, error) {
 	h := &TimeRotateFileHandler{
 		rotateType: rt,
-		// init log levels
-		LevelsWithFormatter: LevelsWithFormatter{
-			Levels: slog.AllLevels, // default log all levels
-		},
+		// default log all levels
+		LevelsWithFormatter: newLvsFormatter(slog.AllLevels),
 	}
 
 	// init

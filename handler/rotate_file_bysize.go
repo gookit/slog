@@ -53,10 +53,8 @@ func NewSizeRotateFileHandler(filepath string, maxSize uint64) (*SizeRotateFileH
 			fpath: filepath,
 			// buffer size
 			BuffSize: defaultBufferSize,
-			// init log levels
-			LevelsWithFormatter: LevelsWithFormatter{
-				Levels: slog.AllLevels, // default log all levels
-			},
+			// default log all levels
+			LevelsWithFormatter: newLvsFormatter(slog.AllLevels),
 		},
 		// build new filename.
 		// eg: "error.log" => "error.log.010215_00001"

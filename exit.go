@@ -44,34 +44,34 @@ func ResetExitHandlers(applyToStd bool) {
 	}
 }
 
-func (logger *Logger) runExitHandlers() {
+func (l *Logger) runExitHandlers() {
 	defer func() {
 		if err := recover(); err != nil {
 			_, _ = fmt.Fprintln(os.Stderr, "Run exit handler error:", err)
 		}
 	}()
 
-	for _, handler := range logger.exitHandlers {
+	for _, handler := range l.exitHandlers {
 		handler()
 	}
 }
 
 // PrependExitHandler register an exit-handler on global exitHandlers
-func (logger *Logger) RegisterExitHandler(handler func()) {
-	logger.exitHandlers = append(logger.exitHandlers, handler)
+func (l *Logger) RegisterExitHandler(handler func()) {
+	l.exitHandlers = append(l.exitHandlers, handler)
 }
 
 // PrependExitHandler prepend register an exit-handler on global exitHandlers
-func (logger *Logger) PrependExitHandler(handler func()) {
-	logger.exitHandlers = append([]func(){handler}, logger.exitHandlers...)
+func (l *Logger) PrependExitHandler(handler func()) {
+	l.exitHandlers = append([]func(){handler}, l.exitHandlers...)
 }
 
 // ResetExitHandlers reset logger exitHandlers
-func (logger *Logger) ResetExitHandlers() {
-	logger.exitHandlers = make([]func(), 0)
+func (l *Logger) ResetExitHandlers() {
+	l.exitHandlers = make([]func(), 0)
 }
 
 // ExitHandlers get all exitHandlers of the logger
-func (logger *Logger) ExitHandlers() []func() {
-	return logger.exitHandlers
+func (l *Logger) ExitHandlers() []func() {
+	return l.exitHandlers
 }
