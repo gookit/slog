@@ -231,7 +231,7 @@ const (
 	TraceLevel Level = 800
 )
 
-const (
+var (
 	FieldKeyTime = "time"
 	// FieldKeyDate  = "date"
 	FieldKeyData = "data"
@@ -265,16 +265,11 @@ var (
 	DefaultChannelName = "application"
 	DefaultTimeFormat  = "2006/01/02 15:04:05"
 	// TimeFormatRFC3339  = time.RFC3339
-	FieldKeys = struct {
-		Level string
-	}{
-		Level: "level",
-	}
 )
 
 var (
 	// AllLevels exposing all logging levels
-	AllLevels = []Level{
+	AllLevels = Levels{
 		PanicLevel,
 		FatalLevel,
 		ErrorLevel,
@@ -284,6 +279,9 @@ var (
 		DebugLevel,
 		TraceLevel,
 	}
+
+	DangerLevels = Levels{PanicLevel, FatalLevel, ErrorLevel, WarnLevel}
+	NormalLevels = Levels{InfoLevel, NoticeLevel, DebugLevel, TraceLevel}
 
 	// PrintLevel for use logger.Print / Printf / Println
 	PrintLevel = InfoLevel

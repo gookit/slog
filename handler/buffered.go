@@ -16,6 +16,11 @@ type BufferedHandler struct {
 	cWriter io.WriteCloser
 }
 
+// NewBuffered create new BufferedHandler
+func NewBuffered(cWriter io.WriteCloser, bufSize int) *BufferedHandler {
+	return NewBufferedHandler(cWriter, bufSize)
+}
+
 // NewBufferedHandler create new BufferedHandler
 func NewBufferedHandler(cWriter io.WriteCloser, bufSize int) *BufferedHandler {
 	return &BufferedHandler{

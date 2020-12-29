@@ -3,6 +3,7 @@ package slog
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -89,6 +90,12 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 			}
 
 			tplData[tplVar] = r.Time.Format(f.TimeFormat)
+		case field == FieldKeyTimestamp:
+			if r.Time.IsZero() {
+				r.Time = time.Now()
+			}
+
+			tplData[tplVar] = strconv.Itoa(r.Time.Nanosecond() / 1000)
 		case field == FieldKeyCaller && r.Caller != nil:
 			tplData[tplVar] = formatCaller(r.Caller, field) // caller eg: "logger_test.go:48,TestLogger_ReportCaller"
 		case field == FieldKeyFLine && r.Caller != nil:

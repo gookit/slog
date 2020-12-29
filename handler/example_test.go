@@ -5,17 +5,17 @@ import (
 	"github.com/gookit/slog/handler"
 )
 
-func ExampleNewMultiFileHandler() {
-	h := &handler.MultiFileHandler{
-		FileDir: "testdata/multifiles",
-		FileLevels: map[string]slog.Levels{
-			"error.log": {slog.ErrorLevel, slog.WarnLevel},
-			"info.log":  {slog.InfoLevel, slog.NoticeLevel, slog.DebugLevel, slog.TraceLevel},
-		},
-	}
+func ExampleFileHandler() {
+	h1 := handler.MustFileHandler("/tmp/error.log", true)
+	h1.Levels = slog.Levels{slog.PanicLevel, slog.ErrorLevel, slog.WarnLevel}
 
-	slog.AddHandler(h)
+	h2 := handler.MustFileHandler("/tmp/info.log", true)
+	h1.Levels = slog.Levels{slog.InfoLevel, slog.NoticeLevel, slog.DebugLevel, slog.TraceLevel}
+
+	slog.PushHandler(h1)
+	slog.PushHandler(h2)
 
 	// add logs
-	slog.Info("info messages")
+	slog.Info("info message")
+	slog.Error("error message")
 }

@@ -58,6 +58,12 @@ func (f *JSONFormatter) Format(r *Record) ([]byte, error) {
 			}
 
 			logData[outName] = r.Time.Format(f.TimeFormat)
+		case field == FieldKeyTimestamp:
+			if r.Time.IsZero() {
+				r.Time = time.Now()
+			}
+
+			logData[outName] = r.Time.Nanosecond() / 1000
 		case field == FieldKeyCaller && r.Caller != nil:
 			logData[outName] = formatCaller(r.Caller, field) // "logger_test.go:48,TestLogger_ReportCaller"
 		case field == FieldKeyFLine && r.Caller != nil:

@@ -215,6 +215,11 @@ func AddHandler(h Handler) {
 	std.AddHandler(h)
 }
 
+// PushHandler to the std logger
+func PushHandler(h Handler) {
+	std.AddHandler(h)
+}
+
 // AddHandlers to the std logger
 func AddHandlers(hs ...Handler) {
 	std.AddHandlers(hs...)

@@ -24,13 +24,13 @@
 - Support to custom log message `Formatter`
   - Built-in `json` `text` two log record formatting `Formatter`
 - Has built-in common log write processing program
-  - `console` outputs logs to the console, supports color output
-  - `stream` outputs logs to the specified `io.Writer`
-  - `simple_file` outputs logs to the specified file, no buffer Write directly to file
-  - `file` outputs log to a specified file. By default, `buffer` is enabled. Buffer writing
-  - `size_rotate_file` outputs log to a specified file, and supports splitting files by size. By default, `buffer` is enabled.
-  - `time_rotate_file` outputs logs to a specified file, and supports splitting files by time. By default, `buffer` is enabled.
-  - `rotate_file` outputs logs to a specified file, and supports splitting files by time and size. By default, `buffer` is enabled.
+  - `console` output logs to the console, supports color output
+  - `stream` output logs to the specified `io.Writer`
+  - `simple_file` output logs to a file, no buffer Write directly to file
+  - `file` outputs log to a file. By default, `buffer` is enabled. Buffer writing
+  - `size_rotate_file` output logs to a file, and supports rotating files by size. By default, `buffer` is enabled.
+  - `time_rotate_file` output logs to a file, and supports rotating files by time. By default, `buffer` is enabled.
+  - `rotate_file` output logs to a file, and supports rotating files by time and size. By default, `buffer` is enabled.
 
 ## GoDoc
 
@@ -152,6 +152,102 @@ func main() {
 {"channel":"application","data":{"key0":134,"key1":"abc"},"datetime":"2020/07/16 13:23:33","extra":{},"level":"INFO","message":"info log message"}
 {"IP":"127.0.0.1","category":"service","channel":"application","datetime":"2020/07/16 13:23:33","extra":{},"level":"INFO","message":"info message"}
 {"IP":"127.0.0.1","category":"service","channel":"application","datetime":"2020/07/16 13:23:33","extra":{},"level":"DEBUG","message":"debug message"}
+```
+
+## How to use handler
+
+### create handler
+
+```go
+h1, err := handler.NewSimpleFile("info.log")
+
+h2, err := handler.NewFileHandler("error.log")
+
+h3, err := handler.NewFileHandler("error.log")
+```
+
+### push handler to logger
+
+```go
+	// append to logger
+	l := slog.PushHandler(h)
+
+	// logging messages
+	slog.Info("info message")
+	slog.Warn("warn message")
+```
+
+### new logger with handlers
+
+```go
+	// for new logger
+	l := slog.NewWithHandlers(h1, h2)
+
+	// logging messages
+	l.Info("info message")
+	l.Warn("warn message")
+```
+
+
+## Built-in Handlers
+
+### BufferedHandler
+
+`BufferedHandler` - can wrapper an `io.WriteCloser` as an `slog.Handler`
+
+```go
+package mypkg
+import (
+	"github.com/gookit/slog"
+	"github.com/gookit/slog/handler"
+	"github.com/stretchr/testify/assert"
+)
+
+func myfunc() {
+	fpath := "./testdata/buffered-os-file.log"
+
+	file, err := handler.QuickOpenFile(fpath)
+	assert.NoError(t, err)
+
+	bh := handler.NewBuffered(file, 2048)
+
+	// new logger
+	l := slog.NewWithHandlers(bh)
+
+	// logging messages
+	l.Info("buffered info message")
+	l.Warn("buffered warn message")
+}
+```
+
+### ConsoleHandler
+
+`ConsoleHandler` - output logs to the console terminal. support color by [gookit/color](https://github.com/gookit/color).
+
+Create:
+
+```go
+func NewConsoleHandler(levels []slog.Level) *ConsoleHandler
+```
+
+### EmailHandler
+
+`NewEmailHandler` - output logs to email.
+
+Create:
+
+```go
+h := handler.NewEmailHandler(from EmailOption, toAddresses []string)
+```
+
+### SimpleFileHandler
+
+`SimpleFileHandler` - direct write log messages to a file. _Not recommended for production environment_
+
+Create:
+
+```go
+func NewSimpleFile(filepath string) (*SimpleFileHandler, error)
 ```
 
 ## Introduction
@@ -400,6 +496,20 @@ h.SetFormatter(&mypkg.MyFormatter{})
 
 l.AddHander(h)
 ```
+
+## Gookit packages
+
+  - [gookit/ini](https://github.com/gookit/ini) Go config management, use INI files
+  - [gookit/rux](https://github.com/gookit/rux) Simple and fast request router for golang HTTP 
+  - [gookit/gcli](https://github.com/gookit/gcli) build CLI application, tool library, running CLI commands
+  - [gookit/color](https://github.com/gookit/color) A command-line color library with true color support, universal API methods and Windows support
+  - [gookit/event](https://github.com/gookit/event) Lightweight event manager and dispatcher implements by Go
+  - [gookit/cache](https://github.com/gookit/cache) Generic cache use and cache manager for golang. support File, Memory, Redis, Memcached.
+  - [gookit/config](https://github.com/gookit/config) Go config management. support JSON, YAML, TOML, INI, HCL, ENV and Flags
+  - [gookit/filter](https://github.com/gookit/filter) Provide filtering, sanitizing, and conversion of golang data
+  - [gookit/validate](https://github.com/gookit/validate) Use for data validation and filtering. support Map, Struct, Form data
+  - [gookit/goutil](https://github.com/gookit/goutil) Some utils for the Go: string, array/slice, map, format, cli, env, filesystem, test and more
+  - More, please see https://github.com/gookit
 
 ## Refer
 

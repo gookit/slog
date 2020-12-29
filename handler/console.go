@@ -13,7 +13,7 @@ import (
 
 // ConsoleHandler definition
 type ConsoleHandler struct {
-	StreamHandler
+	IOWriterHandler
 }
 
 // NewConsole create new ConsoleHandler
