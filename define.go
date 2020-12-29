@@ -81,25 +81,11 @@ type FullLoggerFace interface {
 	Noticef(format string, args ...interface{})
 }
 
-// SyncWriter is the interface satisfied by logging destinations.
-type SyncWriter interface {
-	Sync() error
-	io.Writer
-}
-
-// FlushSyncWriter is the interface satisfied by logging destinations.
-type FlushSyncWriter interface {
-	Flush() error
-	Sync() error
-	io.Writer
-}
-
 // FlushCloseWriter is the interface satisfied by logging destinations.
 type FlushCloseWriter interface {
-	Close() error
 	Flush() error
 	// the output writer
-	Writer() io.Writer
+	io.WriteCloser
 }
 
 // FormatterWriterHandler interface

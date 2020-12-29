@@ -58,7 +58,7 @@ func NewWithName(name string) *Logger {
 		ExitFunc:     os.Exit,
 		exitHandlers: []func(){},
 		// options
-		ReportCaller: true,
+		ReportCaller:   true,
 		MaxCallerDepth: defaultMaxCallerDepth,
 	}
 

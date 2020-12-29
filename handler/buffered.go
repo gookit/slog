@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bufio"
+	"io"
 
 	"github.com/gookit/slog"
 )
@@ -12,34 +13,25 @@ type BufferedHandler struct {
 	LevelsWithFormatter
 
 	buffer  *bufio.Writer
-	fcWriter slog.FlushCloseWriter
-
-	// BuffSize the buffer contents size
-	// BuffSize int
+	cWriter io.WriteCloser
 }
 
 // NewBufferedHandler create new BufferedHandler
-func NewBufferedHandler(fcWriter slog.FlushCloseWriter, bufSize int) *BufferedHandler {
+func NewBufferedHandler(cWriter io.WriteCloser, bufSize int) *BufferedHandler {
 	return &BufferedHandler{
-		buffer:  bufio.NewWriterSize(fcWriter.Writer(), bufSize),
-		fcWriter: fcWriter,
-		// options
-		// BuffSize: bufSize,
+		cWriter: cWriter,
+		buffer:  bufio.NewWriterSize(cWriter, bufSize),
 		// log levels
 		LevelsWithFormatter: newLvsFormatter(slog.AllLevels),
 	}
 }
 
-// Flush all buffers to the `h.fcWriter.Writer()`
+// Flush all buffers
 func (h *BufferedHandler) Flush() error {
 	h.Lock()
 	defer h.Unlock()
 
-	if err := h.buffer.Flush(); err != nil {
-		return err
-	}
-
-	return h.fcWriter.Flush()
+	return h.buffer.Flush()
 }
 
 // Close log records
@@ -48,7 +40,7 @@ func (h *BufferedHandler) Close() error {
 		return err
 	}
 
-	return h.fcWriter.Close()
+	return h.cWriter.Close()
 }
 
 // Handle log record

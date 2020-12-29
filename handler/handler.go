@@ -99,6 +99,11 @@ func (h *fileWrapper) ReopenFile() error {
 	return err
 }
 
+// Write contents to *os.File
+func (h *fileWrapper) Write(bts []byte) (n int, err error) {
+	return h.file.Write(bts)
+}
+
 // Writer return *os.File
 func (h *fileWrapper) Writer() io.Writer {
 	return h.file

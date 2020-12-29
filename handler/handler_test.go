@@ -55,7 +55,6 @@ func TestNewBufferedHandler(t *testing.T) {
 	assert.True(t, fsutil.IsFile(fpath))
 
 	bh := handler.NewBufferedHandler(h, 128)
-	assert.Equal(t, bh.BuffSize, 128)
 
 	// new logger
 	l := slog.NewWithHandlers(bh)
