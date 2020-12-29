@@ -38,7 +38,7 @@ func TestLogger_ReportCaller(t *testing.T) {
 	})
 
 	var buf bytes.Buffer
-	h := handler.NewStreamHandler(&buf, slog.AllLevels)
+	h := handler.NewIOWriterHandler(&buf, slog.AllLevels)
 	h.SetFormatter(slog.NewJSONFormatter(func(f *slog.JSONFormatter) {
 		f.Fields = append(f.Fields, slog.FieldKeyCaller)
 	}))

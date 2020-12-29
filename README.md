@@ -26,11 +26,11 @@
 - Has built-in common log write processing program
   - `console` output logs to the console, supports color output
   - `stream` output logs to the specified `io.Writer`
-  - `simple_file` output logs to a file, no buffer Write directly to file
-  - `file` outputs log to a file. By default, `buffer` is enabled. Buffer writing
-  - `size_rotate_file` output logs to a file, and supports rotating files by size. By default, `buffer` is enabled.
-  - `time_rotate_file` output logs to a file, and supports rotating files by time. By default, `buffer` is enabled.
-  - `rotate_file` output logs to a file, and supports rotating files by time and size. By default, `buffer` is enabled.
+  - `simple_file` output logs to file, no buffer Write directly to file
+  - `file` output logs to file. By default, `buffer` is enabled.
+  - `size_rotate_file` output logs to file, and supports rotating files by size. By default, `buffer` is enabled.
+  - `time_rotate_file` output logs to file, and supports rotating files by time. By default, `buffer` is enabled.
+  - `rotate_file` output logs to file, and supports rotating files by time and size. By default, `buffer` is enabled.
 
 ## GoDoc
 
