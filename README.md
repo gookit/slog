@@ -154,6 +154,8 @@ func main() {
 {"IP":"127.0.0.1","category":"service","channel":"application","datetime":"2020/07/16 13:23:33","extra":{},"level":"DEBUG","message":"debug message"}
 ```
 
+----------
+
 ## How to use handler
 
 ### create handler
@@ -248,109 +250,6 @@ Create:
 
 ```go
 func NewSimpleFile(filepath string) (*SimpleFileHandler, error)
-```
-
-## Introduction
-
-slog handle workflow(like monolog):
-
-```text
-         Processors
-Logger -{
-         Handlers -{ With Formatters
-```
-
-### Processor
-
-`Processor` - Logging `Record` processor.
-
-You can use it to perform additional operations on the record before the log record reaches the Handler for processing, such as adding fields, adding extended information, etc.
-
-`Processor` definition:
-
-```go
-// Processor interface definition
-type Processor interface {
-	// Process record
-	Process(record *Record)
-}
-```
-
-`Processor` func wrapper definition:
-
-```go
-// ProcessorFunc wrapper definition
-type ProcessorFunc func(record *Record)
-
-// Process record
-func (fn ProcessorFunc) Process(record *Record) {
-	fn(record)
-}
-```
-
-Here we use the built-in processor `slog.AddHostname` as an example, it can add a new field `hostname` to each log record.
-
-```go
-slog.AddProcessor(slog.AddHostname())
-
-slog.Info("message")
-```
-
-**Output:**
-
-```json
-{"channel":"application","level":"INFO","datetime":"2020/07/17 12:01:35","hostname":"InhereMac","data":{},"extra":{},"message":"message"}
-```
-
-### Handler
-
-`Handler` - Log processor, each log will be processed by `Handler.Handle()`, where you can send the log to the console, file, or remote server.
-
-> You can customize any `Handler` you want, you only need to implement the `slog.Handler` interface.
-
-```go
-// Handler interface definition
-type Handler interface {
-	// Close handler
-	io.Closer
-	// Flush logs to disk
-	Flush() error
-	// IsHandling Checks whether the given record will be handled by this handler.
-	IsHandling(level Level) bool
-	// Handle a log record.
-	// all records may be passed to this method, and the handler should discard
-	// those that it does not want to handle.
-	Handle(*Record) error
-}
-```
-
-> Note: Remember to add the `Handler` to the logger instance before the log records will be processed by the `Handler`.
-
-### Formatter
-
-`Formatter` - Log data formatting.
-
-It is usually set in `Handler`, which can be used to format log records, convert records into text, JSON, etc., `Handler` then writes the formatted data to the specified place.
-
-`Formatter` definition:
-
-```go
-// Formatter interface
-type Formatter interface {
-	Format(record *Record) ([]byte, error)
-}
-```
-
-`Formatter` function wrapper:
-
-```go
-// FormatterFunc wrapper definition
-type FormatterFunc func(r *Record) ([]byte, error)
-
-// Format an record
-func (fn FormatterFunc) Format(r *Record) ([]byte, error) {
-	return fn(r)
-}
 ```
 
 ## Custom Logger
@@ -495,6 +394,111 @@ h := &MyHandler{}
 h.SetFormatter(&mypkg.MyFormatter{})
 
 l.AddHander(h)
+```
+
+----------
+
+## Introduction
+
+slog handle workflow(like monolog):
+
+```text
+         Processors
+Logger -{
+         Handlers -{ With Formatters
+```
+
+### Processor
+
+`Processor` - Logging `Record` processor.
+
+You can use it to perform additional operations on the record before the log record reaches the Handler for processing, such as adding fields, adding extended information, etc.
+
+`Processor` definition:
+
+```go
+// Processor interface definition
+type Processor interface {
+	// Process record
+	Process(record *Record)
+}
+```
+
+`Processor` func wrapper definition:
+
+```go
+// ProcessorFunc wrapper definition
+type ProcessorFunc func(record *Record)
+
+// Process record
+func (fn ProcessorFunc) Process(record *Record) {
+	fn(record)
+}
+```
+
+Here we use the built-in processor `slog.AddHostname` as an example, it can add a new field `hostname` to each log record.
+
+```go
+slog.AddProcessor(slog.AddHostname())
+
+slog.Info("message")
+```
+
+**Output:**
+
+```json
+{"channel":"application","level":"INFO","datetime":"2020/07/17 12:01:35","hostname":"InhereMac","data":{},"extra":{},"message":"message"}
+```
+
+### Handler
+
+`Handler` - Log processor, each log will be processed by `Handler.Handle()`, where you can send the log to the console, file, or remote server.
+
+> You can customize any `Handler` you want, you only need to implement the `slog.Handler` interface.
+
+```go
+// Handler interface definition
+type Handler interface {
+	// Close handler
+	io.Closer
+	// Flush logs to disk
+	Flush() error
+	// IsHandling Checks whether the given record will be handled by this handler.
+	IsHandling(level Level) bool
+	// Handle a log record.
+	// all records may be passed to this method, and the handler should discard
+	// those that it does not want to handle.
+	Handle(*Record) error
+}
+```
+
+> Note: Remember to add the `Handler` to the logger instance before the log records will be processed by the `Handler`.
+
+### Formatter
+
+`Formatter` - Log data formatting.
+
+It is usually set in `Handler`, which can be used to format log records, convert records into text, JSON, etc., `Handler` then writes the formatted data to the specified place.
+
+`Formatter` definition:
+
+```go
+// Formatter interface
+type Formatter interface {
+	Format(record *Record) ([]byte, error)
+}
+```
+
+`Formatter` function wrapper:
+
+```go
+// FormatterFunc wrapper definition
+type FormatterFunc func(r *Record) ([]byte, error)
+
+// Format an record
+func (fn FormatterFunc) Format(r *Record) ([]byte, error) {
+	return fn(r)
+}
 ```
 
 ## Gookit packages
