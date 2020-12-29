@@ -505,7 +505,8 @@ func (fn FormatterFunc) Format(r *Record) ([]byte, error) {
 
   - [gookit/ini](https://github.com/gookit/ini) Go config management, use INI files
   - [gookit/rux](https://github.com/gookit/rux) Simple and fast request router for golang HTTP 
-  - [gookit/gcli](https://github.com/gookit/gcli) build CLI application, tool library, running CLI commands
+  - [gookit/gcli](https://github.com/gookit/gcli) Build CLI application, tool library, running CLI commands
+  - [gookit/slog](https://github.com/gookit/slog) Lightweight, easy to extend, configurable logging library written in Go
   - [gookit/color](https://github.com/gookit/color) A command-line color library with true color support, universal API methods and Windows support
   - [gookit/event](https://github.com/gookit/event) Lightweight event manager and dispatcher implements by Go
   - [gookit/cache](https://github.com/gookit/cache) Generic cache use and cache manager for golang. support File, Memory, Redis, Memcached.
