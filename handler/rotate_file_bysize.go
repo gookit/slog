@@ -29,8 +29,8 @@ type SizeRotateFileHandler struct {
 }
 
 // MustSizeRotateFile instance
-func MustSizeRotateFile(filepath string, maxSize uint64) *SizeRotateFileHandler {
-	h, err := NewSizeRotateFileHandler(filepath, maxSize)
+func MustSizeRotateFile(logfile string, maxSize uint64) *SizeRotateFileHandler {
+	h, err := NewSizeRotateFileHandler(logfile, maxSize)
 	if err != nil {
 		panic(err)
 	}
@@ -39,18 +39,18 @@ func MustSizeRotateFile(filepath string, maxSize uint64) *SizeRotateFileHandler 
 }
 
 // NewSizeRotateFile instance
-func NewSizeRotateFile(filepath string, maxSize uint64) (*SizeRotateFileHandler, error) {
-	return NewSizeRotateFileHandler(filepath, maxSize)
+func NewSizeRotateFile(logfile string, maxSize uint64) (*SizeRotateFileHandler, error) {
+	return NewSizeRotateFileHandler(logfile, maxSize)
 }
 
 // NewSizeRotateFileHandler instance
-func NewSizeRotateFileHandler(filepath string, maxSize uint64) (*SizeRotateFileHandler, error) {
+func NewSizeRotateFileHandler(logfile string, maxSize uint64) (*SizeRotateFileHandler, error) {
 	h := &SizeRotateFileHandler{
 		// MaxSize: DefaultMaxSize,
 		MaxSize: maxSize,
 		// init file handler
 		FileHandler: FileHandler{
-			fpath: filepath,
+			fpath: logfile,
 			// buffer size
 			BuffSize: defaultBufferSize,
 			// default log all levels
@@ -61,7 +61,7 @@ func NewSizeRotateFileHandler(filepath string, maxSize uint64) (*SizeRotateFileH
 		RenameFunc: defaultNewLogfileFunc,
 	}
 
-	file, err := QuickOpenFile(filepath)
+	file, err := QuickOpenFile(logfile)
 	if err != nil {
 		return nil, err
 	}

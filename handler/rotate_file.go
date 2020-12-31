@@ -37,8 +37,8 @@ type RotateFileHandler struct {
 }
 
 // MustRotateFile instance
-func MustRotateFile(filepath string, rt rotateTime) *RotateFileHandler {
-	h, err := NewRotateFileHandler(filepath, rt)
+func MustRotateFile(logfile string, rt rotateTime) *RotateFileHandler {
+	h, err := NewRotateFileHandler(logfile, rt)
 	if err != nil {
 		panic(err)
 	}
@@ -47,12 +47,12 @@ func MustRotateFile(filepath string, rt rotateTime) *RotateFileHandler {
 }
 
 // NewRotateFile instance
-func NewRotateFile(filepath string, rt rotateTime) (*RotateFileHandler, error) {
-	return NewRotateFileHandler(filepath, rt)
+func NewRotateFile(logfile string, rt rotateTime) (*RotateFileHandler, error) {
+	return NewRotateFileHandler(logfile, rt)
 }
 
 // NewRotateFileHandler instance
-func NewRotateFileHandler(filepath string, rt rotateTime) (*RotateFileHandler, error) {
+func NewRotateFileHandler(logfile string, rt rotateTime) (*RotateFileHandler, error) {
 	h := &RotateFileHandler{
 		rotateTime: rt,
 		// file contents size
@@ -71,7 +71,7 @@ func NewRotateFileHandler(filepath string, rt rotateTime) (*RotateFileHandler, e
 	fw := bufFileWrapper{
 		BuffSize: defaultBufferSize,
 	}
-	fw.fpath = filepath
+	fw.fpath = logfile
 	// set prop
 	h.bufFileWrapper = fw
 

@@ -225,6 +225,11 @@ func AddHandlers(hs ...Handler) {
 	std.AddHandlers(hs...)
 }
 
+// PushHandlers to the std logger
+func PushHandlers(hs ...Handler) {
+	std.PushHandlers(hs...)
+}
+
 // AddProcessor to the logger
 func AddProcessor(p Processor) {
 	std.AddProcessor(p)

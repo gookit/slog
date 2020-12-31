@@ -37,13 +37,13 @@ type FileHandler struct {
 // }
 
 // JSONFileHandler create new FileHandler with JSON formatter
-func JSONFileHandler(filepath string) (*FileHandler, error) {
-	return NewFileHandler(filepath, true)
+func JSONFileHandler(logfile string) (*FileHandler, error) {
+	return NewFileHandler(logfile, true)
 }
 
 // MustFileHandler create file handler
-func MustFileHandler(filepath string, useJSON bool) *FileHandler {
-	h, err := NewFileHandler(filepath, useJSON)
+func MustFileHandler(logfile string, useJSON bool) *FileHandler {
+	h, err := NewFileHandler(logfile, useJSON)
 	if err != nil {
 		panic(err)
 	}
@@ -52,9 +52,9 @@ func MustFileHandler(filepath string, useJSON bool) *FileHandler {
 }
 
 // NewFileHandler create new FileHandler
-func NewFileHandler(filepath string, useJSON bool) (*FileHandler, error) {
+func NewFileHandler(logfile string, useJSON bool) (*FileHandler, error) {
 	h := &FileHandler{
-		fpath:    filepath,
+		fpath:    logfile,
 		useJSON:  useJSON,
 		BuffSize: defaultBufferSize,
 		// FileMode: DefaultFilePerm, // default FileMode

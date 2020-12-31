@@ -92,8 +92,8 @@ type TimeRotateFileHandler struct {
 }
 
 // MustTimeRotateFile instance
-func MustTimeRotateFile(filepath string, rt rotateTime) *TimeRotateFileHandler {
-	h, err := NewTimeRotateFileHandler(filepath, rt)
+func MustTimeRotateFile(logfile string, rt rotateTime) *TimeRotateFileHandler {
+	h, err := NewTimeRotateFileHandler(logfile, rt)
 	if err != nil {
 		panic(err)
 	}
@@ -102,12 +102,12 @@ func MustTimeRotateFile(filepath string, rt rotateTime) *TimeRotateFileHandler {
 }
 
 // NewTimeRotateFile instance
-func NewTimeRotateFile(filepath string, rt rotateTime) (*TimeRotateFileHandler, error) {
-	return NewTimeRotateFileHandler(filepath, rt)
+func NewTimeRotateFile(logfile string, rt rotateTime) (*TimeRotateFileHandler, error) {
+	return NewTimeRotateFileHandler(logfile, rt)
 }
 
 // NewTimeRotateFileHandler instance
-func NewTimeRotateFileHandler(filepath string, rt rotateTime) (*TimeRotateFileHandler, error) {
+func NewTimeRotateFileHandler(logfile string, rt rotateTime) (*TimeRotateFileHandler, error) {
 	h := &TimeRotateFileHandler{
 		rotateType: rt,
 		// default log all levels
@@ -117,11 +117,11 @@ func NewTimeRotateFileHandler(filepath string, rt rotateTime) (*TimeRotateFileHa
 	// init
 	h.checkInterval, h.suffixFormat = rt.GetIntervalAndFormat()
 
-	// fw := fileWrapper{fpath: filepath}
+	// fw := fileWrapper{fpath: logfile}
 	fw := bufFileWrapper{
 		BuffSize: defaultBufferSize,
 	}
-	fw.fpath = filepath
+	fw.fpath = logfile
 	// set prop
 	h.bufFileWrapper = fw
 

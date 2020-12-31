@@ -590,12 +590,39 @@ func (fn FormatterFunc) Format(r *Record) ([]byte, error) {
 }
 ```
 
+**JSON Formatter**
+
+```go
+type JSONFormatter struct {
+	// Fields exported log fields.
+	Fields []string
+	// Aliases for output fields. you can change export field name.
+	// item: `"field" : "output name"`
+	// eg: {"message": "msg"} export field will display "msg"
+	Aliases StringMap
+
+	// PrettyPrint will indent all json logs
+	PrettyPrint bool
+	// TimeFormat the time format layout. default is time.RFC3339
+	TimeFormat string
+}
+```
+
+**Text Formatter**
+
+default templates:
+
+```go
+const DefaultTemplate = "[{{datetime}}] [{{channel}}] [{{level}}] [{{caller}}] {{message}} {{data}} {{extra}}\n"
+const NamedTemplate = "{{datetime}} channel={{channel}} level={{level}} [file={{caller}}] message={{message}} data={{data}}\n"
+```
+
 ## Gookit packages
 
   - [gookit/ini](https://github.com/gookit/ini) Go config management, use INI files
   - [gookit/rux](https://github.com/gookit/rux) Simple and fast request router for golang HTTP 
   - [gookit/gcli](https://github.com/gookit/gcli) Build CLI application, tool library, running CLI commands
-  - [gookit/slog](https://github.com/gookit/slog) Lightweight, easy to extend, configurable logging library written in Go
+  - [gookit/slog](https://github.com/gookit/slog) Lightweight, extensible, configurable logging library written in Go
   - [gookit/color](https://github.com/gookit/color) A command-line color library with true color support, universal API methods and Windows support
   - [gookit/event](https://github.com/gookit/event) Lightweight event manager and dispatcher implements by Go
   - [gookit/cache](https://github.com/gookit/cache) Generic cache use and cache manager for golang. support File, Memory, Redis, Memcached.

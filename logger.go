@@ -230,6 +230,11 @@ func (l *Logger) AddHandlers(hs ...Handler) {
 	l.handlers = append(l.handlers, hs...)
 }
 
+// PushHandlers to the logger
+func (l *Logger) PushHandlers(hs ...Handler) {
+	l.handlers = append(l.handlers, hs...)
+}
+
 // PushHandler to the l. alias of AddHandler()
 func (l *Logger) PushHandler(h Handler) {
 	l.AddHandler(h)
