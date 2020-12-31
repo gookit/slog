@@ -6,7 +6,7 @@
 [![Unit-Tests](https://github.com/gookit/slog/workflows/Unit-Tests/badge.svg)](https://github.com/gookit/slog/actions)
 [![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/gookit/slog)](https://github.com/gookit/slog)
 
-📑 Lightweight, easy to extend, configurable logging library written in Go
+📑 Lightweight, extensible, configurable logging library written in Go
 
 > Inspired the projects [Seldaek/monolog](https://github.com/Seldaek/monolog) and [sirupsen/logrus](https://github.com/sirupsen/logrus). Thank you very much
 
@@ -154,11 +154,37 @@ func main() {
 {"IP":"127.0.0.1","category":"service","channel":"application","datetime":"2020/07/16 13:23:33","extra":{},"level":"DEBUG","message":"debug message"}
 ```
 
+## Logs to file
+
+```go
+package mypkg
+
+import (
+	"github.com/gookit/slog"
+	"github.com/gookit/slog/handler"
+)
+
+func myfunc() {
+	h1 := handler.MustFileHandler("/tmp/error.log", true)
+	h1.Levels = slog.Levels{slog.PanicLevel, slog.ErrorLevel, slog.WarnLevel}
+
+	h2 := handler.MustFileHandler("/tmp/info.log", true)
+	h1.Levels = slog.Levels{slog.InfoLevel, slog.NoticeLevel, slog.DebugLevel, slog.TraceLevel}
+
+	slog.PushHandler(h1)
+	slog.PushHandler(h2)
+
+	// add logs
+	slog.Info("info message")
+	slog.Error("error message")
+}
+```
+
 ----------
 
 ## How to use handler
 
-### create handler
+### Create handler
 
 ```go
 h1, err := handler.NewSimpleFile("info.log")
@@ -168,7 +194,7 @@ h2, err := handler.NewFileHandler("error.log")
 h3, err := handler.NewFileHandler("error.log")
 ```
 
-### push handler to logger
+### Push handler to logger
 
 ```go
 	// append to logger
@@ -179,7 +205,7 @@ h3, err := handler.NewFileHandler("error.log")
 	slog.Warn("warn message")
 ```
 
-### new logger with handlers
+### New logger with handlers
 
 ```go
 	// for new logger
@@ -242,6 +268,68 @@ Create:
 h := handler.NewEmailHandler(from EmailOption, toAddresses []string)
 ```
 
+### RotateFileHandler
+
+`RotateFileHandler` - output log messages to file.
+
+Create:
+
+```go
+func NewRotateFile(filepath string) (*RotateFileHandler, error)
+func NewRotateFileHandler(filepath string) (*RotateFileHandler, error)
+```
+
+### TimeRotateFileHandler
+
+`TimeRotateFileHandler` - output log messages to file.
+
+Create:
+
+```go
+func NewTimeRotateFile(filepath string) (*TimeRotateFileHandler, error)
+func NewTimeRotateFileHandler(filepath string) (*TimeRotateFileHandler, error)
+```
+
+The rotating files format support:
+
+```go
+const (
+	EveryDay rotateTime = iota
+	EveryHour
+	Every30Minutes
+	Every15Minutes
+	EveryMinute
+	EverySecond // only use for tests
+)
+```
+
+file examples:
+
+```text
+time-rotate-file.log
+time-rotate-file.log.20201229_155753
+time-rotate-file.log.20201229_155754
+```
+
+### SizeRotateFileHandler
+
+`SizeRotateFileHandler` - output log messages to file.
+
+Create:
+
+```go
+func NewSizeRotateFile(filepath string) (*SizeRotateFileHandler, error)
+func NewSizeRotateFileHandler(filepath string) (*SizeRotateFileHandler, error)
+```
+
+The rotating files format is `filename.log.yMD_0000N`. such as:
+
+```text
+size-rotate-file.log
+size-rotate-file.log.122915_00001
+size-rotate-file.log.122915_00002
+```
+
 ### SimpleFileHandler
 
 `SimpleFileHandler` - direct write log messages to a file. _Not recommended for production environment_
@@ -250,6 +338,7 @@ Create:
 
 ```go
 func NewSimpleFile(filepath string) (*SimpleFileHandler, error)
+func NewSimpleFileHandler(filepath string) (*SimpleFileHandler, error)
 ```
 
 ## Custom Logger

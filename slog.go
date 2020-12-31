@@ -1,5 +1,5 @@
 /*
-Package slog A simple log library for Go.
+Package slog Lightweight, extensible, configurable logging library written in Go.
 
 Source code and other details for the project are available at GitHub:
 

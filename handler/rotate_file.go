@@ -26,6 +26,10 @@ type RotateFileHandler struct {
 	checkInterval  int64
 	nextRotatingAt int64
 
+	// for clear log files
+	MaxFileCount int // The number of files should be kept
+	MaxKeepTime  int // Time to wait until old logs are purged.
+
 	// file contents max size
 	MaxSize uint64
 	// RenameFunc build filename for rotate file
@@ -129,37 +133,6 @@ func (h *RotateFileHandler) Handle(r *slog.Record) (err error) {
 	return
 }
 
-// rotateFile closes the syncBuffer's file and starts a new one.
-func (h *RotateFileHandler) bySizeRotatingFile() error {
-	// close file
-	if err := h.Close(); err != nil {
-		return err
-	}
-
-	// rename current to new file
-	h.rotateNum++
-	newFilepath := h.RenameFunc(h.fpath, h.rotateNum)
-	err := os.Rename(h.fpath, newFilepath)
-	if err != nil {
-		return err
-	}
-
-	// reopen file
-	h.file, err = QuickOpenFile(h.fpath)
-	if err != nil {
-		return err
-	}
-
-	// if enable buffer
-	if h.bufio != nil {
-		h.bufio.Reset(h.file)
-	}
-
-	// reset h.written
-	h.written = 0
-	return nil
-}
-
 func (h *RotateFileHandler) byTimeRotatingFile() error {
 	now := time.Now()
 	if h.nextRotatingAt > now.Unix() {
@@ -173,6 +146,32 @@ func (h *RotateFileHandler) byTimeRotatingFile() error {
 
 	// rename current to new file
 	newFilepath := h.fpath + "." + now.Format(h.suffixFormat)
+
+	// do rotating file
+	err := h.doRotatingFile(newFilepath)
+
+	// storage next rotating time
+	h.nextRotatingAt = now.Unix() + h.checkInterval
+	return err
+}
+
+// rotateFile closes the syncBuffer's file and starts a new one.
+func (h *RotateFileHandler) bySizeRotatingFile() error {
+	// close file
+	if err := h.Close(); err != nil {
+		return err
+	}
+
+	// rename current to new file
+	h.rotateNum++
+	newFilepath := h.RenameFunc(h.fpath, h.rotateNum)
+
+	// do rotating file
+	return h.doRotatingFile(newFilepath)
+}
+
+// rotateFile closes the syncBuffer's file and starts a new one.
+func (h *RotateFileHandler) doRotatingFile(newFilepath string) error {
 	err := os.Rename(h.fpath, newFilepath)
 	if err != nil {
 		return err
@@ -191,7 +190,5 @@ func (h *RotateFileHandler) byTimeRotatingFile() error {
 
 	// reset h.written
 	h.written = 0
-	// storage next rotating time
-	h.nextRotatingAt = time.Now().Unix() + h.checkInterval
 	return nil
 }

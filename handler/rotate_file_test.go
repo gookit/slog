@@ -24,7 +24,7 @@ func TestNewRotateFileHandler(t *testing.T) {
 	l := slog.NewWithHandlers(h)
 	l.ReportCaller = true
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 3; i++ {
 		l.Info("info", "message", i)
 		l.Warn("warn message", i)
 	}
@@ -39,7 +39,7 @@ func TestNewRotateFileHandler(t *testing.T) {
 	l = slog.NewWithHandlers(h)
 	l.ReportCaller = true
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 3; i++ {
 		l.Info("info", "message", i)
 		l.Warn("warn message", i)
 		fmt.Println("second ", i+1)
@@ -57,7 +57,7 @@ func TestNewSizeRotateFileHandler(t *testing.T) {
 	l := slog.NewWithHandlers(h)
 	l.ReportCaller = true
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 3; i++ {
 		l.Info("info", "message", i)
 		l.Warn("warn message", i)
 	}
@@ -74,7 +74,7 @@ func TestNewTimeRotateFileHandler(t *testing.T) {
 	l := slog.NewWithHandlers(h)
 	l.ReportCaller = true
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 3; i++ {
 		l.Info("info", "message", i)
 		l.Warn("warn message", i)
 		fmt.Println("second ", i+1)

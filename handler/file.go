@@ -32,6 +32,10 @@ type FileHandler struct {
 	BuffSize int
 }
 
+// func WithBuffer()  {
+//
+// }
+
 // JSONFileHandler create new FileHandler with JSON formatter
 func JSONFileHandler(filepath string) (*FileHandler, error) {
 	return NewFileHandler(filepath, true)
