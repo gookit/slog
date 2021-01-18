@@ -28,11 +28,15 @@ type EmailHandler struct {
 
 // NewEmailHandler instance
 func NewEmailHandler(from EmailOption, toAddresses []string) *EmailHandler {
-	return &EmailHandler{
+	h := &EmailHandler{
 		From: from,
 		// to receivers
 		ToAddresses: toAddresses,
 	}
+
+	// init default log level
+	h.Level = slog.InfoLevel
+	return h
 }
 
 // Handle an log record

@@ -10,8 +10,8 @@ import (
 
 // SysLogHandler struct
 type SysLogHandler struct {
-	LevelWithFormatter
 	slWriter *syslog.Writer
+	LevelWithFormatter
 }
 
 // NewSysLogHandler instance
@@ -25,6 +25,8 @@ func NewSysLogHandler(priority syslog.Priority, tag string) (*SysLogHandler, err
 		slWriter: slWriter,
 	}
 
+	// init default log level
+	h.Level = slog.InfoLevel
 	return h, nil
 }
 

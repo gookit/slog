@@ -187,7 +187,7 @@ func (h *bufFileWrapper) Close() error {
 // - only support set one log level
 type LevelWithFormatter struct {
 	slog.Formattable
-	// Level for log message. if current level >= Level will log message
+	// Level for log message. if current level <= Level will log message
 	Level slog.Level
 }
 

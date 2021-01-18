@@ -142,7 +142,7 @@ func (sl *SugaredLogger) FlushAll() error {
 var std = newStdLogger()
 
 func newStdLogger() *SugaredLogger {
-	return NewSugaredLogger(os.Stdout, ErrorLevel).Configure(func(sl *SugaredLogger) {
+	return NewSugaredLogger(os.Stdout, DebugLevel).Configure(func(sl *SugaredLogger) {
 		sl.SetName("stdLogger")
 		sl.ReportCaller = true
 		// auto enable console color

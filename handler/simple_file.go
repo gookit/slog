@@ -48,6 +48,9 @@ func NewSimpleFileHandler(filepath string) (*SimpleFileHandler, error) {
 		fileWrapper: fh,
 	}
 
+	// init default log level
+	h.Level = slog.InfoLevel
+
 	return h, nil
 }
 

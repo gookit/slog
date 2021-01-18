@@ -325,6 +325,11 @@ var (
 	}
 )
 
+// DoNothingOnExit handler. use for testing.
+var DoNothingOnExit = func(code int) {
+	// do nothing
+}
+
 // LevelName match
 func LevelName(l Level) string {
 	if n, ok := LevelNames[l]; ok {

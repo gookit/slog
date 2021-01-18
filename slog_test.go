@@ -46,6 +46,8 @@ func TestTextFormatNoColor(t *testing.T) {
 	slog.Configure(func(logger *slog.SugaredLogger) {
 		f := logger.Formatter.(*slog.TextFormatter)
 		f.EnableColor = false
+
+		logger.ExitFunc = slog.DoNothingOnExit
 	})
 
 	printLogs("print log message")
@@ -67,7 +69,7 @@ func TestTextFormatWithColor(t *testing.T) {
 
 	slog.Configure(func(l *slog.SugaredLogger) {
 		l.Level = slog.PanicLevel
-		l.ExitFunc = doNothing
+		l.ExitFunc = slog.DoNothingOnExit
 	})
 
 	printLogs("this is a simple log message")
@@ -155,6 +157,7 @@ func TestAddProcessor(t *testing.T) {
 
 	buf := new(bytes.Buffer)
 	slog.Configure(func(logger *slog.SugaredLogger) {
+		logger.Level = slog.TraceLevel
 		logger.Output = buf
 		logger.Formatter = slog.NewJSONFormatter()
 	})
