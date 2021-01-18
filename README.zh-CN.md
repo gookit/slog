@@ -17,7 +17,7 @@ English instructions please read [README](README.md)
 ## 功能特色
 
 - 简单，无需配置，开箱即用
-- 支持常用的日志级别处理。如： `trace` `info` `warn` `error` `fatal`
+- 支持常用的日志级别处理。如： `trace` `debug` `info` `notice` `warn` `error` `fatal` `panic`
 - 支持同时添加多个 `Handler` 日志处理，输出日志到不同的地方
 - 可以任意扩展自己需要的 `Handler` `Formatter` 
 - 支持自定义 `Handler` 处理程器

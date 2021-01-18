@@ -17,7 +17,7 @@
 ## Features
 
 - Simple, directly available without configuration
-- Support common log level processing. eg: `trace` `info` `warn` `error` `fatal`
+- Support common log level processing. eg: `trace` `debug` `info` `notice` `warn` `error` `fatal` `panic`
 - Supports adding multiple `Handler` log processing at the same time, outputting logs to different places
 - Support any extension of `Handler` `Formatter` as needed
 - Support to custom log messages `Handler`

@@ -74,6 +74,7 @@ func (rt rotateTime) GetIntervalAndFormat() (checkInterval int64, suffixFormat s
 // TimeRotateFileHandler struct
 // refer http://hg.python.org/cpython/file/2.7/Lib/logging/handlers.py
 // refer https://github.com/flike/golog/blob/master/filehandler.go
+// TODO Support custom rotate time. Cut log files on the whole point
 type TimeRotateFileHandler struct {
 	lockWrapper
 	bufFileWrapper

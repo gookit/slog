@@ -90,7 +90,7 @@ func (sl *SugaredLogger) Reset() {
 
 // IsHandling Check if the current level can be handling
 func (sl *SugaredLogger) IsHandling(level Level) bool {
-	return level >= sl.Level
+	return sl.Level.ShouldHandling(level)
 }
 
 // Handle log record

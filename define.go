@@ -34,6 +34,11 @@ func (l Level) LowerName() string {
 	return strings.ToLower(LevelName(l))
 }
 
+// ShouldHandling compare level
+func (l Level) ShouldHandling(curLevel Level) bool {
+	return curLevel <= l
+}
+
 // Levels level list
 type Levels []Level
 

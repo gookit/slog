@@ -198,7 +198,7 @@ func newLvFormatter(lv slog.Level) LevelWithFormatter {
 
 // IsHandling Check if the current level can be handling
 func (h *LevelWithFormatter) IsHandling(level slog.Level) bool {
-	return level >= h.Level
+	return h.Level.ShouldHandling(level)
 }
 
 // LevelsWithFormatter struct definition
