@@ -218,3 +218,4 @@ func TestName2Level(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, slog.Level(0), level)
 }
+

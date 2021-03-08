@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gookit/color"
 	"github.com/gookit/goutil/strutil"
@@ -41,7 +40,7 @@ type TextFormatter struct {
 	ColorTheme map[Level]color.Color
 	// FullDisplay Whether to display when record.Data, record.Extra, etc. are empty
 	FullDisplay bool
-	// EncodeFunc data encode for record.Data, record.Extra, etc.
+	// EncodeFunc data encode for Record.Data, Record.Extra, etc.
 	// Default is encode by `fmt.Sprint()`
 	EncodeFunc func(v interface{}) string
 }
@@ -85,17 +84,9 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 	for field, tplVar := range f.fieldMap {
 		switch {
 		case field == FieldKeyDatetime:
-			if r.Time.IsZero() {
-				r.Time = time.Now()
-			}
-
 			tplData[tplVar] = r.Time.Format(f.TimeFormat)
 		case field == FieldKeyTimestamp:
-			if r.Time.IsZero() {
-				r.Time = time.Now()
-			}
-
-			tplData[tplVar] = strconv.Itoa(r.Time.Nanosecond() / 1000)
+			tplData[tplVar] = strconv.Itoa(r.MicroSecond())
 		case field == FieldKeyCaller && r.Caller != nil:
 			tplData[tplVar] = formatCaller(r.Caller, field) // caller eg: "logger_test.go:48,TestLogger_ReportCaller"
 		case field == FieldKeyFLine && r.Caller != nil:
@@ -107,9 +98,9 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 		case field == FieldKeyLevel:
 			// output colored logs for console
 			if f.EnableColor {
-				tplData[tplVar] = f.renderColorByLevel(r.LevelName, r.Level)
+				tplData[tplVar] = f.renderColorByLevel(r.LevelName(), r.Level)
 			} else {
-				tplData[tplVar] = r.LevelName
+				tplData[tplVar] = r.LevelName()
 			}
 		case field == FieldKeyChannel:
 			tplData[tplVar] = r.Channel

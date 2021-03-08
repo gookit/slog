@@ -7,6 +7,8 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+
+	"github.com/gookit/goutil/strutil"
 )
 
 const (
@@ -130,15 +132,34 @@ func getCallStacks(all bool) []byte {
 }
 
 // it like Println, will add spaces for each argument
-func formatArgsWithSpaces(args []interface{}) (message string) {
-	if ln := len(args); ln == 0 {
-		message = ""
+func formatArgsWithSpaces(vals []interface{}) (msg string) {
+	if ln := len(vals); ln == 0 {
+		msg = ""
 	} else if ln == 1 {
-		message = fmt.Sprint(args[0])
+		// msg = fmt.Sprint(vals[0])
+		msg, _ = strutil.AnyToString(vals[0], false)
 	} else {
-		message = fmt.Sprintln(args...)
-		// clear last "\n"
-		message = message[:len(message)-1]
+		var buf []byte
+		for i, val := range vals {
+			msg, _ = strutil.AnyToString(val, false)
+			if i > 0 { // add space
+				buf = append(buf, ' ')
+			}
+			buf = append(buf, msg...)
+		}
+
+		// fmt package is slow.
+		// msg = fmt.Sprintln(vals...)
+		// // clear last "\n"
+		// msg = msg[:len(msg)-1]
 	}
 	return
+}
+
+func valToString(val interface{}) string {
+	return "" // TODO
+}
+
+func mapToString(mp map[string]interface{}) string {
+	return "" // TODO
 }

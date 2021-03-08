@@ -70,10 +70,6 @@ func NewWithName(name string) *Logger {
 }
 
 // NewRecord get new logger record
-func (l *Logger) NewRecord() *Record {
-	return newRecord(l)
-}
-
 func (l *Logger) newRecord() *Record {
 	return l.recordPool.Get().(*Record)
 }
@@ -432,7 +428,6 @@ func (l *Logger) Panicf(format string, args ...interface{}) {
 // ---------------------------------------------------------------------------
 //
 
-// TODO use Record or *Record ...
 func (l *Logger) write(level Level, r *Record) {
 	var matchedHandlers []Handler
 	for _, handler := range l.handlers {
@@ -448,9 +443,9 @@ func (l *Logger) write(level Level, r *Record) {
 
 	// use lower level name
 	if l.LowerLevelName {
-		r.LevelName = level.LowerName()
+		r.levelName = level.LowerName()
 	} else {
-		r.LevelName = level.Name()
+		r.levelName = level.Name()
 	}
 
 	if l.ReportCaller {

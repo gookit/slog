@@ -6,15 +6,15 @@ import (
 	"strings"
 )
 
+// StringMap string map short name
+type StringMap map[string]string
+
 // M short name of map[string]interface{}
 type M map[string]interface{}
 
 // func (m M) String() string  {
 // 	return fmt.Sprint(m)
 // }
-
-// StringMap string map short name
-type StringMap map[string]string
 
 // Level type
 type Level uint32

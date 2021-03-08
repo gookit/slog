@@ -7,3 +7,5 @@ require (
 	github.com/gookit/goutil v0.3.8
 	github.com/stretchr/testify v1.6.1
 )
+
+replace github.com/gookit/goutil => ../goutil

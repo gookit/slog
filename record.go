@@ -15,8 +15,8 @@ type Record struct {
 
 	Time  time.Time
 	Level Level
-	// level name from Level
-	LevelName string
+	// level name cache from Level
+	levelName string
 
 	// Channel log channel name. eg: "order", "goods", "user"
 	Channel string
@@ -28,10 +28,11 @@ type Record struct {
 	// Buffer Can use Buffer on formatter
 	Buffer *bytes.Buffer
 
-	// Fields custom fields. Contains all the fields set by the user.
+	// Fields custom fields data.
+	// Contains all the fields set by the user.
 	Fields M
 
-	// log data
+	// Data log context data
 	Data M
 
 	// Extra log extra data
@@ -42,6 +43,10 @@ type Record struct {
 	// Formatted []byte
 
 	// stacks []byte
+	// cache the r.Time.Nanosecond() / 1000
+	microSecond int
+	// field caches mapping.
+	strmp map[string]string
 }
 
 var (
@@ -55,7 +60,7 @@ func newRecord(logger *Logger) *Record {
 		logger:  logger,
 		Channel: DefaultChannelName,
 		// init map data field
-		Data:   make(M, 3),
+		Data:   make(M, 2),
 		Extra:  make(M, 0),
 		Fields: make(M, 0),
 	}
@@ -131,7 +136,7 @@ func (r *Record) Copy() *Record {
 		Channel:   r.Channel,
 		Time:      r.Time,
 		Level:     r.Level,
-		LevelName: r.LevelName,
+		levelName: r.levelName,
 		Message:   r.Message,
 		Data:      dataCopy,
 		Extra:     extraCopy,
@@ -211,14 +216,11 @@ func (r *Record) SetFields(fields M) *Record {
 	return r
 }
 
-// NewBuffer get or create an Buffer
-func (r *Record) NewBuffer() *bytes.Buffer {
-	if r.Buffer == nil {
-		return &bytes.Buffer{}
-	}
-
-	return r.Buffer
-}
+// Object data on record
+// func (r *Record) Object(obj fmt.Stringer) *Record {
+// 	r.Data = ctx
+// 	return r
+// }
 
 //
 // ---------------------------------------------------------------------------
@@ -228,7 +230,6 @@ func (r *Record) NewBuffer() *bytes.Buffer {
 
 // Log an message with level
 func (r *Record) Log(level Level, args ...interface{}) {
-	// r.log(level, fmt.Sprint(args...))
 	r.log(level, formatArgsWithSpaces(args))
 }
 
@@ -307,6 +308,29 @@ func (r *Record) Panicf(format string, args ...interface{}) {
 	r.Logf(PanicLevel, format, args...)
 }
 
+// ---------------------------------------------------------------------------
+// helper methods
+// ---------------------------------------------------------------------------
+
+// NewBuffer get or create an Buffer
+func (r *Record) NewBuffer() *bytes.Buffer {
+	if r.Buffer == nil {
+		return &bytes.Buffer{}
+	}
+
+	return r.Buffer
+}
+
+// LevelName get
+func (r *Record) LevelName() string {
+	return r.levelName
+}
+
+// MicroSecond of the record
+func (r *Record) MicroSecond() int {
+	return r.microSecond
+}
+
 func (r *Record) log(level Level, message string) {
 	r.Level = level
 	r.Message = message
@@ -318,6 +342,7 @@ func (r *Record) log(level Level, message string) {
 	defer bufferPool.Put(buffer)
 
 	// r.Buffer = buffer
+	r.initLogTime()
 
 	// do write log message
 	r.logger.write(level, r)
@@ -325,4 +350,12 @@ func (r *Record) log(level Level, message string) {
 	// r.Buffer = nil
 	// TODO release on here ??
 	// r.logger.releaseRecord(r)
+}
+
+func (r *Record) initLogTime() {
+	if r.Time.IsZero() {
+		r.Time = time.Now()
+	}
+
+	r.microSecond = r.Time.Nanosecond() / 1000
 }

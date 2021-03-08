@@ -8,8 +8,6 @@
 
 📑 Lightweight, extensible, configurable logging library written in Go
 
-> Inspired the projects [Seldaek/monolog](https://github.com/Seldaek/monolog) and [sirupsen/logrus](https://github.com/sirupsen/logrus). Thank you very much
-
 ## [中文说明](README.zh-CN.md)
 
 中文说明请阅读 [README.zh-CN](README.zh-CN.md)
@@ -632,15 +630,19 @@ const NamedTemplate = "{{datetime}} channel={{channel}} level={{level}} [file={{
   - [gookit/goutil](https://github.com/gookit/goutil) Some utils for the Go: string, array/slice, map, format, cli, env, filesystem, test and more
   - More, please see https://github.com/gookit
 
-## Refer
+## Acknowledgment
 
+The projects is heavily inspired by follow packages:
+
+- https://github.com/phuslu/log
 - https://github.com/golang/glog
 - https://github.com/sirupsen/logrus
 - https://github.com/Seldaek/monolog
 - https://github.com/syyongx/llog
 - https://github.com/uber-go/zap
 - https://github.com/rs/zerolog
-
+- https://github.com/natefinch/lumberjack
+  
 ## LICENSE
 
 [MIT](LICENSE)

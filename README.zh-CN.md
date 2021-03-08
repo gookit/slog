@@ -8,8 +8,6 @@
 
 📑 Go 实现的开箱即用，易扩展、可配置的日志库
 
-> 项目实现参考了 [Seldaek/monolog](https://github.com/Seldaek/monolog) and [sirupsen/logrus](https://github.com/sirupsen/logrus) ，非常感谢它们。
-
 ## [English](README.md)
 
 English instructions please read [README](README.md)
@@ -326,14 +324,18 @@ func (fn FormatterFunc) Format(r *Record) ([]byte, error) {
   - [gookit/goutil](https://github.com/gookit/goutil) Some utils for the Go: string, array/slice, map, format, cli, env, filesystem, test and more
   - More, please see https://github.com/gookit
 
-## Refer
+## Acknowledgment
 
+实现参考了以下项目，非常感谢它们
+
+- https://github.com/phuslu/log
 - https://github.com/golang/glog
 - https://github.com/sirupsen/logrus
 - https://github.com/Seldaek/monolog
 - https://github.com/syyongx/llog
 - https://github.com/uber-go/zap
 - https://github.com/rs/zerolog
+- https://github.com/natefinch/lumberjack
 
 ## LICENSE
 

@@ -3,7 +3,8 @@
 .idea
 *.patch
 *.tmp
-### Go template
+
+# Go template
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -20,6 +21,8 @@
 /alone
 /cliapp
 .DS_Store
+/*.prof
+
 # shell script
 /*.bash
 /*.sh
