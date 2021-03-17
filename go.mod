@@ -8,4 +8,5 @@ require (
 	github.com/stretchr/testify v1.6.1
 )
 
-replace github.com/gookit/goutil => ../goutil
+// for develop
+//replace github.com/gookit/goutil => ../goutil

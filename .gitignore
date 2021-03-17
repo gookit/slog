@@ -28,4 +28,4 @@
 /*.sh
 /*.zsh
 /*.pid
-go.sum
+#go.sum
