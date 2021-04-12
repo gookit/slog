@@ -1,10 +1,10 @@
 module github.com/gookit/slog
 
-go 1.12
+go 1.13
 
 require (
 	github.com/gookit/color v1.4.2
-	github.com/gookit/goutil v0.3.12
+	github.com/gookit/goutil v0.3.13
 	github.com/stretchr/testify v1.7.0
 )
 
