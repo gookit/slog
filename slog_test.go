@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
@@ -219,3 +220,14 @@ func TestName2Level(t *testing.T) {
 	assert.Equal(t, slog.Level(0), level)
 }
 
+func TestIssues_27(t *testing.T) {
+	count := 0
+	for {
+		if count >= 6 {
+			break
+		}
+		slog.Infof("info log %d",count)
+		time.Sleep(time.Second)
+		count++
+	}
+}

@@ -45,7 +45,7 @@ type Record struct {
 	// stacks []byte
 	// cache the r.Time.Nanosecond() / 1000
 	microSecond int
-	// field caches mapping.
+	// field caches mapping for optimize performance. TODO use map[string][]byte ?
 	strmp map[string]string
 }
 
@@ -216,7 +216,7 @@ func (r *Record) SetFields(fields M) *Record {
 	return r
 }
 
-// Object data on record
+// Object data on record TODO optimize performance
 // func (r *Record) Object(obj fmt.Stringer) *Record {
 // 	r.Data = ctx
 // 	return r

@@ -76,6 +76,7 @@ func (l *Logger) newRecord() *Record {
 
 func (l *Logger) releaseRecord(r *Record) {
 	// reset data
+	r.Time = time.Time{}
 	r.Data = map[string]interface{}{}
 	r.Extra = map[string]interface{}{}
 	r.Fields = map[string]interface{}{}
