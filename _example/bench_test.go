@@ -45,7 +45,10 @@ func BenchmarkPhusLogNegative(b *testing.B) {
 
 func BenchmarkGookitSlogNegative(b *testing.B) {
 	logger := slog.NewWithHandlers(
-		handler.NewIOWriter(ioutil.Discard, []slog.Level{slog.ErrorLevel}),
+		handler.NewIOWriter(ioutil.Discard, []slog.Level{
+			slog.ErrorLevel,
+			slog.InfoLevel,
+		}),
 	)
 	for i := 0; i < b.N; i++ {
 		logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
