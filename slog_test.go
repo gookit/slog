@@ -2,6 +2,7 @@ package slog_test
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strconv"
 	"testing"
@@ -104,6 +105,7 @@ func printLogs(msg string) {
 	slog.Warn(msg)
 	slog.Error(msg)
 	slog.Fatal(msg)
+	slog.ErrorT(errors.New(msg))
 }
 
 func printfLogs(msg string, args ...interface{}) {

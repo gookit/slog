@@ -314,6 +314,13 @@ func Error(args ...interface{}) {
 	std.Log(ErrorLevel, args...)
 }
 
+// ErrorT logs a error type at level Error
+func ErrorT(err error) {
+	if err != nil {
+		std.Log(ErrorLevel, err)
+	}
+}
+
 // Error logs a message at level Error
 func Errorf(format string, args ...interface{}) {
 	std.Logf(ErrorLevel, format, args...)

@@ -373,7 +373,7 @@ func (l *Logger) Tracef(format string, args ...interface{}) {
 	l.Logf(TraceLevel, format, args...)
 }
 
-// Error logs a message at level Error
+// Error logs a message at level error
 func (l *Logger) Error(args ...interface{}) {
 	l.Log(ErrorLevel, args...)
 }
@@ -381,6 +381,13 @@ func (l *Logger) Error(args ...interface{}) {
 // Error logs a message at level Error
 func (l *Logger) Errorf(format string, args ...interface{}) {
 	l.Logf(ErrorLevel, format, args...)
+}
+
+// ErrorT logs a error type at level Error
+func (l *Logger) ErrorT(err error) {
+	if err != nil {
+		l.Log(ErrorLevel, err)
+	}
 }
 
 // Notice logs a message at level Notice
