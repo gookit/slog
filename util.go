@@ -132,30 +132,27 @@ func getCallStacks(all bool) []byte {
 }
 
 // it like Println, will add spaces for each argument
-func formatArgsWithSpaces(vals []interface{}) (msg string) {
-	// optimize: fmt package is slow.
-
+func formatArgsWithSpaces(vals []interface{}) (buf []byte) {
 	if ln := len(vals); ln == 0 {
-		msg = ""
+		return
 	} else if ln == 1 {
 		// msg = fmt.Sprint(vals[0])
-		msg, _ = strutil.AnyToString(vals[0], false)
-	} else {
-		var buf []byte
-		for i, val := range vals {
-			str, _ := strutil.AnyToString(val, false)
-			if i > 0 { // add space
-				buf = append(buf, ' ')
-			}
-			buf = append(buf, str...)
-		}
+		msg, _ := strutil.AnyToString(vals[0], false)
 
-		msg = string(buf)
-
-		// fmt package is slow.
-		// msg = fmt.Sprintln(vals...)
-		// msg = msg[:len(msg)-1] // clear last "\n"
+		return append(buf, msg...)
 	}
+
+	for i, val := range vals {
+		str, _ := strutil.AnyToString(val, false)
+		if i > 0 { // add space
+			buf = append(buf, ' ')
+		}
+		buf = append(buf, str...)
+	}
+
+	// fmt package is slow.
+	// msg = fmt.Sprintln(vals...)
+	// msg = msg[:len(msg)-1] // clear last "\n"
 	return
 }
 

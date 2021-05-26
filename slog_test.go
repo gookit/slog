@@ -228,7 +228,7 @@ func TestIssues_27(t *testing.T) {
 		if count >= 6 {
 			break
 		}
-		slog.Infof("info log %d",count)
+		slog.Infof("info log %d", count)
 		time.Sleep(time.Second)
 		count++
 	}

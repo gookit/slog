@@ -43,5 +43,5 @@ func AddUniqueID(fieldName string) Processor {
 var MemoryUsage ProcessorFunc = func(record *Record) {
 	stat := new(runtime.MemStats)
 	runtime.ReadMemStats(stat)
-	record.Extra["memoryUsage"] = stat.Alloc
+	record.SetExtraValue("memoryUsage", stat.Alloc)
 }

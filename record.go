@@ -7,6 +7,8 @@ import (
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/gookit/goutil/strutil"
 )
 
 // Record a log record definition
@@ -60,9 +62,9 @@ func newRecord(logger *Logger) *Record {
 		logger:  logger,
 		Channel: DefaultChannelName,
 		// init map data field
-		Data:   make(M, 2),
-		Extra:  make(M, 0),
-		Fields: make(M, 0),
+		// Data:   make(M, 2),
+		// Extra:  make(M, 0),
+		// Fields: make(M, 0),
 	}
 }
 
@@ -71,13 +73,6 @@ func newRecord(logger *Logger) *Record {
 // Copy record with something
 // ---------------------------------------------------------------------------
 //
-
-// WithData on record
-func (r *Record) WithData(data M) *Record {
-	nr := r.Copy()
-	nr.Data = data
-	return nr
-}
 
 // WithTime set the record time
 func (r *Record) WithTime(t time.Time) *Record {
@@ -98,19 +93,32 @@ func (r *Record) WithError(err error) *Record {
 	return r.WithFields(M{ErrorKey: err})
 }
 
+// WithData on record
+func (r *Record) WithData(data M) *Record {
+	nr := r.Copy()
+	// if nr.Data == nil {
+	// 	nr.Data = data
+	// }
+
+	nr.Data = data
+	return nr
+}
+
 // WithField with an new field to record
 func (r *Record) WithField(name string, val interface{}) *Record {
 	return r.WithFields(M{name: val})
 }
 
-// WithField with new fields to record
+// WithFields with new fields to record
 func (r *Record) WithFields(fields M) *Record {
 	nr := r.Copy()
+	if nr.Fields == nil {
+		nr.Fields = make(M, len(fields))
+	}
 
 	for k, v := range fields {
 		nr.Fields[k] = v
 	}
-
 	return nr
 }
 
@@ -164,6 +172,11 @@ func (r *Record) SetData(data M) *Record {
 
 // AddData on record
 func (r *Record) AddData(data M) *Record {
+	if r.Data == nil {
+		r.Data = data
+		return r
+	}
+
 	for k, v := range data {
 		r.Data[k] = v
 	}
@@ -172,6 +185,11 @@ func (r *Record) AddData(data M) *Record {
 
 // AddValue add Data value to record
 func (r *Record) AddValue(key string, value interface{}) *Record {
+	if r.Data == nil {
+		r.Data = make(M, 8)
+		return r
+	}
+
 	r.Data[key] = value
 	return r
 }
@@ -184,10 +202,24 @@ func (r *Record) SetExtra(data M) *Record {
 
 // AddExtra information on record
 func (r *Record) AddExtra(data M) *Record {
+	if r.Extra == nil {
+		r.Extra = data
+		return r
+	}
+
 	for k, v := range data {
 		r.Extra[k] = v
 	}
 	return r
+}
+
+// SetExtraValue on record
+func (r *Record) SetExtraValue(k string, v interface{}) {
+	if r.Extra == nil {
+		r.Extra = make(M, 8)
+	}
+
+	r.Extra[k] = v
 }
 
 // SetTime on record
@@ -198,12 +230,21 @@ func (r *Record) SetTime(t time.Time) *Record {
 
 // AddField add new field to the record
 func (r *Record) AddField(name string, val interface{}) *Record {
+	if r.Fields == nil {
+		r.Fields = make(M, 8)
+	}
+
 	r.Fields[name] = val
 	return r
 }
 
 // AddFields add new fields to the record
 func (r *Record) AddFields(fields M) *Record {
+	if r.Fields == nil {
+		r.Fields = fields
+		return r
+	}
+
 	for n, v := range fields {
 		r.Fields[n] = v
 	}
@@ -230,12 +271,12 @@ func (r *Record) SetFields(fields M) *Record {
 
 // Log an message with level
 func (r *Record) Log(level Level, args ...interface{}) {
-	r.log(level, formatArgsWithSpaces(args))
+	r.logBytes(level, formatArgsWithSpaces(args))
 }
 
-// Log an message with level
+// Logf an message with level
 func (r *Record) Logf(level Level, format string, args ...interface{}) {
-	r.log(level, fmt.Sprintf(format, args...))
+	r.logBytes(level, []byte(fmt.Sprintf(format, args...)))
 }
 
 // Info logs a message at level Info
@@ -243,7 +284,7 @@ func (r *Record) Info(args ...interface{}) {
 	r.Log(InfoLevel, args...)
 }
 
-// Info logs a message at level Info
+// Infof logs a message at level Info
 func (r *Record) Infof(format string, args ...interface{}) {
 	r.Logf(InfoLevel, format, args...)
 }
@@ -253,7 +294,7 @@ func (r *Record) Trace(args ...interface{}) {
 	r.Log(TraceLevel, args...)
 }
 
-// Trace logs a message at level Trace
+// Tracef logs a message at level Trace
 func (r *Record) Tracef(format string, args ...interface{}) {
 	r.Logf(TraceLevel, format, args...)
 }
@@ -263,7 +304,7 @@ func (r *Record) Error(args ...interface{}) {
 	r.Log(ErrorLevel, args...)
 }
 
-// Error logs a message at level Error
+// Errorf logs a message at level Error
 func (r *Record) Errorf(format string, args ...interface{}) {
 	r.Logf(ErrorLevel, format, args...)
 }
@@ -273,7 +314,7 @@ func (r *Record) Notice(args ...interface{}) {
 	r.Log(NoticeLevel, args...)
 }
 
-// Notice logs a message at level Notice
+// Noticef logs a message at level Notice
 func (r *Record) Noticef(format string, args ...interface{}) {
 	r.Logf(NoticeLevel, format, args...)
 }
@@ -283,7 +324,7 @@ func (r *Record) Debug(args ...interface{}) {
 	r.Log(DebugLevel, args...)
 }
 
-// Debug logs a message at level Debug
+// Debugf logs a message at level Debug
 func (r *Record) Debugf(format string, args ...interface{}) {
 	r.Logf(DebugLevel, format, args...)
 }
@@ -293,7 +334,7 @@ func (r *Record) Fatal(args ...interface{}) {
 	r.Log(FatalLevel, args...)
 }
 
-// Fatal logs a message at level Fatal
+// Fatalf logs a message at level Fatal
 func (r *Record) Fatalf(format string, args ...interface{}) {
 	r.Logf(FatalLevel, format, args...)
 }
@@ -303,7 +344,7 @@ func (r *Record) Panic(args ...interface{}) {
 	r.Log(PanicLevel, args...)
 }
 
-// Panic logs a message at level Panic
+// Panicf logs a message at level Panic
 func (r *Record) Panicf(format string, args ...interface{}) {
 	r.Logf(PanicLevel, format, args...)
 }
@@ -331,9 +372,15 @@ func (r *Record) MicroSecond() int {
 	return r.microSecond
 }
 
-func (r *Record) log(level Level, message string) {
+// func (r *Record) logString(level Level, message string) {
+// 	r.logBytes(level, []byte(message))
+// }
+
+func (r *Record) logBytes(level Level, message []byte) {
 	r.Level = level
-	r.Message = message
+	// r.Message = string(message)
+	// Will reduce memory allocation once
+	r.Message = strutil.Byte2str(message)
 
 	var buffer *bytes.Buffer
 
