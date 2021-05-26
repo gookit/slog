@@ -8,7 +8,8 @@ import (
 	"time"
 )
 
-// Logger definition
+// Logger definition.
+// The logger implements the `github.com/gookit/gsr.Logger`
 type Logger struct {
 	name string
 
@@ -415,9 +416,14 @@ func (l *Logger) Fatal(args ...interface{}) {
 	l.Log(FatalLevel, args...)
 }
 
-// Fatal logs a message at level Fatal
+// Fatalf logs a message at level Fatal
 func (l *Logger) Fatalf(format string, args ...interface{}) {
 	l.Logf(FatalLevel, format, args...)
+}
+
+// Fatalln logs a message at level Fatal
+func (l *Logger) Fatalln(args ...interface{}) {
+	l.Log(FatalLevel, args...)
 }
 
 // Panic logs a message at level Panic
@@ -425,9 +431,14 @@ func (l *Logger) Panic(args ...interface{}) {
 	l.Log(PanicLevel, args...)
 }
 
-// Panic logs a message at level Panic
+// Panicf logs a message at level Panic
 func (l *Logger) Panicf(format string, args ...interface{}) {
 	l.Logf(PanicLevel, format, args...)
+}
+
+// Panicln logs a message at level Panic
+func (l *Logger) Panicln(args ...interface{}) {
+	l.Log(PanicLevel, args...)
 }
 
 //

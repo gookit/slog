@@ -52,53 +52,19 @@ func (ls Levels) Contains(level Level) bool {
 	return false
 }
 
-// BaseLoggerFace interface
-type BaseLoggerFace interface {
-	Print(v ...interface{})
-	Printf(format string, v ...interface{})
-	Fatal(v ...interface{})
-	Fatalf(format string, v ...interface{})
-	Panic(v ...interface{})
-	Panicf(format string, v ...interface{})
-}
-
-// LoggerFace interface
-type LoggerFace interface {
-	BaseLoggerFace
-	Debug(args ...interface{})
-	Debugf(format string, args ...interface{})
-	Info(args ...interface{})
-	Infof(format string, args ...interface{})
-	Warn(args ...interface{})
-	Warnf(format string, args ...interface{})
-	Error(args ...interface{})
-	Errorf(format string, args ...interface{})
-}
-
-// FullLoggerFace interface
-type FullLoggerFace interface {
-	LoggerFace
-	Log(level Level, args ...interface{})
-	Logf(level Level, format string, args ...interface{})
-	Trace(args ...interface{})
-	Tracef(format string, args ...interface{})
-	Notice(args ...interface{})
-	Noticef(format string, args ...interface{})
-}
-
 // FlushCloseWriter is the interface satisfied by logging destinations.
 type FlushCloseWriter interface {
 	Flush() error
-	// the output writer
+	// WriteCloser the output writer
 	io.WriteCloser
 }
 
 // FormatterWriterHandler interface
 type FormatterWriterHandler interface {
 	Handler
-	// record formatter
+	// Formatter record formatter
 	Formatter() Formatter
-	// the output writer
+	// Writer the output writer
 	Writer() io.Writer
 }
 
@@ -108,7 +74,7 @@ type FormatterWriterHandler interface {
 
 // Handler interface definition
 type Handler interface {
-	// Close handler.
+	// Closer Close handler.
 	// You should first call Flush() on close logic.
 	// Refer the FileHandler.Close() handle
 	io.Closer
@@ -144,7 +110,7 @@ func (fn ProcessorFunc) Process(record *Record) {
 type ProcessableHandler interface {
 	// AddProcessor add an processor
 	AddProcessor(Processor)
-	// SetProcessor set the log processor
+	// ProcessRecord handle an record
 	ProcessRecord(record *Record)
 }
 
@@ -239,9 +205,12 @@ const (
 var (
 	FieldKeyTime = "time"
 	// FieldKeyDate  = "date"
+
+	// FieldKeyData = "data"
 	FieldKeyData = "data"
 
 	// NOTICE: you must set `Logger.ReportCaller=true` for reporting caller
+
 	// FieldKeyCaller filename with line with func name. eg: "logger_test.go:48->TestLogger_ReportCaller"
 	FieldKeyCaller = "caller"
 	// FieldKeyFLine filename with line. eg: "logger_test.go:48"

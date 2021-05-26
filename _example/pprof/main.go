@@ -12,7 +12,7 @@ import (
 )
 
 // run serve:
-// 	go run ./_examples/pprof-cli.go
+// 	go run ./_examples/pprof
 // see prof on cli:
 // 	go tool pprof rux_prof_data.prof
 // see prof on web:
