@@ -382,11 +382,10 @@ func (r *Record) logBytes(level Level, message []byte) {
 	// Will reduce memory allocation once
 	r.Message = strutil.Byte2str(message)
 
-	var buffer *bytes.Buffer
-
-	buffer = bufferPool.Get().(*bytes.Buffer)
-	buffer.Reset()
-	defer bufferPool.Put(buffer)
+	// var buffer *bytes.Buffer
+	// buffer = bufferPool.Get().(*bytes.Buffer)
+	// buffer.Reset()
+	// defer bufferPool.Put(buffer)
 
 	// r.Buffer = buffer
 	r.initLogTime()

@@ -21,7 +21,7 @@
 /alone
 /cliapp
 .DS_Store
-/*.prof
+*.prof
 
 # shell script
 /*.bash

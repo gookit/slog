@@ -14,9 +14,9 @@ import (
 // run serve:
 // 	go run ./_examples/pprof
 // see prof on cli:
-// 	go tool pprof rux_prof_data.prof
+// 	go tool pprof pprof/rux_prof_data.prof
 // see prof on web:
-// 	go tool pprof -http=:8080 rux_prof_data.prof
+// 	go tool pprof -http=:8080 pprof/rux_prof_data.prof
 func main() {
 	logger := slog.NewWithHandlers(
 		handler.NewIOWriter(ioutil.Discard, slog.NormalLevels),

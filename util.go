@@ -2,9 +2,9 @@ package slog
 
 import (
 	"bytes"
-	"fmt"
 	"path"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -95,17 +95,21 @@ func formatCaller(rf *runtime.Frame, field string) (cs string) {
 	switch field {
 	case FieldKeyCaller: // eg: "logger_test.go:48,TestLogger_ReportCaller"
 		ss := strings.Split(rf.Function, ".")
-		return fmt.Sprintf("%s:%d,%s", path.Base(rf.File), rf.Line, ss[len(ss)-1])
+		// return fmt.Sprintf("%s:%d,%s", path.Base(rf.File), rf.Line, ss[len(ss)-1])
+		return path.Base(rf.File) + strconv.Itoa(rf.Line) + ss[len(ss)-1]
 	case FieldKeyFile: // eg: "/work/go/gookit/slog/logger_test.go:48"
-		return fmt.Sprintf("%s:%d", rf.File, rf.Line)
+		// return fmt.Sprintf("%s:%d", rf.File, rf.Line)
+		return rf.File+ strconv.Itoa(rf.Line)
 	case FieldKeyFLine: // eg: "logger_test.go:48"
-		return fmt.Sprintf("%s:%d", path.Base(rf.File), rf.Line)
+		// return fmt.Sprintf("%s:%d", path.Base(rf.File), rf.Line)
+		return path.Base(rf.File)+ strconv.Itoa(rf.Line)
 	case FieldKeyFcName: // eg: "logger_test.go:48"
 		ss := strings.Split(rf.Function, ".")
-		return fmt.Sprintf("%s", ss[len(ss)-1])
+		return ss[len(ss)-1]
 	}
 
-	return fmt.Sprintf("%s:%d", rf.File, rf.Line)
+	// return fmt.Sprintf("%s:%d", rf.File, rf.Line)
+	return rf.File+ strconv.Itoa(rf.Line)
 }
 
 // from glog package
@@ -132,34 +136,52 @@ func getCallStacks(all bool) []byte {
 }
 
 // it like Println, will add spaces for each argument
-func formatArgsWithSpaces(vals []interface{}) (buf []byte) {
-	if ln := len(vals); ln == 0 {
+func formatArgsWithSpaces(vs []interface{}) (buf []byte) {
+	ln := len(vs)
+	if ln == 0 {
 		return
-	} else if ln == 1 {
-		// msg = fmt.Sprint(vals[0])
-		msg, _ := strutil.AnyToString(vals[0], false)
+	}
 
+	if ln == 1 {
+		msg, _ := strutil.AnyToString(vs[0], false)
 		return append(buf, msg...)
 	}
 
-	for i, val := range vals {
-		str, _ := strutil.AnyToString(val, false)
+	buf = make([]byte, 0, ln * 8)
+	for i := range vs {
+		str, _ := strutil.AnyToString(vs[i], false)
 		if i > 0 { // add space
 			buf = append(buf, ' ')
 		}
 		buf = append(buf, str...)
 	}
 
-	// fmt package is slow.
-	// msg = fmt.Sprintln(vals...)
-	// msg = msg[:len(msg)-1] // clear last "\n"
 	return
 }
 
-func valToString(val interface{}) string {
-	return "" // TODO
+// EncodeToString data to string
+func EncodeToString(v interface{}) string {
+	if _, ok := v.(map[string]interface{}); ok {
+		return mapToString(v.(map[string]interface{}))
+	}
+
+	str, _ := strutil.AnyToString(v, false)
+	return str
 }
 
 func mapToString(mp map[string]interface{}) string {
-	return "" // TODO
+	var buf []byte
+	buf = append(buf, '{')
+
+	for k, val := range mp {
+		buf = append(buf, k...)
+		buf = append(buf, ':')
+
+		str, _ := strutil.AnyToString(val, false)
+		buf = append(buf, str...)
+		buf = append(buf, ',')
+	}
+	buf = append(buf, '}')
+
+	return strutil.Byte2str(buf)
 }

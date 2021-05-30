@@ -38,3 +38,11 @@ func BenchmarkGookitSlogPositive(b *testing.B) {
 		logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
 	}
 }
+
+func TestLogger_Info1(t *testing.T) {
+	logger := slog.NewWithHandlers(
+		handler.NewIOWriter(ioutil.Discard, slog.NormalLevels),
+	)
+
+	logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
+}

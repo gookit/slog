@@ -7,14 +7,15 @@ import (
 )
 
 // StringMap string map short name
-type StringMap map[string]string
+type StringMap = map[string]string
 
 // M short name of map[string]interface{}
 type M map[string]interface{}
 
-// func (m M) String() string  {
-// 	return fmt.Sprint(m)
-// }
+// String map to string
+func (m M) String() string  {
+	return mapToString(m)
+}
 
 // Level type
 type Level uint32
@@ -138,14 +139,15 @@ func (p *Processable) ProcessRecord(r *Record) {
 
 // Formatter interface
 type Formatter interface {
+	// Format you can format record and write result to record.Buffer
 	Format(record *Record) ([]byte, error)
 }
 
 // FormatterFunc wrapper definition
-type FormatterFunc func(r *Record) ([]byte, error)
+type FormatterFunc func(r *Record) error
 
 // Format an record
-func (fn FormatterFunc) Format(r *Record) ([]byte, error) {
+func (fn FormatterFunc) Format(r *Record) error {
 	return fn(r)
 }
 

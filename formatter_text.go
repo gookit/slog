@@ -1,13 +1,11 @@
 package slog
 
 import (
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/gookit/color"
-	"github.com/gookit/goutil/strutil"
 )
 
 const DefaultTemplate = "[{{datetime}}] [{{channel}}] [{{level}}] [{{caller}}] {{message}} {{data}} {{extra}}\n"
@@ -61,9 +59,10 @@ func NewTextFormatter(template ...string) *TextFormatter {
 		TimeFormat: DefaultTimeFormat,
 		ColorTheme: ColorTheme,
 		// EnableColor: color.SupportColor(),
-		EncodeFunc: func(v interface{}) string {
-			return fmt.Sprint(v)
-		},
+		// EncodeFunc: func(v interface{}) string {
+		// 	return fmt.Sprint(v)
+		// },
+		EncodeFunc: EncodeToString,
 	}
 }
 
@@ -80,55 +79,81 @@ func (f *TextFormatter) FieldMap() StringMap {
 
 // Format an log record
 func (f *TextFormatter) Format(r *Record) ([]byte, error) {
-	tplData := make(map[string]string, len(f.fieldMap))
+	oldnew := make([]string, 0, len(f.fieldMap) * 2 + 1)
+	// tplData := make(map[string]string, len(f.fieldMap))
 	for field, tplVar := range f.fieldMap {
 		switch {
 		case field == FieldKeyDatetime:
-			tplData[tplVar] = r.Time.Format(f.TimeFormat)
+			oldnew = append(oldnew, tplVar, r.Time.Format(f.TimeFormat))
+			// tplData[tplVar] = r.Time.Format(f.TimeFormat)
 		case field == FieldKeyTimestamp:
-			tplData[tplVar] = strconv.Itoa(r.MicroSecond())
+			// tplData[tplVar] = strconv.Itoa(r.MicroSecond())
+			oldnew = append(oldnew, tplVar, strconv.Itoa(r.MicroSecond()))
 		case field == FieldKeyCaller && r.Caller != nil:
-			tplData[tplVar] = formatCaller(r.Caller, field) // caller eg: "logger_test.go:48,TestLogger_ReportCaller"
+			// caller eg: "logger_test.go:48,TestLogger_ReportCaller"
+			// tplData[tplVar] = formatCaller(r.Caller, field)
+			oldnew = append(oldnew, tplVar, formatCaller(r.Caller, field))
 		case field == FieldKeyFLine && r.Caller != nil:
-			tplData[tplVar] = formatCaller(r.Caller, field) // "logger_test.go:48"
+			// "logger_test.go:48"
+			// tplData[tplVar] = formatCaller(r.Caller, field)
+			oldnew = append(oldnew, tplVar, formatCaller(r.Caller, field))
 		case field == FieldKeyFunc && r.Caller != nil:
-			tplData[tplVar] = r.Caller.Function // "github.com/gookit/slog_test.TestLogger_ReportCaller"
+			// "github.com/gookit/slog_test.TestLogger_ReportCaller"
+			// tplData[tplVar] = r.Caller.Function
+			oldnew = append(oldnew, tplVar,  r.Caller.Function)
 		case field == FieldKeyFile && r.Caller != nil:
-			tplData[tplVar] = formatCaller(r.Caller, field) // "/work/go/gookit/slog/logger_test.go:48"
+			// "/work/go/gookit/slog/logger_test.go:48"
+			// tplData[tplVar] = formatCaller(r.Caller, field)
+			oldnew = append(oldnew, tplVar, formatCaller(r.Caller, field))
 		case field == FieldKeyLevel:
+			oldnew = append(oldnew, tplVar)
 			// output colored logs for console
 			if f.EnableColor {
-				tplData[tplVar] = f.renderColorByLevel(r.LevelName(), r.Level)
+				// tplData[tplVar] = f.renderColorByLevel(r.LevelName(), r.Level)
+				oldnew = append(oldnew, f.renderColorByLevel(r.LevelName(), r.Level))
 			} else {
-				tplData[tplVar] = r.LevelName()
+				// tplData[tplVar] = r.LevelName()
+				oldnew = append(oldnew, r.LevelName())
 			}
 		case field == FieldKeyChannel:
-			tplData[tplVar] = r.Channel
+			// tplData[tplVar] = r.Channel
+			oldnew = append(oldnew, tplVar, r.Channel)
 		case field == FieldKeyMessage:
 			// output colored logs for console
+			oldnew = append(oldnew, tplVar)
 			if f.EnableColor {
-				tplData[tplVar] = f.renderColorByLevel(r.Message, r.Level)
+				// tplData[tplVar] = f.renderColorByLevel(r.Message, r.Level)
+				oldnew = append(oldnew, f.renderColorByLevel(r.Message, r.Level))
 			} else {
-				tplData[tplVar] = r.Message
+				// tplData[tplVar] = r.Message
+				oldnew = append(oldnew, r.Message)
 			}
 		case field == FieldKeyData:
 			if f.FullDisplay || len(r.Data) > 0 {
-				tplData[tplVar] = f.EncodeFunc(r.Data)
+				// tplData[tplVar] = f.EncodeFunc(r.Data)
+				oldnew = append(oldnew, tplVar, f.EncodeFunc(r.Data))
 			} else {
-				tplData[tplVar] = ""
+				// tplData[tplVar] = ""
+				oldnew = append(oldnew, tplVar, "")
 			}
 		case field == FieldKeyExtra:
 			if f.FullDisplay || len(r.Extra) > 0 {
-				tplData[tplVar] = f.EncodeFunc(r.Extra)
+				// tplData[tplVar] = f.EncodeFunc(r.Extra)
+				oldnew = append(oldnew, tplVar, f.EncodeFunc(r.Extra))
 			} else {
-				tplData[tplVar] = ""
+				// tplData[tplVar] = ""
+				oldnew = append(oldnew, tplVar, "")
 			}
 		default:
-			tplData[tplVar] = f.EncodeFunc(r.Fields[field])
+			if _, ok := r.Fields[field]; ok {
+				// tplData[tplVar] = f.EncodeFunc(r.Fields[field])
+				oldnew = append(oldnew, tplVar, f.EncodeFunc(r.Fields[field]))
+			}
 		}
 	}
 
-	str := strutil.Replaces(f.Template, tplData)
+	// str := strutil.Replaces(f.Template, tplData)
+	str := strings.NewReplacer(oldnew...).Replace(f.Template)
 	return []byte(str), nil
 }
 

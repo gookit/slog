@@ -270,7 +270,7 @@ func (l *Logger) SetProcessors(ps []Processor) {
 // ---------------------------------------------------------------------------
 //
 
-// SetFields new record with fields
+// WithFields new record with fields
 func (l *Logger) WithFields(fields M) *Record {
 	r := l.newRecord()
 	defer l.releaseRecord(r)
@@ -316,7 +316,7 @@ func (l *Logger) Log(level Level, args ...interface{}) {
 	l.releaseRecord(r)
 }
 
-// Log an message
+// Logf an message
 func (l *Logger) Logf(level Level, format string, args ...interface{}) {
 	r := l.newRecord()
 	r.Logf(level, format, args...)
@@ -359,7 +359,7 @@ func (l *Logger) Info(args ...interface{}) {
 	l.Log(InfoLevel, args...)
 }
 
-// Info logs a message at level Info
+// Infof logs a message at level Info
 func (l *Logger) Infof(format string, args ...interface{}) {
 	l.Logf(InfoLevel, format, args...)
 }
@@ -369,7 +369,7 @@ func (l *Logger) Trace(args ...interface{}) {
 	l.Log(TraceLevel, args...)
 }
 
-// Trace logs a message at level Trace
+// Tracef logs a message at level Trace
 func (l *Logger) Tracef(format string, args ...interface{}) {
 	l.Logf(TraceLevel, format, args...)
 }
@@ -379,7 +379,7 @@ func (l *Logger) Error(args ...interface{}) {
 	l.Log(ErrorLevel, args...)
 }
 
-// Error logs a message at level Error
+// Errorf logs a message at level Error
 func (l *Logger) Errorf(format string, args ...interface{}) {
 	l.Logf(ErrorLevel, format, args...)
 }
@@ -396,7 +396,7 @@ func (l *Logger) Notice(args ...interface{}) {
 	l.Log(NoticeLevel, args...)
 }
 
-// Notice logs a message at level Notice
+// Noticef logs a message at level Notice
 func (l *Logger) Noticef(format string, args ...interface{}) {
 	l.Logf(NoticeLevel, format, args...)
 }
@@ -406,7 +406,7 @@ func (l *Logger) Debug(args ...interface{}) {
 	l.Log(DebugLevel, args...)
 }
 
-// Debug logs a message at level Debug
+// Debugf logs a message at level Debug
 func (l *Logger) Debugf(format string, args ...interface{}) {
 	l.Logf(DebugLevel, format, args...)
 }
@@ -474,8 +474,8 @@ func (l *Logger) write(level Level, r *Record) {
 	}
 
 	// processing log record
-	for _, processor := range l.processors {
-		processor.Process(r)
+	for i := range l.processors {
+		l.processors[i].Process(r)
 	}
 
 	// handling log record
