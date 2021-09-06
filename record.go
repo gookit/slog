@@ -269,6 +269,27 @@ func (r *Record) SetFields(fields M) *Record {
 // ---------------------------------------------------------------------------
 //
 
+func (r *Record) logBytes(level Level, message []byte) {
+	r.Level = level
+	// r.Message = string(message)
+	// Will reduce memory allocation once
+	r.Message = strutil.Byte2str(message)
+
+	// var buffer *bytes.Buffer
+	// buffer = bufferPool.Get().(*bytes.Buffer)
+	// buffer.Reset()
+	// defer bufferPool.Put(buffer)
+
+	// r.Buffer = buffer
+
+	// do write log message
+	r.logger.write(level, r)
+
+	// r.Buffer = nil
+	// TODO release on here ??
+	// r.logger.releaseRecord(r)
+}
+
 // Log an message with level
 func (r *Record) Log(level Level, args ...interface{}) {
 	r.logBytes(level, formatArgsWithSpaces(args))
@@ -329,8 +350,28 @@ func (r *Record) Debugf(format string, args ...interface{}) {
 	r.Logf(DebugLevel, format, args...)
 }
 
+// Print logs a message at level Print
+func (r *Record) Print(args ...interface{}) {
+	r.Log(PrintLevel, args...)
+}
+
+// Println logs a message at level Print
+func (r *Record) Println(args ...interface{}) {
+	r.Log(PrintLevel, args...)
+}
+
+// Printf logs a message at level Print
+func (r *Record) Printf(format string, args ...interface{}) {
+	r.Logf(PrintLevel, format, args...)
+}
+
 // Fatal logs a message at level Fatal
 func (r *Record) Fatal(args ...interface{}) {
+	r.Log(FatalLevel, args...)
+}
+
+// Fatalln logs a message at level Fatal
+func (r *Record) Fatalln(args ...interface{}) {
 	r.Log(FatalLevel, args...)
 }
 
@@ -341,6 +382,11 @@ func (r *Record) Fatalf(format string, args ...interface{}) {
 
 // Panic logs a message at level Panic
 func (r *Record) Panic(args ...interface{}) {
+	r.Log(PanicLevel, args...)
+}
+
+// Panicln logs a message at level Panic
+func (r *Record) Panicln(args ...interface{}) {
 	r.Log(PanicLevel, args...)
 }
 
@@ -375,28 +421,6 @@ func (r *Record) MicroSecond() int {
 // func (r *Record) logString(level Level, message string) {
 // 	r.logBytes(level, []byte(message))
 // }
-
-func (r *Record) logBytes(level Level, message []byte) {
-	r.Level = level
-	// r.Message = string(message)
-	// Will reduce memory allocation once
-	r.Message = strutil.Byte2str(message)
-
-	// var buffer *bytes.Buffer
-	// buffer = bufferPool.Get().(*bytes.Buffer)
-	// buffer.Reset()
-	// defer bufferPool.Put(buffer)
-
-	// r.Buffer = buffer
-	r.initLogTime()
-
-	// do write log message
-	r.logger.write(level, r)
-
-	// r.Buffer = nil
-	// TODO release on here ??
-	// r.logger.releaseRecord(r)
-}
 
 func (r *Record) initLogTime() {
 	if r.Time.IsZero() {

@@ -274,7 +274,7 @@ func Trace(args ...interface{}) {
 	std.Log(TraceLevel, args...)
 }
 
-// Trace logs a message at level Trace
+// Tracef logs a message at level Trace
 func Tracef(format string, args ...interface{}) {
 	std.Logf(TraceLevel, format, args...)
 }
@@ -284,7 +284,7 @@ func Info(args ...interface{}) {
 	std.Log(InfoLevel, args...)
 }
 
-// Info logs a message at level Info
+// Infof logs a message at level Info
 func Infof(format string, args ...interface{}) {
 	std.Logf(InfoLevel, format, args...)
 }
@@ -294,7 +294,7 @@ func Notice(args ...interface{}) {
 	std.Log(NoticeLevel, args...)
 }
 
-// Notice logs a message at level Notice
+// Noticef logs a message at level Notice
 func Noticef(format string, args ...interface{}) {
 	std.Logf(NoticeLevel, format, args...)
 }
@@ -304,7 +304,7 @@ func Warn(args ...interface{}) {
 	std.Log(WarnLevel, args...)
 }
 
-// Warn logs a message at level Warn
+// Warnf logs a message at level Warn
 func Warnf(format string, args ...interface{}) {
 	std.Logf(WarnLevel, format, args...)
 }
@@ -321,7 +321,7 @@ func ErrorT(err error) {
 	}
 }
 
-// Error logs a message at level Error
+// Errorf logs a message at level Error
 func Errorf(format string, args ...interface{}) {
 	std.Logf(ErrorLevel, format, args...)
 }
@@ -331,7 +331,7 @@ func Debug(args ...interface{}) {
 	std.Log(DebugLevel, args...)
 }
 
-// Debug logs a message at level Debug
+// Debugf logs a message at level Debug
 func Debugf(format string, args ...interface{}) {
 	std.Logf(DebugLevel, format, args...)
 }
@@ -341,7 +341,7 @@ func Fatal(args ...interface{}) {
 	std.Log(FatalLevel, args...)
 }
 
-// Fatal logs a message at level Fatal
+// Fatalf logs a message at level Fatal
 func Fatalf(format string, args ...interface{}) {
 	std.Logf(FatalLevel, format, args...)
 }
@@ -351,7 +351,7 @@ func Panic(args ...interface{}) {
 	std.Log(PanicLevel, args...)
 }
 
-// Panic logs a message at level Panic
+// Panicf logs a message at level Panic
 func Panicf(format string, args ...interface{}) {
 	std.Logf(PanicLevel, format, args...)
 }

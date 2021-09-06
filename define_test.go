@@ -1,11 +1,32 @@
 package slog_test
 
 import (
+	"fmt"
 	"testing"
 
+	"github.com/gookit/goutil/dump"
 	"github.com/gookit/slog"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestM_String(t *testing.T) {
+	m := slog.M{
+		"k0": 12,
+		"k1": "abc",
+		"k2": true,
+		"k3": 23.45,
+		"k4": []int{12, 23},
+		"k5": []string{"ab", "bc"},
+		"k6": map[string]interface{} {
+			"k6-1": 23,
+			"k6-2": "def",
+		},
+	}
+
+	fmt.Println(m)
+	dump.P(m.String(), m)
+	assert.NotEmpty(t, m.String())
+}
 
 func TestLevel_Name(t *testing.T) {
 	assert.Equal(t, "INFO", slog.InfoLevel.Name())

@@ -26,6 +26,14 @@ func BenchmarkGookitSlogNegative(b *testing.B) {
 	}
 }
 
+func TestLogger_Info_Negative(t *testing.T) {
+	logger := slog.NewWithHandlers(
+		handler.NewIOWriter(ioutil.Discard, []slog.Level{slog.ErrorLevel}),
+	)
+
+	logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
+}
+
 func BenchmarkGookitSlogPositive(b *testing.B) {
 	logger := slog.NewWithHandlers(
 		handler.NewIOWriter(ioutil.Discard, slog.NormalLevels),
@@ -39,7 +47,7 @@ func BenchmarkGookitSlogPositive(b *testing.B) {
 	}
 }
 
-func TestLogger_Info1(t *testing.T) {
+func TestLogger_Info_Positive(t *testing.T) {
 	logger := slog.NewWithHandlers(
 		handler.NewIOWriter(ioutil.Discard, slog.NormalLevels),
 	)

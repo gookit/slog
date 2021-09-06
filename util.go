@@ -96,20 +96,20 @@ func formatCaller(rf *runtime.Frame, field string) (cs string) {
 	case FieldKeyCaller: // eg: "logger_test.go:48,TestLogger_ReportCaller"
 		ss := strings.Split(rf.Function, ".")
 		// return fmt.Sprintf("%s:%d,%s", path.Base(rf.File), rf.Line, ss[len(ss)-1])
-		return path.Base(rf.File) + strconv.Itoa(rf.Line) + ss[len(ss)-1]
+		return path.Base(rf.File) + ":"  + strconv.Itoa(rf.Line) + ss[len(ss)-1]
 	case FieldKeyFile: // eg: "/work/go/gookit/slog/logger_test.go:48"
 		// return fmt.Sprintf("%s:%d", rf.File, rf.Line)
-		return rf.File+ strconv.Itoa(rf.Line)
+		return rf.File + ":" + strconv.Itoa(rf.Line)
 	case FieldKeyFLine: // eg: "logger_test.go:48"
 		// return fmt.Sprintf("%s:%d", path.Base(rf.File), rf.Line)
-		return path.Base(rf.File)+ strconv.Itoa(rf.Line)
+		return path.Base(rf.File)+ ":" + strconv.Itoa(rf.Line)
 	case FieldKeyFcName: // eg: "logger_test.go:48"
 		ss := strings.Split(rf.Function, ".")
 		return ss[len(ss)-1]
 	}
 
 	// return fmt.Sprintf("%s:%d", rf.File, rf.Line)
-	return rf.File+ strconv.Itoa(rf.Line)
+	return rf.File + ":" + strconv.Itoa(rf.Line)
 }
 
 // from glog package

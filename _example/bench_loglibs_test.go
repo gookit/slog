@@ -8,6 +8,7 @@ import (
 	"github.com/gookit/slog/handler"
 	"github.com/phuslu/log"
 	"github.com/rs/zerolog"
+	"github.com/sirupsen/logrus"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -52,16 +53,27 @@ func BenchmarkPhusLogNegative(b *testing.B) {
 	}
 }
 
+// 	"github.com/sirupsen/logrus"
+func BenchmarkLogrusNegative(b *testing.B) {
+	logger := logrus.New()
+	logger.Out = ioutil.Discard
+	logger.Level = logrus.ErrorLevel
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
+	}
+}
+
 func BenchmarkGookitSlogNegative(b *testing.B) {
 	logger := slog.NewWithHandlers(
-		handler.NewIOWriter(ioutil.Discard, []slog.Level{
-			slog.ErrorLevel,
-			slog.InfoLevel,
-		}),
+		handler.NewIOWriter(ioutil.Discard, []slog.Level{slog.ErrorLevel}),
 	)
 
 	b.ReportAllocs()
 	b.ResetTimer()
+
 	for i := 0; i < b.N; i++ {
 		logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
 	}
@@ -99,6 +111,18 @@ func BenchmarkPhusLogPositive(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		logger.Info().Str("rate", "15").Int("low", 16).Float32("high", 123.2).Msg(msg)
+	}
+}
+
+func BenchmarkLogrusPositive(b *testing.B) {
+	logger := logrus.New()
+	logger.Out = ioutil.Discard
+	logger.Level = logrus.TraceLevel
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
 	}
 }
 

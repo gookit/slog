@@ -467,10 +467,27 @@ func (l *Logger) write(level Level, r *Record) {
 		r.levelName = level.Name()
 	}
 
+	// do write by handlers
+	l.doWrite(matchedHandlers, r)
+
+	// If is Panic level
+	if level <= PanicLevel {
+		panic(r)
+		// If is FatalLevel
+	} else if level <= FatalLevel {
+		l.Exit(1)
+	}
+}
+
+func (l *Logger) doWrite(matchedHandlers []Handler, r *Record)  {
+	// init log time
+	r.initLogTime()
+
+	// log caller
 	if l.ReportCaller {
-		l.mu.Lock()
+		// l.mu.Lock()
 		r.Caller = getCaller(l.MaxCallerDepth)
-		l.mu.Unlock()
+		// l.mu.Unlock()
 	}
 
 	// processing log record
@@ -486,11 +503,4 @@ func (l *Logger) write(level Level, r *Record) {
 		}
 	}
 
-	// If is Panic level
-	if level <= PanicLevel {
-		panic(r)
-		// If is FatalLevel
-	} else if level <= FatalLevel {
-		l.Exit(1)
-	}
 }
