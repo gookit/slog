@@ -2,6 +2,7 @@ package handler_test
 
 import (
 	"fmt"
+	"io/ioutil"
 	"testing"
 	"time"
 
@@ -62,6 +63,8 @@ func TestNewSizeRotateFileHandler(t *testing.T) {
 		l.Warn("warn message", i)
 	}
 	l.Flush()
+
+	checkLogFileContents(t, fpath)
 }
 
 func TestNewTimeRotateFileHandler_EveryDay(t *testing.T) {
@@ -77,10 +80,12 @@ func TestNewTimeRotateFileHandler_EveryDay(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		l.Info("info", "message", i)
 		l.Warn("warn message", i)
-		fmt.Println("second ", i+1)
-		time.Sleep(time.Second * 1)
+		fmt.Println("number ", i+1)
+		// time.Sleep(time.Second * 1)
 	}
 	l.Flush()
+
+	checkLogFileContents(t, fpath)
 }
 
 func TestNewTimeRotateFileHandler_EveryHour(t *testing.T) {
@@ -96,10 +101,25 @@ func TestNewTimeRotateFileHandler_EveryHour(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		l.Info("info", "message", i)
 		l.Warn("warn message", i)
-		fmt.Println("second ", i+1)
-		time.Sleep(time.Second * 1)
+		fmt.Println("number ", i+1)
+		// time.Sleep(time.Second * 1)
 	}
 	l.Flush()
+
+	checkLogFileContents(t, fpath)
+}
+
+func checkLogFileContents(t *testing.T, logfile string)  {
+	assert.True(t, fsutil.IsFile(logfile))
+
+	bts, err := ioutil.ReadFile(logfile)
+	assert.NoError(t, err)
+
+	str := string(bts)
+	assert.Contains(t, str, "[INFO]")
+	assert.Contains(t, str, "info message")
+	assert.Contains(t, str, "[WARNING]")
+	assert.Contains(t, str, "warn message")
 }
 
 func TestNewTimeRotateFileHandler(t *testing.T) {
