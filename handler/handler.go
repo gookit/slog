@@ -28,7 +28,7 @@ const defaultBufferSize = 256 * 1024
 var (
 	// DefaultMaxSize is the maximum size of a log file in bytes.
 	DefaultMaxSize uint64 = 1024 * 1024 * 1800
-	// perm and flags for create log file
+	// DefaultFilePerm perm and flags for create log file
 	DefaultFilePerm  = 0664
 	DefaultFileFlags = os.O_CREATE | os.O_WRONLY | os.O_APPEND
 )

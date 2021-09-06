@@ -139,9 +139,10 @@ func (sl *SugaredLogger) FlushAll() error {
 
 // std logger is an SugaredLogger.
 // It is directly available without any additional configuration
-var std = newStdLogger()
+var std = NewStdLogger()
 
-func newStdLogger() *SugaredLogger {
+// NewStdLogger instance
+func NewStdLogger() *SugaredLogger {
 	return NewSugaredLogger(os.Stdout, DebugLevel).Configure(func(sl *SugaredLogger) {
 		sl.SetName("stdLogger")
 		sl.ReportCaller = true
@@ -159,10 +160,10 @@ func Std() *SugaredLogger {
 func Reset() {
 	ResetExitHandlers(true)
 	// new std
-	std = newStdLogger()
+	std = NewStdLogger()
 }
 
-// Reset the std logger
+// Configure the std logger
 func Configure(fn func(logger *SugaredLogger)) {
 	std.Configure(fn)
 }

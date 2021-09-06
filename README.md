@@ -164,17 +164,19 @@ import (
 
 func myfunc() {
 	h1 := handler.MustFileHandler("/tmp/error.log", true)
+	h1.BuffSize = 10
 	h1.Levels = slog.Levels{slog.PanicLevel, slog.ErrorLevel, slog.WarnLevel}
 
 	h2 := handler.MustFileHandler("/tmp/info.log", true)
-	h1.Levels = slog.Levels{slog.InfoLevel, slog.NoticeLevel, slog.DebugLevel, slog.TraceLevel}
+	h1.BuffSize = 10 // BuffSize default is 256 * 1024
+	h2.Levels = slog.Levels{slog.InfoLevel, slog.NoticeLevel, slog.DebugLevel, slog.TraceLevel}
 
 	slog.PushHandler(h1)
 	slog.PushHandler(h2)
 
 	// add logs
-	slog.Info("info message")
-	slog.Error("error message")
+	slog.Info("info message text")
+	slog.Error("error message text")
 }
 ```
 
