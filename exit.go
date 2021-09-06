@@ -25,7 +25,7 @@ func ExitHandlers() []func() {
 	return exitHandlers
 }
 
-// PrependExitHandler register an exit-handler on global exitHandlers
+// RegisterExitHandler register an exit-handler on global exitHandlers
 func RegisterExitHandler(handler func()) {
 	exitHandlers = append(exitHandlers, handler)
 }
@@ -56,7 +56,7 @@ func (l *Logger) runExitHandlers() {
 	}
 }
 
-// PrependExitHandler register an exit-handler on global exitHandlers
+// RegisterExitHandler register an exit-handler on global exitHandlers
 func (l *Logger) RegisterExitHandler(handler func()) {
 	l.exitHandlers = append(l.exitHandlers, handler)
 }
