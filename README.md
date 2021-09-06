@@ -154,6 +154,9 @@ func main() {
 
 ## Logs to file
 
+- `FileHandler` output logs to file. By default, `buffer` is enabled.
+  - default buffer size is `256 * 1024`
+
 ```go
 package mypkg
 
@@ -163,12 +166,12 @@ import (
 )
 
 func myfunc() {
+	defer slog.Flush()
+
 	h1 := handler.MustFileHandler("/tmp/error.log", true)
-	h1.BuffSize = 10
 	h1.Levels = slog.Levels{slog.PanicLevel, slog.ErrorLevel, slog.WarnLevel}
 
 	h2 := handler.MustFileHandler("/tmp/info.log", true)
-	h1.BuffSize = 10 // BuffSize default is 256 * 1024
 	h2.Levels = slog.Levels{slog.InfoLevel, slog.NoticeLevel, slog.DebugLevel, slog.TraceLevel}
 
 	slog.PushHandler(h1)

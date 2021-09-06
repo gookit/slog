@@ -64,6 +64,44 @@ func TestNewSizeRotateFileHandler(t *testing.T) {
 	l.Flush()
 }
 
+func TestNewTimeRotateFileHandler_EveryDay(t *testing.T) {
+	fpath := "./testdata/time-rotate-file_EveryDay.log"
+	h, err := handler.NewTimeRotateFileHandler(fpath, handler.EveryDay)
+
+	assert.NoError(t, err)
+	assert.True(t, fsutil.IsFile(fpath))
+
+	l := slog.NewWithHandlers(h)
+	l.ReportCaller = true
+
+	for i := 0; i < 3; i++ {
+		l.Info("info", "message", i)
+		l.Warn("warn message", i)
+		fmt.Println("second ", i+1)
+		time.Sleep(time.Second * 1)
+	}
+	l.Flush()
+}
+
+func TestNewTimeRotateFileHandler_EveryHour(t *testing.T) {
+	fpath := "./testdata/time-rotate-file_EveryHour.log"
+	h, err := handler.NewTimeRotateFileHandler(fpath, handler.EveryHour)
+
+	assert.NoError(t, err)
+	assert.True(t, fsutil.IsFile(fpath))
+
+	l := slog.NewWithHandlers(h)
+	l.ReportCaller = true
+
+	for i := 0; i < 3; i++ {
+		l.Info("info", "message", i)
+		l.Warn("warn message", i)
+		fmt.Println("second ", i+1)
+		time.Sleep(time.Second * 1)
+	}
+	l.Flush()
+}
+
 func TestNewTimeRotateFileHandler(t *testing.T) {
 	fpath := "./testdata/time-rotate-file.log"
 	h, err := handler.NewTimeRotateFileHandler(fpath, handler.EverySecond)

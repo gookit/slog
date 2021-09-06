@@ -65,10 +65,14 @@ func (rt rotateTime) GetIntervalAndFormat() (checkInterval int64, suffixFormat s
 	case EveryMinute:
 		checkInterval = 60
 		suffixFormat = "20060102_1504"
+	case EverySecond:
+		checkInterval = 1
+		suffixFormat = "20060102_150405"
+	default: // EveryHour
+		checkInterval = 3600
+		suffixFormat = "20060102_1500"
 	}
-
-	// Every Second
-	return 1, "20060102_150405"
+	return
 }
 
 // TimeRotateFileHandler struct
