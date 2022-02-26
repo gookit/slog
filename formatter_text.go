@@ -87,6 +87,7 @@ func (f *TextFormatter) Fields() []string {
 // Format an log record
 func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 	buf := r.NewBuffer()
+	buf.Reset()
 	buf.Grow(168)
 
 	for _, field := range f.fields {

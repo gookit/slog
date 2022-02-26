@@ -184,6 +184,14 @@ func Flush() error {
 	return std.Flush()
 }
 
+// MustFlush log messages
+func MustFlush() {
+	err := Flush()
+	if err != nil {
+		panic(err)
+	}
+}
+
 // FlushTimeout flush logs with timeout.
 func FlushTimeout(timeout time.Duration) {
 	std.FlushTimeout(timeout)

@@ -89,15 +89,16 @@ func (f *JSONFormatter) Format(r *Record) ([]byte, error) {
 	}
 
 	// sort.Interface()
-	buffer := r.NewBuffer()
-	buffer.Grow(256)
+	buf := r.NewBuffer()
+	buf.Reset()
+	buf.Grow(256)
 
-	encoder := json.NewEncoder(buffer)
+	encoder := json.NewEncoder(buf)
 	if f.PrettyPrint {
 		encoder.SetIndent("", "  ")
 	}
 
 	// has been added newline in Encode().
 	err := encoder.Encode(logData)
-	return buffer.Bytes(), err
+	return buf.Bytes(), err
 }

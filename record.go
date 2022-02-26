@@ -276,7 +276,7 @@ func (r *Record) logBytes(level Level, message []byte) {
 
 	var buffer *bytes.Buffer
 	buffer = bufferPool.Get().(*bytes.Buffer)
-	buffer.Reset()
+	// buffer.Reset()
 	defer bufferPool.Put(buffer)
 
 	r.Buffer = buffer

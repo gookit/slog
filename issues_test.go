@@ -25,13 +25,13 @@ func TestIssues_27(t *testing.T) {
 // https://github.com/gookit/slog/issues/31
 func TestIssues_31(t *testing.T) {
 	defer slog.Reset()
-	defer slog.Flush()
+	defer slog.MustFlush()
 
-	h1 := handler.MustFileHandler("testdata/error.log", true)
+	h1 := handler.MustFileHandler("testdata/error_issue31.log", true)
 	// slog.DangerLevels equals slog.Levels{slog.PanicLevel, slog.PanicLevel, slog.ErrorLevel, slog.WarnLevel}
 	h1.Levels = slog.DangerLevels
 
-	h2 := handler.MustFileHandler("testdata/info.log", true)
+	h2 := handler.MustFileHandler("testdata/info_issue31.log", true)
 	h2.Levels = slog.Levels{slog.InfoLevel, slog.NoticeLevel, slog.DebugLevel, slog.TraceLevel}
 
 	slog.PushHandler(h1)
