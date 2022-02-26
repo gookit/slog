@@ -15,12 +15,13 @@ type IOWriterHandler struct {
 	Output io.Writer
 }
 
-// NewIOWriter create an new instance
+// NewIOWriter create a new instance
 func NewIOWriter(out io.Writer, levels []slog.Level) *IOWriterHandler {
 	return NewIOWriterHandler(out, levels)
 }
 
 // NewIOWriterHandler create new IOWriterHandler
+//
 // Usage:
 // 	buf := new(bytes.Buffer)
 // 	h := handler.NewIOWriterHandler(&buf, slog.AllLevels)
