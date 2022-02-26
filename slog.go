@@ -116,12 +116,12 @@ func (sl *SugaredLogger) Close() error {
 	return nil
 }
 
-// FlushAll all logs. alias of the FlushAll()
+// Flush all logs. alias of the FlushAll()
 func (sl *SugaredLogger) Flush() error {
 	return sl.FlushAll()
 }
 
-// Flush all logs
+// FlushAll all logs
 func (sl *SugaredLogger) FlushAll() error {
 	sl.Logger.VisitAll(func(handler Handler) error {
 		if _, ok := handler.(*SugaredLogger); !ok {
