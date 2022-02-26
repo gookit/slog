@@ -13,7 +13,7 @@ type StringMap = map[string]string
 type M map[string]interface{}
 
 // String map to string
-func (m M) String() string  {
+func (m M) String() string {
 	return mapToString(m)
 }
 
@@ -146,7 +146,7 @@ type Formatter interface {
 // FormatterFunc wrapper definition
 type FormatterFunc func(r *Record) error
 
-// Format an record
+// Format a record
 func (fn FormatterFunc) Format(r *Record) error {
 	return fn(r)
 }

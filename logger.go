@@ -460,12 +460,8 @@ func (l *Logger) write(level Level, r *Record) {
 		return
 	}
 
-	// use lower level name
-	if l.LowerLevelName {
-		r.levelName = level.LowerName()
-	} else {
-		r.levelName = level.Name()
-	}
+	// init record
+	r.Init(l.LowerLevelName)
 
 	// do write by handlers
 	l.doWrite(matchedHandlers, r)
@@ -479,10 +475,7 @@ func (l *Logger) write(level Level, r *Record) {
 	}
 }
 
-func (l *Logger) doWrite(matchedHandlers []Handler, r *Record)  {
-	// init log time
-	r.initLogTime()
-
+func (l *Logger) doWrite(matchedHandlers []Handler, r *Record) {
 	// log caller
 	if l.ReportCaller {
 		// l.mu.Lock()

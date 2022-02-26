@@ -275,17 +275,17 @@ func (r *Record) logBytes(level Level, message []byte) {
 	// Will reduce memory allocation once
 	r.Message = strutil.Byte2str(message)
 
-	// var buffer *bytes.Buffer
-	// buffer = bufferPool.Get().(*bytes.Buffer)
-	// buffer.Reset()
-	// defer bufferPool.Put(buffer)
+	var buffer *bytes.Buffer
+	buffer = bufferPool.Get().(*bytes.Buffer)
+	buffer.Reset()
+	defer bufferPool.Put(buffer)
 
-	// r.Buffer = buffer
+	r.Buffer = buffer
 
 	// do write log message
 	r.logger.write(level, r)
 
-	// r.Buffer = nil
+	r.Buffer = nil
 	// TODO release on here ??
 	// r.logger.releaseRecord(r)
 }
@@ -408,6 +408,23 @@ func (r *Record) NewBuffer() *bytes.Buffer {
 	return r.Buffer
 }
 
+// Init something for record.
+func (r *Record) Init(lowerLevelName bool) {
+	// use lower level name
+	if lowerLevelName {
+		r.levelName = r.Level.LowerName()
+	} else {
+		r.levelName = r.Level.Name()
+	}
+
+	// init log time
+	if r.Time.IsZero() {
+		r.Time = time.Now()
+	}
+
+	r.microSecond = r.Time.Nanosecond() / 1000
+}
+
 // LevelName get
 func (r *Record) LevelName() string {
 	return r.levelName
@@ -421,11 +438,3 @@ func (r *Record) MicroSecond() int {
 // func (r *Record) logString(level Level, message string) {
 // 	r.logBytes(level, []byte(message))
 // }
-
-func (r *Record) initLogTime() {
-	if r.Time.IsZero() {
-		r.Time = time.Now()
-	}
-
-	r.microSecond = r.Time.Nanosecond() / 1000
-}

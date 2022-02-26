@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/gookit/goutil/stdutil"
 	"github.com/gookit/goutil/strutil"
 )
 
@@ -95,20 +96,16 @@ func formatCaller(rf *runtime.Frame, field string) (cs string) {
 	switch field {
 	case FieldKeyCaller: // eg: "logger_test.go:48,TestLogger_ReportCaller"
 		ss := strings.Split(rf.Function, ".")
-		// return fmt.Sprintf("%s:%d,%s", path.Base(rf.File), rf.Line, ss[len(ss)-1])
-		return path.Base(rf.File) + ":"  + strconv.Itoa(rf.Line) + ss[len(ss)-1]
+		return path.Base(rf.File) + ":" + strconv.Itoa(rf.Line) + ss[len(ss)-1]
 	case FieldKeyFile: // eg: "/work/go/gookit/slog/logger_test.go:48"
-		// return fmt.Sprintf("%s:%d", rf.File, rf.Line)
 		return rf.File + ":" + strconv.Itoa(rf.Line)
 	case FieldKeyFLine: // eg: "logger_test.go:48"
-		// return fmt.Sprintf("%s:%d", path.Base(rf.File), rf.Line)
-		return path.Base(rf.File)+ ":" + strconv.Itoa(rf.Line)
+		return path.Base(rf.File) + ":" + strconv.Itoa(rf.Line)
 	case FieldKeyFcName: // eg: "logger_test.go:48"
 		ss := strings.Split(rf.Function, ".")
 		return ss[len(ss)-1]
 	}
 
-	// return fmt.Sprintf("%s:%d", rf.File, rf.Line)
 	return rf.File + ":" + strconv.Itoa(rf.Line)
 }
 
@@ -143,13 +140,15 @@ func formatArgsWithSpaces(vs []interface{}) (buf []byte) {
 	}
 
 	if ln == 1 {
-		msg, _ := strutil.AnyToString(vs[0], false)
+		// msg, _ := strutil.AnyToString(vs[0], false)
+		msg := stdutil.ToString(vs[0])
 		return append(buf, msg...)
 	}
 
-	buf = make([]byte, 0, ln * 8)
+	buf = make([]byte, 0, ln*8)
 	for i := range vs {
-		str, _ := strutil.AnyToString(vs[i], false)
+		// str, _ := strutil.AnyToString(vs[i], false)
+		str := stdutil.ToString(vs[i])
 		if i > 0 { // add space
 			buf = append(buf, ' ')
 		}
@@ -165,8 +164,7 @@ func EncodeToString(v interface{}) string {
 		return mapToString(v.(map[string]interface{}))
 	}
 
-	str, _ := strutil.AnyToString(v, false)
-	return str
+	return stdutil.ToString(v)
 }
 
 func mapToString(mp map[string]interface{}) string {
@@ -181,7 +179,28 @@ func mapToString(mp map[string]interface{}) string {
 		buf = append(buf, str...)
 		buf = append(buf, ',')
 	}
-	buf = append(buf, '}')
 
+	// remove last ','
+	buf = append(buf[:len(buf)-1], '}')
 	return strutil.Byte2str(buf)
+}
+
+func parseTemplateToFields(tplStr string) []string {
+	ss := strings.Split(tplStr, "{{")
+
+	vars := make([]string, 0, len(ss)*2)
+	for _, s := range ss {
+		if len(s) == 0 {
+			continue
+		}
+
+		fieldAndOther := strings.SplitN(s, "}}", 2)
+		if len(fieldAndOther) < 2 {
+			vars = append(vars, s)
+		} else {
+			vars = append(vars, fieldAndOther[0], "}}"+fieldAndOther[1])
+		}
+	}
+
+	return vars
 }

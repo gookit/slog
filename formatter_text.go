@@ -1,7 +1,6 @@
 package slog
 
 import (
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -26,9 +25,10 @@ var ColorTheme = map[Level]color.Color{
 type TextFormatter struct {
 	// Template text template for render output log messages
 	Template string
-	// field map, parsed from format string.
-	// eg: {"level": "{{level}}",}
-	fieldMap StringMap
+	// fields list, parsed from Template string.
+	// NOTICE: fields contains no-field items.
+	// eg: ["level", "}}"}
+	fields []string
 
 	// TimeFormat the time format layout. default is time.RFC3339
 	TimeFormat string
@@ -39,7 +39,7 @@ type TextFormatter struct {
 	// FullDisplay Whether to display when record.Data, record.Extra, etc. are empty
 	FullDisplay bool
 	// EncodeFunc data encode for Record.Data, Record.Extra, etc.
-	// Default is encode by `fmt.Sprint()`
+	// Default is encode by EncodeToString()
 	EncodeFunc func(v interface{}) string
 }
 
@@ -54,7 +54,7 @@ func NewTextFormatter(template ...string) *TextFormatter {
 
 	return &TextFormatter{
 		Template: fmtTpl,
-		fieldMap: parseFieldMap(fmtTpl),
+		fields:   parseTemplateToFields(fmtTpl),
 		// default options
 		TimeFormat: DefaultTimeFormat,
 		ColorTheme: ColorTheme,
@@ -69,92 +69,88 @@ func NewTextFormatter(template ...string) *TextFormatter {
 // SetTemplate set the log format template and update field-map
 func (f *TextFormatter) SetTemplate(fmtTpl string) {
 	f.Template = fmtTpl
-	f.fieldMap = parseFieldMap(fmtTpl)
+	f.fields = parseTemplateToFields(fmtTpl)
 }
 
-// FieldMap get export field map
-func (f *TextFormatter) FieldMap() StringMap {
-	return f.fieldMap
+// Fields get export field list
+func (f *TextFormatter) Fields() []string {
+	ss := make([]string, 0, len(f.fields)/2)
+	for _, s := range f.fields {
+		if s[0] >= 'a' && s[0] <= 'z' {
+			ss = append(ss, s)
+		}
+	}
+
+	return ss
 }
 
 // Format an log record
 func (f *TextFormatter) Format(r *Record) ([]byte, error) {
-	oldnew := make([]string, 0, len(f.fieldMap) * 2 + 1)
-	// tplData := make(map[string]string, len(f.fieldMap))
-	for field, tplVar := range f.fieldMap {
+	buf := r.NewBuffer()
+	for _, field := range f.fields {
+		// is not field name.
+		if field[0] < 'a' || field[0] > 'z' {
+			// remove "}}"
+			if len(field) > 2 && strings.HasPrefix(field, "}}") {
+				buf.WriteString(field[2:])
+			} else {
+				buf.WriteString(field)
+			}
+			continue
+		}
+
 		switch {
 		case field == FieldKeyDatetime:
-			oldnew = append(oldnew, tplVar, r.Time.Format(f.TimeFormat))
-			// tplData[tplVar] = r.Time.Format(f.TimeFormat)
+			// oldnew = append(oldnew, tplVar, r.Time.Format(f.TimeFormat))
+			buf.WriteString(r.Time.Format(f.TimeFormat))
 		case field == FieldKeyTimestamp:
-			// tplData[tplVar] = strconv.Itoa(r.MicroSecond())
-			oldnew = append(oldnew, tplVar, strconv.Itoa(r.MicroSecond()))
+			buf.WriteString(strconv.Itoa(r.MicroSecond()))
 		case field == FieldKeyCaller && r.Caller != nil:
 			// caller eg: "logger_test.go:48,TestLogger_ReportCaller"
-			// tplData[tplVar] = formatCaller(r.Caller, field)
-			oldnew = append(oldnew, tplVar, formatCaller(r.Caller, field))
+			buf.WriteString(formatCaller(r.Caller, field))
 		case field == FieldKeyFLine && r.Caller != nil:
 			// "logger_test.go:48"
-			// tplData[tplVar] = formatCaller(r.Caller, field)
-			oldnew = append(oldnew, tplVar, formatCaller(r.Caller, field))
+			buf.WriteString(formatCaller(r.Caller, field))
 		case field == FieldKeyFunc && r.Caller != nil:
 			// "github.com/gookit/slog_test.TestLogger_ReportCaller"
-			// tplData[tplVar] = r.Caller.Function
-			oldnew = append(oldnew, tplVar,  r.Caller.Function)
+			buf.WriteString(r.Caller.Function)
 		case field == FieldKeyFile && r.Caller != nil:
 			// "/work/go/gookit/slog/logger_test.go:48"
-			// tplData[tplVar] = formatCaller(r.Caller, field)
-			oldnew = append(oldnew, tplVar, formatCaller(r.Caller, field))
+			buf.WriteString(formatCaller(r.Caller, field))
 		case field == FieldKeyLevel:
-			oldnew = append(oldnew, tplVar)
 			// output colored logs for console
 			if f.EnableColor {
-				// tplData[tplVar] = f.renderColorByLevel(r.LevelName(), r.Level)
-				oldnew = append(oldnew, f.renderColorByLevel(r.LevelName(), r.Level))
+				buf.WriteString(f.renderColorByLevel(r.LevelName(), r.Level))
 			} else {
-				// tplData[tplVar] = r.LevelName()
-				oldnew = append(oldnew, r.LevelName())
+				buf.WriteString(r.LevelName())
 			}
 		case field == FieldKeyChannel:
-			// tplData[tplVar] = r.Channel
-			oldnew = append(oldnew, tplVar, r.Channel)
+			buf.WriteString(r.Channel)
 		case field == FieldKeyMessage:
 			// output colored logs for console
-			oldnew = append(oldnew, tplVar)
 			if f.EnableColor {
-				// tplData[tplVar] = f.renderColorByLevel(r.Message, r.Level)
-				oldnew = append(oldnew, f.renderColorByLevel(r.Message, r.Level))
+				buf.WriteString(f.renderColorByLevel(r.Message, r.Level))
 			} else {
-				// tplData[tplVar] = r.Message
-				oldnew = append(oldnew, r.Message)
+				buf.WriteString(r.Message)
 			}
 		case field == FieldKeyData:
 			if f.FullDisplay || len(r.Data) > 0 {
-				// tplData[tplVar] = f.EncodeFunc(r.Data)
-				oldnew = append(oldnew, tplVar, f.EncodeFunc(r.Data))
-			} else {
-				// tplData[tplVar] = ""
-				oldnew = append(oldnew, tplVar, "")
+				buf.WriteString(f.EncodeFunc(r.Data))
 			}
 		case field == FieldKeyExtra:
 			if f.FullDisplay || len(r.Extra) > 0 {
-				// tplData[tplVar] = f.EncodeFunc(r.Extra)
-				oldnew = append(oldnew, tplVar, f.EncodeFunc(r.Extra))
-			} else {
-				// tplData[tplVar] = ""
-				oldnew = append(oldnew, tplVar, "")
+				buf.WriteString(f.EncodeFunc(r.Extra))
 			}
 		default:
 			if _, ok := r.Fields[field]; ok {
-				// tplData[tplVar] = f.EncodeFunc(r.Fields[field])
-				oldnew = append(oldnew, tplVar, f.EncodeFunc(r.Fields[field]))
+				buf.WriteString(f.EncodeFunc(r.Fields[field]))
+			} else {
+				buf.WriteString(field)
 			}
 		}
 	}
 
-	// str := strutil.Replaces(f.Template, tplData)
-	str := strings.NewReplacer(oldnew...).Replace(f.Template)
-	return []byte(str), nil
+	return buf.Bytes(), nil
 }
 
 func (f *TextFormatter) renderColorByLevel(text string, level Level) string {
@@ -163,18 +159,4 @@ func (f *TextFormatter) renderColorByLevel(text string, level Level) string {
 	}
 
 	return text
-}
-
-// parse string "{{channel}}" to map { "channel": "{{channel}}" }
-func parseFieldMap(format string) StringMap {
-	rgp := regexp.MustCompile(`{{\w+}}`)
-
-	ss := rgp.FindAllString(format, -1)
-	fm := make(StringMap)
-	for _, tplVar := range ss {
-		field := strings.Trim(tplVar, "{}")
-		fm[field] = tplVar
-	}
-
-	return fm
 }

@@ -2,7 +2,6 @@ package slog
 
 import (
 	"encoding/json"
-	"time"
 )
 
 // JSONFormatter definition
@@ -53,10 +52,6 @@ func (f *JSONFormatter) Format(r *Record) ([]byte, error) {
 
 		switch {
 		case field == FieldKeyDatetime:
-			if r.Time.IsZero() {
-				r.Time = time.Now()
-			}
-
 			logData[outName] = r.Time.Format(f.TimeFormat)
 		case field == FieldKeyTimestamp:
 			logData[outName] = r.MicroSecond()
@@ -97,12 +92,11 @@ func (f *JSONFormatter) Format(r *Record) ([]byte, error) {
 
 	buffer := r.NewBuffer()
 	encoder := json.NewEncoder(buffer)
-
 	if f.PrettyPrint {
 		encoder.SetIndent("", "  ")
 	}
 
-	// has been add newline in Encode().
+	// has been added newline in Encode().
 	err := encoder.Encode(logData)
 	return buffer.Bytes(), err
 }

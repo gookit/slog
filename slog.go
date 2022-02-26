@@ -34,12 +34,13 @@ import (
 )
 
 // SugaredLogger definition.
-// Is a fast and usable Logger, which already contains the default formatting and handling capabilities
+// Is a fast and usable Logger, which already contains
+// the default formatting and handling capabilities
 type SugaredLogger struct {
 	*Logger
 	// Formatter log message formatter. default use TextFormatter
 	Formatter Formatter
-	// Output output writer
+	// Output writer
 	Output io.Writer
 	// Level for log handling.
 	// Greater than or equal to this level will be recorded
