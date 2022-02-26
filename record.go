@@ -271,7 +271,6 @@ func (r *Record) SetFields(fields M) *Record {
 
 func (r *Record) logBytes(level Level, message []byte) {
 	r.Level = level
-	// r.Message = string(message)
 	// Will reduce memory allocation once
 	r.Message = strutil.Byte2str(message)
 

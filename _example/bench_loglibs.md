@@ -35,7 +35,7 @@ ok      command-line-arguments  135.460s
 
 > record ad 2022.02.26
 
-```
+```text
 $ go test -v -cpu=4 -run=none -bench=. -benchtime=10s -benchmem bench_loglibs_test.go
 goos: windows
 goarch: amd64

@@ -87,6 +87,8 @@ func (f *TextFormatter) Fields() []string {
 // Format an log record
 func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 	buf := r.NewBuffer()
+	buf.Grow(168)
+
 	for _, field := range f.fields {
 		// is not field name.
 		if field[0] < 'a' || field[0] > 'z' {
@@ -101,21 +103,17 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 
 		switch {
 		case field == FieldKeyDatetime:
-			// oldnew = append(oldnew, tplVar, r.Time.Format(f.TimeFormat))
 			buf.WriteString(r.Time.Format(f.TimeFormat))
 		case field == FieldKeyTimestamp:
 			buf.WriteString(strconv.Itoa(r.MicroSecond()))
-		case field == FieldKeyCaller && r.Caller != nil:
-			// caller eg: "logger_test.go:48,TestLogger_ReportCaller"
+		case field == FieldKeyCaller && r.Caller != nil: // eg: "logger_test.go:48,TestLogger_ReportCaller"
 			buf.WriteString(formatCaller(r.Caller, field))
-		case field == FieldKeyFLine && r.Caller != nil:
-			// "logger_test.go:48"
+		case field == FieldKeyFLine && r.Caller != nil: // "logger_test.go:48"
 			buf.WriteString(formatCaller(r.Caller, field))
 		case field == FieldKeyFunc && r.Caller != nil:
 			// "github.com/gookit/slog_test.TestLogger_ReportCaller"
 			buf.WriteString(r.Caller.Function)
-		case field == FieldKeyFile && r.Caller != nil:
-			// "/work/go/gookit/slog/logger_test.go:48"
+		case field == FieldKeyFile && r.Caller != nil: // "/work/go/gookit/slog/logger_test.go:48"
 			buf.WriteString(formatCaller(r.Caller, field))
 		case field == FieldKeyLevel:
 			// output colored logs for console

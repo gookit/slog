@@ -89,8 +89,9 @@ func (f *JSONFormatter) Format(r *Record) ([]byte, error) {
 	}
 
 	// sort.Interface()
-
 	buffer := r.NewBuffer()
+	buffer.Grow(256)
+
 	encoder := json.NewEncoder(buffer)
 	if f.PrettyPrint {
 		encoder.SetIndent("", "  ")
