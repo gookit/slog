@@ -32,7 +32,11 @@ func (l Level) Name() string {
 
 // LowerName get lower level name
 func (l Level) LowerName() string {
-	return strings.ToLower(LevelName(l))
+	if n, ok := lowerLevelNames[l]; ok {
+		return n
+	}
+
+	return "unknown"
 }
 
 // ShouldHandling compare level
@@ -273,6 +277,9 @@ var (
 		DebugLevel:  "DEBUG",
 		TraceLevel:  "TRACE",
 	}
+
+	// lower level name.
+	lowerLevelNames = buildLowerLevelName()
 )
 
 var (
@@ -299,6 +306,15 @@ var (
 // DoNothingOnExit handler. use for testing.
 var DoNothingOnExit = func(code int) {
 	// do nothing
+}
+
+func buildLowerLevelName() map[Level]string {
+	mp := make(map[Level]string, len(LevelNames))
+	for level, s := range LevelNames {
+		mp[level] = strings.ToLower(s)
+	}
+
+	return mp
 }
 
 // LevelName match

@@ -29,6 +29,8 @@
   - `size_rotate_file` output logs to file, and supports rotating files by size. By default, `buffer` is enabled.
   - `time_rotate_file` output logs to file, and supports rotating files by time. By default, `buffer` is enabled.
   - `rotate_file` output logs to file, and supports rotating files by time and size. By default, `buffer` is enabled.
+  - `email` output logs by send email.
+  - `syslog` output logs by send system syslog.
 
 ## GoDoc
 

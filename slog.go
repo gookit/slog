@@ -26,12 +26,25 @@ More usage please see README.
 package slog
 
 import (
+	"bytes"
 	"io"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/gookit/color"
 )
+
+func init() {
+	bufferPool = &sync.Pool{
+		New: func() interface{} {
+			return new(bytes.Buffer)
+		},
+	}
+
+	// start at the bottom of the stack before the package-name cache is primed
+	minCallerDepth = 1
+}
 
 // SugaredLogger definition.
 // Is a fast and usable Logger, which already contains

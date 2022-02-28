@@ -463,19 +463,6 @@ func (l *Logger) write(level Level, r *Record) {
 	// init record
 	r.Init(l.LowerLevelName)
 
-	// do write by handlers
-	l.doWrite(matchedHandlers, r)
-
-	// If is Panic level
-	if level <= PanicLevel {
-		panic(r)
-		// If is FatalLevel
-	} else if level <= FatalLevel {
-		l.Exit(1)
-	}
-}
-
-func (l *Logger) doWrite(matchedHandlers []Handler, r *Record) {
 	// log caller
 	if l.ReportCaller {
 		// l.mu.Lock()
@@ -492,8 +479,16 @@ func (l *Logger) doWrite(matchedHandlers []Handler, r *Record) {
 	for _, handler := range matchedHandlers {
 		if err := handler.Handle(r); err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "Failed to dispatch handler: %v\n", err)
-			return
 		}
 	}
 
+	// If is Panic level
+	if level <= PanicLevel {
+		l.FlushAll()
+		panic(r)
+		// If is Fatal Level
+	} else if level <= FatalLevel {
+		l.FlushAll()
+		l.Exit(1)
+	}
 }

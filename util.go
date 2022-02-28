@@ -1,7 +1,6 @@
 package slog
 
 import (
-	"bytes"
 	"path"
 	"runtime"
 	"strconv"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/gookit/goutil/stdutil"
 	"github.com/gookit/goutil/strutil"
+	"github.com/valyala/bytebufferpool"
 )
 
 const (
@@ -27,17 +27,6 @@ var (
 	// Used for caller information initialisation
 	callerInitOnce sync.Once
 )
-
-func init() {
-	bufferPool = &sync.Pool{
-		New: func() interface{} {
-			return new(bytes.Buffer)
-		},
-	}
-
-	// start at the bottom of the stack before the package-name cache is primed
-	minCallerDepth = 1
-}
 
 // getPackageName reduces a fully qualified function name to the package name
 // There really ought to be to be a better way...
@@ -133,29 +122,37 @@ func getCallStacks(all bool) []byte {
 }
 
 // it like Println, will add spaces for each argument
-func formatArgsWithSpaces(vs []interface{}) (buf []byte) {
+func formatArgsWithSpaces(vs []interface{}) []byte {
 	ln := len(vs)
 	if ln == 0 {
-		return
+		return nil
 	}
 
 	if ln == 1 {
-		// msg, _ := strutil.AnyToString(vs[0], false)
 		msg := stdutil.ToString(vs[0])
-		return append(buf, msg...)
+		return strutil.ToBytes(msg) // perf: Reduce one memory allocation
 	}
 
-	buf = make([]byte, 0, ln*8)
+	// buf = make([]byte, 0, ln*8)
+	bb := bytebufferpool.Get()
+	defer bytebufferpool.Put(bb)
+
+	// TIP:
+	// `float` to string - will alloc 2 times memory
+	// `int <0`, `int > 100` to string -  will alloc 1 times memory
 	for i := range vs {
 		// str, _ := strutil.AnyToString(vs[i], false)
 		str := stdutil.ToString(vs[i])
 		if i > 0 { // add space
-			buf = append(buf, ' ')
+			// buf = append(buf, ' ')
+			bb.B = append(bb.B, ' ')
 		}
-		buf = append(buf, str...)
+
+		// buf = append(buf, str...)
+		bb.B = append(bb.B, str...)
 	}
 
-	return
+	return bb.B
 }
 
 // EncodeToString data to string
@@ -169,6 +166,7 @@ func EncodeToString(v interface{}) string {
 
 func mapToString(mp map[string]interface{}) string {
 	var buf []byte
+	// TODO use bytebufferpool
 	buf = append(buf, '{')
 
 	for k, val := range mp {

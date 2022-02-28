@@ -163,6 +163,36 @@ func main() {
 {"IP":"127.0.0.1","category":"service","channel":"application","datetime":"2020/07/16 13:23:33","extra":{},"level":"DEBUG","message":"debug message"}
 ```
 
+## 输出日志到文件
+
+`FileHandler` 输出日志到指定文件，默认启用 `buffer` 缓冲写入(默认的缓冲大小: `256 * 1024`)
+
+```go
+package mypkg
+
+import (
+	"github.com/gookit/slog"
+	"github.com/gookit/slog/handler"
+)
+
+func myfunc() {
+	defer slog.MustFlush()
+
+	h1 := handler.MustFileHandler("/tmp/error.log", true)
+	h1.Levels = slog.Levels{slog.PanicLevel, slog.ErrorLevel, slog.WarnLevel}
+
+	h2 := handler.MustFileHandler("/tmp/info.log", true)
+	h2.Levels = slog.Levels{slog.InfoLevel, slog.NoticeLevel, slog.DebugLevel, slog.TraceLevel}
+
+	slog.PushHandler(h1)
+	slog.PushHandler(h2)
+
+	// add logs
+	slog.Info("info message text")
+	slog.Error("error message text")
+}
+```
+
 ## 自定义日志
 
 ## 创建自定义 Logger实例
