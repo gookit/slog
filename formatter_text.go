@@ -87,8 +87,11 @@ func (f *TextFormatter) Fields() []string {
 // Format an log record
 func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 	buf := r.NewBuffer()
+	// buf := bytebufferpool.Get()
+	// defer bytebufferpool.Put(buf)
+
 	buf.Reset()
-	buf.Grow(168)
+	// buf.Grow(168)
 
 	for _, field := range f.fields {
 		// is not field name.
@@ -150,6 +153,7 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
+	// return buf.B, nil
 }
 
 func (f *TextFormatter) renderColorByLevel(text string, level Level) string {
