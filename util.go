@@ -45,11 +45,11 @@ func getPackageName(f string) string {
 }
 
 // getCaller retrieves the name of the first non-slog calling function
-func getCaller(maxCallerDepth int) *runtime.Frame {
+func getCaller(maxCallerDepth, callerSkip int) *runtime.Frame {
 	// cache this package's fully-qualified name
 	callerInitOnce.Do(func() {
 		pcs := make([]uintptr, maxCallerDepth)
-		_ = runtime.Callers(0, pcs)
+		_ = runtime.Callers(callerSkip, pcs)
 
 		// dynamic get the package name and the minimum caller depth
 		for i := 0; i < maxCallerDepth; i++ {
@@ -60,7 +60,7 @@ func getCaller(maxCallerDepth int) *runtime.Frame {
 			}
 		}
 
-		minCallerDepth = defaultKnownSlogFrames
+		minCallerDepth = defaultKnownSlogFrames + callerSkip
 	})
 
 	// Restrict the lookback frames to avoid runaway lookups
