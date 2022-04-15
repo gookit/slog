@@ -25,6 +25,7 @@ type Logger struct {
 	ReportCaller   bool
 	LowerLevelName bool
 	MaxCallerDepth int
+	CallerSkip     int
 
 	// Reusable empty record
 	recordPool sync.Pool
@@ -466,7 +467,7 @@ func (l *Logger) write(level Level, r *Record) {
 	// log caller
 	if l.ReportCaller {
 		// l.mu.Lock()
-		r.Caller = getCaller(l.MaxCallerDepth)
+		r.Caller = getCaller(l.MaxCallerDepth, l.CallerSkip)
 		// l.mu.Unlock()
 	}
 
