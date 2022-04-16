@@ -160,6 +160,5 @@ func (f *TextFormatter) renderColorByLevel(text string, level Level) string {
 	if theme, ok := f.ColorTheme[level]; ok {
 		return theme.Render(text)
 	}
-
 	return text
 }

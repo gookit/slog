@@ -48,7 +48,7 @@ type Record struct {
 	// cache the r.Time.Nanosecond() / 1000
 	microSecond int
 	// field caches mapping for optimize performance. TODO use map[string][]byte ?
-	strmp map[string]string
+	strMp map[string]string
 }
 
 var (
@@ -289,12 +289,12 @@ func (r *Record) logBytes(level Level, message []byte) {
 	// r.logger.releaseRecord(r)
 }
 
-// Log an message with level
+// Log a message with level
 func (r *Record) Log(level Level, args ...interface{}) {
 	r.logBytes(level, formatArgsWithSpaces(args))
 }
 
-// Logf an message with level
+// Logf a message with level
 func (r *Record) Logf(level Level, format string, args ...interface{}) {
 	r.logBytes(level, []byte(fmt.Sprintf(format, args...)))
 }

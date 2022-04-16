@@ -13,10 +13,11 @@ import (
 
 // run serve:
 // 	go run ./_examples/pprof
+//
 // see prof on cli:
-// 	go tool pprof pprof/rux_prof_data.prof
+// 	go tool pprof pprof/cpu_prof_data.out
 // see prof on web:
-// 	go tool pprof -http=:8080 pprof/rux_prof_data.prof
+// 	go tool pprof -http=:8080 pprof/cpu_prof_data.out
 func main() {
 	logger := slog.NewWithHandlers(
 		handler.NewIOWriter(ioutil.Discard, slog.NormalLevels),
@@ -25,8 +26,8 @@ func main() {
 	times := 10000
 	fmt.Println("start profile, run times:", times)
 
-	ruxProfile := "rux_prof_data.prof"
-	f, err := os.Create(ruxProfile)
+	cpuProfile := "cpu_prof_data.out"
+	f, err := os.Create(cpuProfile)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,5 +44,5 @@ func main() {
 		logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
 	}
 
-	fmt.Println("see prof on web:\n  go tool pprof -http=:8080 rux_prof_data.prof")
+	fmt.Println("see prof on web:\n  go tool pprof -http=:8080", cpuProfile)
 }
