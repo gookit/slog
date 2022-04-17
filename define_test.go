@@ -9,6 +9,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestDefine_basic(t *testing.T) {
+	assert.NotEmpty(t, slog.NoTimeFields)
+	assert.NotEmpty(t, slog.FieldKeyDate)
+	assert.NotEmpty(t, slog.FieldKeyTime)
+	assert.NotEmpty(t, slog.FieldKeyPkg)
+	assert.NotEmpty(t, slog.FieldKeyError)
+}
+
 func TestM_String(t *testing.T) {
 	m := slog.M{
 		"k0": 12,
@@ -17,7 +25,7 @@ func TestM_String(t *testing.T) {
 		"k3": 23.45,
 		"k4": []int{12, 23},
 		"k5": []string{"ab", "bc"},
-		"k6": map[string]interface{} {
+		"k6": map[string]interface{}{
 			"k6-1": 23,
 			"k6-2": "def",
 		},

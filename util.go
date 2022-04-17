@@ -26,22 +26,13 @@ var (
 
 	// Used for caller information initialisation
 	callerInitOnce sync.Once
+
+	// argFmtPool bytebufferpool.Pool
 )
 
-// getPackageName reduces a fully qualified function name to the package name
-// There really ought to be to be a better way...
-func getPackageName(f string) string {
-	for {
-		lastPeriod := strings.LastIndex(f, ".")
-		lastSlash := strings.LastIndex(f, "/")
-		if lastPeriod > lastSlash {
-			f = f[:lastPeriod]
-		} else {
-			break
-		}
-	}
-
-	return f
+// Stack that attempts to recover the data for all goroutines.
+func getCallStacks(callerSkip int) []byte {
+	return nil
 }
 
 // getCaller retrieves the name of the first non-slog calling function
@@ -74,29 +65,6 @@ func formatCaller(rf *runtime.Frame, field string) (cs string) {
 	}
 
 	return rf.File + ":" + strconv.Itoa(rf.Line)
-}
-
-// from glog package
-// stacks is a wrapper for runtime.
-// Stack that attempts to recover the data for all goroutines.
-func getCallStacks(all bool) []byte {
-	// We don't know how big the traces are, so grow a few times if they don't fit.
-	// Start large, though.
-	n := 10000
-	if all {
-		n = 100000
-	}
-
-	var trace []byte
-	for i := 0; i < 5; i++ {
-		trace = make([]byte, n)
-		bts := runtime.Stack(trace, all)
-		if bts < len(trace) {
-			return trace[:bts]
-		}
-		n *= 2
-	}
-	return trace
 }
 
 // it like Println, will add spaces for each argument

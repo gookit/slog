@@ -2,6 +2,8 @@ package slog
 
 import (
 	"encoding/json"
+
+	"github.com/valyala/bytebufferpool"
 )
 
 // JSONFormatter definition
@@ -56,13 +58,17 @@ func (f *JSONFormatter) Format(r *Record) ([]byte, error) {
 		case field == FieldKeyTimestamp:
 			logData[outName] = r.MicroSecond()
 		case field == FieldKeyCaller && r.Caller != nil:
-			logData[outName] = formatCaller(r.Caller, field) // "logger_test.go:48,TestLogger_ReportCaller"
+			// "logger_test.go:48,TestLogger_ReportCaller"
+			logData[outName] = formatCaller(r.Caller, field)
 		case field == FieldKeyFLine && r.Caller != nil:
-			logData[outName] = formatCaller(r.Caller, field) // "logger_test.go:48"
+			// "logger_test.go:48"
+			logData[outName] = formatCaller(r.Caller, field)
 		case field == FieldKeyFunc && r.Caller != nil:
-			logData[outName] = r.Caller.Function // "github.com/gookit/slog_test.TestLogger_ReportCaller"
+			// "github.com/gookit/slog_test.TestLogger_ReportCaller"
+			logData[outName] = r.Caller.Function
 		case field == FieldKeyFile && r.Caller != nil:
-			logData[outName] = formatCaller(r.Caller, field) // "/work/go/gookit/slog/logger_test.go:48"
+			// "/work/go/gookit/slog/logger_test.go:48"
+			logData[outName] = formatCaller(r.Caller, field)
 		case field == FieldKeyLevel:
 			logData[outName] = r.LevelName()
 		case field == FieldKeyChannel:
@@ -89,9 +95,12 @@ func (f *JSONFormatter) Format(r *Record) ([]byte, error) {
 	}
 
 	// sort.Interface()
-	buf := r.NewBuffer()
-	buf.Reset()
-	buf.Grow(256)
+	buf := bytebufferpool.Get()
+	// buf.Reset()
+	defer bytebufferpool.Put(buf)
+	// buf := r.NewBuffer()
+	// buf.Reset()
+	// buf.Grow(256)
 
 	encoder := json.NewEncoder(buf)
 	if f.PrettyPrint {

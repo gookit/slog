@@ -39,7 +39,7 @@ func AddUniqueID(fieldName string) Processor {
 	})
 }
 
-// MemoryUsage Get memory usage.
+// MemoryUsage get memory usage.
 var MemoryUsage ProcessorFunc = func(record *Record) {
 	stat := new(runtime.MemStats)
 	runtime.ReadMemStats(stat)

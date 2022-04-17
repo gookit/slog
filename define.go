@@ -1,7 +1,7 @@
 package slog
 
 import (
-	"fmt"
+	"errors"
 	"io"
 	"strings"
 )
@@ -57,6 +57,13 @@ func (ls Levels) Contains(level Level) bool {
 	return false
 }
 
+// FlushWriter is the interface satisfied by logging destinations.
+type FlushWriter interface {
+	Flush() error
+	// Writer the output writer
+	io.Writer
+}
+
 // FlushCloseWriter is the interface satisfied by logging destinations.
 type FlushCloseWriter interface {
 	Flush() error
@@ -83,13 +90,14 @@ type Handler interface {
 	// You should first call Flush() on close logic.
 	// Refer the FileHandler.Close() handle
 	io.Closer
-	// Flush logs to disk
+	// Flush and sync logs to disk file.
 	Flush() error
 	// IsHandling Checks whether the given record will be handled by this handler.
 	IsHandling(level Level) bool
 	// Handle a log record.
+	//
 	// All records may be passed to this method, and the handler should discard
-	// Those that it does not want to handle.
+	// those that it does not want to handle.
 	Handle(*Record) error
 }
 
@@ -210,28 +218,31 @@ const (
 
 var (
 	FieldKeyTime = "time"
-	// FieldKeyDate  = "date"
+	FieldKeyDate = "date"
+
+	FieldKeyDatetime  = "datetime"
+	FieldKeyTimestamp = "timestamp"
 
 	// FieldKeyData = "data"
 	FieldKeyData = "data"
 
 	// NOTICE: you must set `Logger.ReportCaller=true` for reporting caller
 
-	// FieldKeyCaller filename with line with func name. eg: "logger_test.go:48->TestLogger_ReportCaller"
+	// FieldKeyCaller filename with line with func name.
+	// eg: "github.com/gookit/slog_test.TestLogger_ReportCaller(),logger_test.go:48"
 	FieldKeyCaller = "caller"
-	// FieldKeyFLine filename with line. eg: "logger_test.go:48"
-	FieldKeyFLine = "fline"
-	// FieldKeyPkg package name. "github.com/gookit/slog_test"
-	FieldKeyPkg = "package"
 	// FieldKeyFunc package with func name. eg: "github.com/gookit/slog_test.TestLogger_ReportCaller"
 	FieldKeyFunc = "func"
-	// FieldKeyFunc only func name. eg: "TestLogger_ReportCaller"
+	// FieldKeyPkg package name. "github.com/gookit/slog_test"
+	FieldKeyPkg = "package"
+	// FieldKeyFcName only report func name. eg: "TestLogger_ReportCaller"
 	FieldKeyFcName = "fcname"
 	// FieldKeyFile full filepath with line. eg: "/work/go/gookit/slog/logger_test.go:48"
 	FieldKeyFile = "file"
-
-	FieldKeyDatetime  = "datetime"
-	FieldKeyTimestamp = "timestamp"
+	// FieldKeyFLine filename with line. eg: "logger_test.go:48"
+	FieldKeyFLine = "fline"
+	// FieldKeyFLFC filename with line and with short func name. eg: "logger_test.go:48,TestLogger_ReportCaller"
+	FieldKeyFLFC = "flfc"
 
 	FieldKeyLevel = "level"
 	FieldKeyError = "error"
@@ -293,6 +304,7 @@ var (
 		FieldKeyData,
 		FieldKeyExtra,
 	}
+
 	// NoTimeFields log export fields without time
 	NoTimeFields = []string{
 		FieldKeyChannel,
@@ -304,9 +316,7 @@ var (
 )
 
 // DoNothingOnExit handler. use for testing.
-var DoNothingOnExit = func(code int) {
-	// do nothing
-}
+var DoNothingOnExit = func(code int) {}
 
 func buildLowerLevelName() map[Level]string {
 	mp := make(map[Level]string, len(LevelNames))
@@ -322,7 +332,6 @@ func LevelName(l Level) string {
 	if n, ok := LevelNames[l]; ok {
 		return n
 	}
-
 	return "UNKNOWN"
 }
 
@@ -346,17 +355,14 @@ func Name2Level(ln string) (Level, error) {
 	case "trace":
 		return TraceLevel, nil
 	}
-
-	var l Level
-	return l, fmt.Errorf("invalid log Level: %q", ln)
+	return 0, errors.New("invalid log level name: %q" + ln)
 }
 
-// MustLevelByName convert name to level
-func MustLevelByName(ln string) Level {
+// LevelByName convert name to level
+func LevelByName(ln string) Level {
 	l, err := Name2Level(ln)
 	if err != nil {
 		return InfoLevel
 	}
-
 	return l
 }

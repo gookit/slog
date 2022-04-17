@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gookit/color"
+	"github.com/valyala/bytebufferpool"
 )
 
 const DefaultTemplate = "[{{datetime}}] [{{channel}}] [{{level}}] [{{caller}}] {{message}} {{data}} {{extra}}\n"
@@ -84,14 +85,12 @@ func (f *TextFormatter) Fields() []string {
 	return ss
 }
 
-// Format an log record
+// Format a log record
+//goland:noinspection GoUnhandledErrorResult
 func (f *TextFormatter) Format(r *Record) ([]byte, error) {
-	buf := r.NewBuffer()
-	// buf := bytebufferpool.Get()
-	// defer bytebufferpool.Put(buf)
-
-	buf.Reset()
-	// buf.Grow(168)
+	buf := bytebufferpool.Get()
+	// buf.Reset()
+	defer bytebufferpool.Put(buf)
 
 	for _, field := range f.fields {
 		// is not field name.
@@ -110,7 +109,9 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 			buf.WriteString(r.Time.Format(f.TimeFormat))
 		case field == FieldKeyTimestamp:
 			buf.WriteString(strconv.Itoa(r.MicroSecond()))
-		case field == FieldKeyCaller && r.Caller != nil: // eg: "logger_test.go:48,TestLogger_ReportCaller"
+		case field == FieldKeyCaller && r.Caller != nil:
+			buf.WriteString(formatCaller(r.Caller, field))
+		case field == FieldKeyFLFC && r.Caller != nil: // eg: "logger_test.go:48,TestLogger_ReportCaller"
 			buf.WriteString(formatCaller(r.Caller, field))
 		case field == FieldKeyFLine && r.Caller != nil: // "logger_test.go:48"
 			buf.WriteString(formatCaller(r.Caller, field))
@@ -152,8 +153,8 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 		}
 	}
 
-	return buf.Bytes(), nil
-	// return buf.B, nil
+	// return buf.Bytes(), nil
+	return buf.B, nil
 }
 
 func (f *TextFormatter) renderColorByLevel(text string, level Level) string {

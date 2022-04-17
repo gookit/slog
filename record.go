@@ -1,14 +1,11 @@
 package slog
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"runtime"
 	"sync"
 	"time"
-
-	"github.com/gookit/goutil/strutil"
 )
 
 // Record a log record definition
@@ -28,7 +25,7 @@ type Record struct {
 	Ctx context.Context
 
 	// Buffer Can use Buffer on formatter
-	Buffer *bytes.Buffer
+	// Buffer *bytes.Buffer
 
 	// Fields custom fields data.
 	// Contains all the fields set by the user.
@@ -269,142 +266,42 @@ func (r *Record) SetFields(fields M) *Record {
 // ---------------------------------------------------------------------------
 //
 
-func (r *Record) logBytes(level Level, message []byte) {
-	r.Level = level
+func (r *Record) logBytes(level Level) {
 	// Will reduce memory allocation once
-	r.Message = strutil.Byte2str(message)
+	// r.Message = strutil.Byte2str(message)
 
-	var buffer *bytes.Buffer
-	buffer = bufferPool.Get().(*bytes.Buffer)
-	// buffer.Reset()
-	defer bufferPool.Put(buffer)
+	// var buf *bytes.Buffer
+	// buf = bufferPool.Get().(*bytes.Buffer)
+	// defer bufferPool.Put(buf)
+	// r.Buffer = buf
 
-	r.Buffer = buffer
-
-	// do write log message
-	r.logger.write(level, r)
-
-	r.Buffer = nil
 	// TODO release on here ??
-	// r.logger.releaseRecord(r)
-}
+	// defer r.logger.releaseRecord(r)
 
-// Log a message with level
-func (r *Record) Log(level Level, args ...interface{}) {
-	r.logBytes(level, formatArgsWithSpaces(args))
-}
-
-// Logf a message with level
-func (r *Record) Logf(level Level, format string, args ...interface{}) {
-	r.logBytes(level, []byte(fmt.Sprintf(format, args...)))
-}
-
-// Info logs a message at level Info
-func (r *Record) Info(args ...interface{}) {
-	r.Log(InfoLevel, args...)
-}
-
-// Infof logs a message at level Info
-func (r *Record) Infof(format string, args ...interface{}) {
-	r.Logf(InfoLevel, format, args...)
-}
-
-// Trace logs a message at level Trace
-func (r *Record) Trace(args ...interface{}) {
-	r.Log(TraceLevel, args...)
-}
-
-// Tracef logs a message at level Trace
-func (r *Record) Tracef(format string, args ...interface{}) {
-	r.Logf(TraceLevel, format, args...)
-}
-
-// Error logs a message at level Error
-func (r *Record) Error(args ...interface{}) {
-	r.Log(ErrorLevel, args...)
-}
-
-// Errorf logs a message at level Error
-func (r *Record) Errorf(format string, args ...interface{}) {
-	r.Logf(ErrorLevel, format, args...)
-}
-
-// Notice logs a message at level Notice
-func (r *Record) Notice(args ...interface{}) {
-	r.Log(NoticeLevel, args...)
-}
-
-// Noticef logs a message at level Notice
-func (r *Record) Noticef(format string, args ...interface{}) {
-	r.Logf(NoticeLevel, format, args...)
-}
-
-// Debug logs a message at level Debug
-func (r *Record) Debug(args ...interface{}) {
-	r.Log(DebugLevel, args...)
-}
-
-// Debugf logs a message at level Debug
-func (r *Record) Debugf(format string, args ...interface{}) {
-	r.Logf(DebugLevel, format, args...)
-}
-
-// Print logs a message at level Print
-func (r *Record) Print(args ...interface{}) {
-	r.Log(PrintLevel, args...)
-}
-
-// Println logs a message at level Print
-func (r *Record) Println(args ...interface{}) {
-	r.Log(PrintLevel, args...)
-}
-
-// Printf logs a message at level Print
-func (r *Record) Printf(format string, args ...interface{}) {
-	r.Logf(PrintLevel, format, args...)
-}
-
-// Fatal logs a message at level Fatal
-func (r *Record) Fatal(args ...interface{}) {
-	r.Log(FatalLevel, args...)
-}
-
-// Fatalln logs a message at level Fatal
-func (r *Record) Fatalln(args ...interface{}) {
-	r.Log(FatalLevel, args...)
-}
-
-// Fatalf logs a message at level Fatal
-func (r *Record) Fatalf(format string, args ...interface{}) {
-	r.Logf(FatalLevel, format, args...)
-}
-
-// Panic logs a message at level Panic
-func (r *Record) Panic(args ...interface{}) {
-	r.Log(PanicLevel, args...)
-}
-
-// Panicln logs a message at level Panic
-func (r *Record) Panicln(args ...interface{}) {
-	r.Log(PanicLevel, args...)
-}
-
-// Panicf logs a message at level Panic
-func (r *Record) Panicf(format string, args ...interface{}) {
-	r.Logf(PanicLevel, format, args...)
-}
-
-// ---------------------------------------------------------------------------
-// helper methods
-// ---------------------------------------------------------------------------
-
-// NewBuffer get or create an Buffer
-func (r *Record) NewBuffer() *bytes.Buffer {
-	if r.Buffer == nil {
-		return &bytes.Buffer{}
+	handlers, ok := r.logger.matchHandlers(level)
+	if !ok {
+		return
 	}
 
-	return r.Buffer
+	// init record
+	r.Level = level
+	r.Init(r.logger.LowerLevelName)
+
+	r.logger.mu.Lock()
+	defer r.logger.mu.Unlock()
+
+	// log caller. will alloc 3 times
+	if r.logger.ReportCaller {
+		caller, ok := getCaller(r.logger.CallerSkip)
+		if ok {
+			r.Caller = &caller
+		}
+	}
+
+	// do write log message
+	r.logger.write(level, r, handlers)
+
+	// r.Buffer = nil
 }
 
 // Init something for record.
@@ -423,6 +320,141 @@ func (r *Record) Init(lowerLevelName bool) {
 
 	r.microSecond = r.Time.Nanosecond() / 1000
 }
+
+//
+// ---------------------------------------------------------------------------
+// Add log message with level
+// ---------------------------------------------------------------------------
+//
+
+func (r *Record) log(level Level, args []interface{}) {
+	// will reduce memory allocation once
+	// r.Message = strutil.Byte2str(formatArgsWithSpaces(args))
+	r.Message = formatArgsWithSpaces(args)
+	r.logBytes(level)
+}
+
+func (r *Record) logf(level Level, format string, args []interface{}) {
+	r.Message = fmt.Sprintf(format, args...)
+	r.logBytes(level)
+}
+
+// Log a message with level
+func (r *Record) Log(level Level, args ...interface{}) {
+	r.log(level, args)
+}
+
+// Logf a message with level
+func (r *Record) Logf(level Level, format string, args ...interface{}) {
+	r.logf(level, format, args)
+}
+
+// Info logs a message at level Info
+func (r *Record) Info(args ...interface{}) {
+	r.log(InfoLevel, args)
+}
+
+// Infof logs a message at level Info
+func (r *Record) Infof(format string, args ...interface{}) {
+	r.logf(InfoLevel, format, args)
+}
+
+// Trace logs a message at level Trace
+func (r *Record) Trace(args ...interface{}) {
+	r.log(TraceLevel, args)
+}
+
+// Tracef logs a message at level Trace
+func (r *Record) Tracef(format string, args ...interface{}) {
+	r.logf(TraceLevel, format, args)
+}
+
+// Error logs a message at level Error
+func (r *Record) Error(args ...interface{}) {
+	r.log(ErrorLevel, args)
+}
+
+// Errorf logs a message at level Error
+func (r *Record) Errorf(format string, args ...interface{}) {
+	r.logf(ErrorLevel, format, args)
+}
+
+// Notice logs a message at level Notice
+func (r *Record) Notice(args ...interface{}) {
+	r.log(NoticeLevel, args)
+}
+
+// Noticef logs a message at level Notice
+func (r *Record) Noticef(format string, args ...interface{}) {
+	r.logf(NoticeLevel, format, args)
+}
+
+// Debug logs a message at level Debug
+func (r *Record) Debug(args ...interface{}) {
+	r.log(DebugLevel, args)
+}
+
+// Debugf logs a message at level Debug
+func (r *Record) Debugf(format string, args ...interface{}) {
+	r.logf(DebugLevel, format, args)
+}
+
+// Print logs a message at level Print
+func (r *Record) Print(args ...interface{}) {
+	r.log(PrintLevel, args)
+}
+
+// Println logs a message at level Print
+func (r *Record) Println(args ...interface{}) {
+	r.log(PrintLevel, args)
+}
+
+// Printf logs a message at level Print
+func (r *Record) Printf(format string, args ...interface{}) {
+	r.logf(PrintLevel, format, args)
+}
+
+// Fatal logs a message at level Fatal
+func (r *Record) Fatal(args ...interface{}) {
+	r.log(FatalLevel, args)
+}
+
+// Fatalln logs a message at level Fatal
+func (r *Record) Fatalln(args ...interface{}) {
+	r.log(FatalLevel, args)
+}
+
+// Fatalf logs a message at level Fatal
+func (r *Record) Fatalf(format string, args ...interface{}) {
+	r.logf(FatalLevel, format, args)
+}
+
+// Panic logs a message at level Panic
+func (r *Record) Panic(args ...interface{}) {
+	r.log(PanicLevel, args)
+}
+
+// Panicln logs a message at level Panic
+func (r *Record) Panicln(args ...interface{}) {
+	r.log(PanicLevel, args)
+}
+
+// Panicf logs a message at level Panic
+func (r *Record) Panicf(format string, args ...interface{}) {
+	r.logf(PanicLevel, format, args)
+}
+
+// ---------------------------------------------------------------------------
+// helper methods
+// ---------------------------------------------------------------------------
+
+// NewBuffer get or create an Buffer
+// func (r *Record) NewBuffer() *bytes.Buffer {
+// 	if r.Buffer == nil {
+// 		return &bytes.Buffer{}
+// 	}
+// 	return r.Buffer
+// }
 
 // LevelName get
 func (r *Record) LevelName() string {
