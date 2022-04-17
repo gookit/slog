@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	// qualified package name, cached at first use
+	// qualified package name, cached at first use. eg: "github.com/gookit/slog"
 	slogPackage string
 
 	// Positions in the call stack when tracing to report the calling method
@@ -45,52 +45,30 @@ func getPackageName(f string) string {
 }
 
 // getCaller retrieves the name of the first non-slog calling function
-func getCaller(maxCallerDepth, callerSkip int) *runtime.Frame {
-	// cache this package's fully-qualified name
-	callerInitOnce.Do(func() {
-		pcs := make([]uintptr, maxCallerDepth)
-		_ = runtime.Callers(callerSkip, pcs)
-
-		// dynamic get the package name and the minimum caller depth
-		for i := 0; i < maxCallerDepth; i++ {
-			funcName := runtime.FuncForPC(pcs[i]).Name()
-			if strings.Contains(funcName, "getCaller") {
-				slogPackage = getPackageName(funcName)
-				break
-			}
-		}
-
-		minCallerDepth = defaultKnownSlogFrames + callerSkip
-	})
-
-	// Restrict the lookback frames to avoid runaway lookups
-	pcs := make([]uintptr, maxCallerDepth)
-	depth := runtime.Callers(minCallerDepth, pcs)
-	frames := runtime.CallersFrames(pcs[:depth])
-
-	for f, again := frames.Next(); again; f, again = frames.Next() {
-		pkg := getPackageName(f.Function)
-
-		// If the caller isn't part of this package, we're done
-		if pkg != slogPackage {
-			return &f //nolint:scopelint
-		}
+func getCaller(callerSkip int) (fr runtime.Frame, ok bool) {
+	pcs := make([]uintptr, 1) // alloc 1 times
+	num := runtime.Callers(callerSkip, pcs)
+	if num < 1 {
+		return
 	}
 
-	// if we got here, we failed to find the caller's context
-	return nil
+	f, _ := runtime.CallersFrames(pcs).Next()
+	return f, f.PC != 0
 }
 
 func formatCaller(rf *runtime.Frame, field string) (cs string) {
 	switch field {
-	case FieldKeyCaller: // eg: "logger_test.go:48,TestLogger_ReportCaller"
+	case FieldKeyCaller:
+		// eg: "github.com/gookit/slog_test.TestLogger_ReportCaller,logger_test.go:48"
+		return rf.Function + "," + path.Base(rf.File) + ":" + strconv.FormatInt(int64(rf.Line), 10)
+	case FieldKeyFLFC:
 		ss := strings.Split(rf.Function, ".")
 		return path.Base(rf.File) + ":" + strconv.Itoa(rf.Line) + "," + ss[len(ss)-1]
 	case FieldKeyFile: // eg: "/work/go/gookit/slog/logger_test.go:48"
 		return rf.File + ":" + strconv.Itoa(rf.Line)
-	case FieldKeyFLine: // eg: "logger_test.go:48"
+	case FieldKeyFLine:
 		return path.Base(rf.File) + ":" + strconv.Itoa(rf.Line)
-	case FieldKeyFcName: // eg: "logger_test.go:48"
+	case FieldKeyFcName:
 		ss := strings.Split(rf.Function, ".")
 		return ss[len(ss)-1]
 	}
@@ -122,15 +100,16 @@ func getCallStacks(all bool) []byte {
 }
 
 // it like Println, will add spaces for each argument
-func formatArgsWithSpaces(vs []interface{}) []byte {
+func formatArgsWithSpaces(vs []interface{}) string {
 	ln := len(vs)
 	if ln == 0 {
-		return nil
+		return ""
 	}
 
 	if ln == 1 {
-		msg := stdutil.ToString(vs[0])
-		return strutil.ToBytes(msg) // perf: Reduce one memory allocation
+		// msg := stdutil.ToString(vs[0])
+		// return strutil.ToBytes(msg) // perf: Reduce one memory allocation
+		return stdutil.ToString(vs[0]) // perf: Reduce one memory allocation
 	}
 
 	// buf = make([]byte, 0, ln*8)
@@ -152,7 +131,7 @@ func formatArgsWithSpaces(vs []interface{}) []byte {
 		bb.B = append(bb.B, str...)
 	}
 
-	return bb.B
+	return bb.String()
 }
 
 // EncodeToString data to string

@@ -54,8 +54,6 @@ func TestTextFormatNoColor(t *testing.T) {
 
 	printLogs("print log message")
 	printfLogs("print log with %s", "params")
-
-	slog.Reset()
 }
 
 type logTest struct {

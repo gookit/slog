@@ -43,7 +43,7 @@ func init() {
 	}
 
 	// start at the bottom of the stack before the package-name cache is primed
-	minCallerDepth = 1
+	// minCallerDepth = 1
 }
 
 // SugaredLogger definition.
@@ -93,13 +93,6 @@ func (sl *SugaredLogger) Configure(fn func(sl *SugaredLogger)) *SugaredLogger {
 // Reset the logger
 func (sl *SugaredLogger) Reset() {
 	*sl = *NewSugaredLogger(os.Stdout, ErrorLevel)
-
-	// reset handlers and processors
-	// sl.Logger.Reset()
-
-	// NOTICE: use self as an log handler
-	// sl.AddHandler(sl)
-	// sl.Formatter = NewTextFormatter()
 }
 
 // IsHandling Check if the current level can be handling
@@ -159,6 +152,7 @@ var std = NewStdLogger()
 func NewStdLogger() *SugaredLogger {
 	return NewSugaredLogger(os.Stdout, DebugLevel).Configure(func(sl *SugaredLogger) {
 		sl.SetName("stdLogger")
+		sl.CallerSkip += 1
 		sl.ReportCaller = true
 		// auto enable console color
 		sl.Formatter.(*TextFormatter).EnableColor = color.SupportColor()
@@ -178,7 +172,7 @@ func Reset() {
 }
 
 // Configure the std logger
-func Configure(fn func(logger *SugaredLogger)) {
+func Configure(fn func(l *SugaredLogger)) {
 	std.Configure(fn)
 }
 
@@ -279,102 +273,102 @@ func WithFields(fields M) *Record {
 
 // Print logs a message at level PrintLevel
 func Print(args ...interface{}) {
-	std.Log(PrintLevel, args...)
+	std.log(PrintLevel, args)
 }
 
 // Println logs a message at level PrintLevel
 func Println(args ...interface{}) {
-	std.Log(PrintLevel, args...)
+	std.log(PrintLevel, args)
 }
 
 // Printf logs a message at level PrintLevel
 func Printf(format string, args ...interface{}) {
-	std.Logf(PrintLevel, format, args...)
+	std.logf(PrintLevel, format, args)
 }
 
 // Trace logs a message at level Trace
 func Trace(args ...interface{}) {
-	std.Log(TraceLevel, args...)
+	std.log(TraceLevel, args)
 }
 
 // Tracef logs a message at level Trace
 func Tracef(format string, args ...interface{}) {
-	std.Logf(TraceLevel, format, args...)
+	std.logf(TraceLevel, format, args)
 }
 
 // Info logs a message at level Info
 func Info(args ...interface{}) {
-	std.Log(InfoLevel, args...)
+	std.log(InfoLevel, args)
 }
 
 // Infof logs a message at level Info
 func Infof(format string, args ...interface{}) {
-	std.Logf(InfoLevel, format, args...)
+	std.logf(InfoLevel, format, args)
 }
 
 // Notice logs a message at level Notice
 func Notice(args ...interface{}) {
-	std.Log(NoticeLevel, args...)
+	std.log(NoticeLevel, args)
 }
 
 // Noticef logs a message at level Notice
 func Noticef(format string, args ...interface{}) {
-	std.Logf(NoticeLevel, format, args...)
+	std.logf(NoticeLevel, format, args)
 }
 
 // Warn logs a message at level Warn
 func Warn(args ...interface{}) {
-	std.Log(WarnLevel, args...)
+	std.log(WarnLevel, args)
 }
 
 // Warnf logs a message at level Warn
 func Warnf(format string, args ...interface{}) {
-	std.Logf(WarnLevel, format, args...)
+	std.logf(WarnLevel, format, args)
 }
 
 // Error logs a message at level Error
 func Error(args ...interface{}) {
-	std.Log(ErrorLevel, args...)
+	std.log(ErrorLevel, args)
 }
 
 // ErrorT logs a error type at level Error
 func ErrorT(err error) {
 	if err != nil {
-		std.Log(ErrorLevel, err)
+		std.log(ErrorLevel, []interface{}{err})
 	}
 }
 
 // Errorf logs a message at level Error
 func Errorf(format string, args ...interface{}) {
-	std.Logf(ErrorLevel, format, args...)
+	std.logf(ErrorLevel, format, args)
 }
 
 // Debug logs a message at level Debug
 func Debug(args ...interface{}) {
-	std.Log(DebugLevel, args...)
+	std.log(DebugLevel, args)
 }
 
 // Debugf logs a message at level Debug
 func Debugf(format string, args ...interface{}) {
-	std.Logf(DebugLevel, format, args...)
+	std.logf(DebugLevel, format, args)
 }
 
 // Fatal logs a message at level Fatal
 func Fatal(args ...interface{}) {
-	std.Log(FatalLevel, args...)
+	std.log(FatalLevel, args)
 }
 
 // Fatalf logs a message at level Fatal
 func Fatalf(format string, args ...interface{}) {
-	std.Logf(FatalLevel, format, args...)
+	std.logf(FatalLevel, format, args)
 }
 
 // Panic logs a message at level Panic
 func Panic(args ...interface{}) {
-	std.Log(PanicLevel, args...)
+	std.log(PanicLevel, args)
 }
 
 // Panicf logs a message at level Panic
 func Panicf(format string, args ...interface{}) {
-	std.Logf(PanicLevel, format, args...)
+	std.logf(PanicLevel, format, args)
 }

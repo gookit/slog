@@ -24,7 +24,6 @@ type Logger struct {
 	// ReportCaller on log message
 	ReportCaller   bool
 	LowerLevelName bool
-	MaxCallerDepth int
 	CallerSkip     int
 
 	// Reusable empty record
@@ -37,17 +36,17 @@ type Logger struct {
 
 // New create an new logger
 func New() *Logger {
-	return NewWithName("-")
+	return NewWithName("logger")
 }
 
-// NewWithConfig create an new logger with config func
+// NewWithConfig create a new logger with config func
 func NewWithConfig(fn func(l *Logger)) *Logger {
-	return New().Configure(fn)
+	return NewWithName("logger").Configure(fn)
 }
 
 // NewWithHandlers create an new logger with handlers
 func NewWithHandlers(hs ...Handler) *Logger {
-	logger := NewWithName("")
+	logger := NewWithName("logger")
 	logger.AddHandlers(hs...)
 	return logger
 }
@@ -60,14 +59,13 @@ func NewWithName(name string) *Logger {
 		ExitFunc:     os.Exit,
 		exitHandlers: []func(){},
 		// options
-		ReportCaller:   true,
-		MaxCallerDepth: defaultMaxCallerDepth,
+		ReportCaller: true,
+		CallerSkip:   6,
 	}
 
 	logger.recordPool.New = func() interface{} {
 		return newRecord(logger)
 	}
-
 	return logger
 }
 
@@ -120,7 +118,7 @@ func (l *Logger) FlushDaemon() {
 func (l *Logger) FlushTimeout(timeout time.Duration) {
 	done := make(chan bool, 1)
 	go func() {
-		l.FlushAll() // calls l.lockAndFlushAll()
+		l.lockAndFlushAll()
 		// _, _ = fmt.Fprintln(os.Stderr, "slog: Flush logs error.", err)
 
 		done <- true
@@ -133,26 +131,32 @@ func (l *Logger) FlushTimeout(timeout time.Duration) {
 	}
 }
 
-// lockAndFlushAll is like flushAll but locks l.mu first.
-func (l *Logger) lockAndFlushAll() {
-	l.mu.Lock()
-	l.FlushAll()
-	l.mu.Unlock()
-}
-
-// Flush flushes all the logs to disk. alias of the FlushAll()
+// Flush flushes all the logs and attempts to "sync" their data to disk.
+// l.mu is held.
 func (l *Logger) Flush() {
-	l.FlushAll()
+	l.lockAndFlushAll()
 }
 
 // FlushAll flushes all the logs and attempts to "sync" their data to disk.
-// l.mu is held.
+//
+// alias of the Flush()
 func (l *Logger) FlushAll() {
+	l.lockAndFlushAll()
+}
+
+func (l *Logger) flushAll() {
 	// Flush from fatal down, in case there's trouble flushing.
 	l.VisitAll(func(handler Handler) error {
 		_ = handler.Flush() // ignore error
 		return nil
 	})
+}
+
+// lockAndFlushAll is like flushAll but locks l.mu first.
+func (l *Logger) lockAndFlushAll() {
+	l.mu.Lock()
+	l.flushAll()
+	l.mu.Unlock()
 }
 
 // Close the logger
@@ -309,137 +313,144 @@ func (l *Logger) WithContext(ctx context.Context) *Record {
 // ---------------------------------------------------------------------------
 //
 
-// Log an message
-func (l *Logger) Log(level Level, args ...interface{}) {
+func (l *Logger) log(level Level, args []interface{}) {
 	r := l.newRecord()
-	r.Log(level, args...)
-
+	r.log(level, args)
 	l.releaseRecord(r)
 }
 
-// Logf an message
-func (l *Logger) Logf(level Level, format string, args ...interface{}) {
+// Logf a format message with level
+func (l *Logger) logf(level Level, format string, args []interface{}) {
 	r := l.newRecord()
-	r.Logf(level, format, args...)
-
+	r.logf(level, format, args)
 	l.releaseRecord(r)
+}
+
+// Log a message with level
+func (l *Logger) Log(level Level, args ...interface{}) {
+	l.log(level, args)
+}
+
+// Logf a format message with level
+func (l *Logger) Logf(level Level, format string, args ...interface{}) {
+	l.logf(level, format, args)
 }
 
 // Print logs a message at level PrintLevel
 func (l *Logger) Print(args ...interface{}) {
-	l.Log(PrintLevel, args...)
+	l.log(PrintLevel, args)
 }
 
 // Println logs a message at level PrintLevel
 func (l *Logger) Println(args ...interface{}) {
-	l.Log(PrintLevel, args...)
+	l.log(PrintLevel, args)
 }
 
 // Printf logs a message at level PrintLevel
 func (l *Logger) Printf(format string, args ...interface{}) {
-	l.Logf(PrintLevel, format, args...)
-}
-
-// Warning logs a message at level Warn
-func (l *Logger) Warning(args ...interface{}) {
-	l.Warn(args...)
+	l.logf(PrintLevel, format, args)
 }
 
 // Warn logs a message at level Warn
 func (l *Logger) Warn(args ...interface{}) {
-	l.Log(WarnLevel, args...)
+	l.log(WarnLevel, args)
 }
 
 // Warnf logs a message at level Warn
 func (l *Logger) Warnf(format string, args ...interface{}) {
-	l.Logf(WarnLevel, format, args...)
+	l.logf(WarnLevel, format, args)
+}
+
+// Warning logs a message at level Warn
+func (l *Logger) Warning(args ...interface{}) {
+	l.log(WarnLevel, args)
 }
 
 // Info logs a message at level Info
 func (l *Logger) Info(args ...interface{}) {
-	l.Log(InfoLevel, args...)
+	l.log(InfoLevel, args)
 }
 
 // Infof logs a message at level Info
 func (l *Logger) Infof(format string, args ...interface{}) {
-	l.Logf(InfoLevel, format, args...)
+	l.logf(InfoLevel, format, args)
 }
 
 // Trace logs a message at level Trace
 func (l *Logger) Trace(args ...interface{}) {
-	l.Log(TraceLevel, args...)
+	l.log(TraceLevel, args)
 }
 
 // Tracef logs a message at level Trace
 func (l *Logger) Tracef(format string, args ...interface{}) {
-	l.Logf(TraceLevel, format, args...)
+	l.logf(TraceLevel, format, args)
 }
 
 // Error logs a message at level error
 func (l *Logger) Error(args ...interface{}) {
-	l.Log(ErrorLevel, args...)
+	l.log(ErrorLevel, args)
 }
 
 // Errorf logs a message at level Error
 func (l *Logger) Errorf(format string, args ...interface{}) {
-	l.Logf(ErrorLevel, format, args...)
+	l.logf(ErrorLevel, format, args)
 }
 
 // ErrorT logs a error type at level Error
 func (l *Logger) ErrorT(err error) {
 	if err != nil {
-		l.Log(ErrorLevel, err)
+		l.log(ErrorLevel, []interface{}{err})
 	}
 }
 
 // Notice logs a message at level Notice
 func (l *Logger) Notice(args ...interface{}) {
-	l.Log(NoticeLevel, args...)
+	l.log(NoticeLevel, args)
 }
 
 // Noticef logs a message at level Notice
 func (l *Logger) Noticef(format string, args ...interface{}) {
-	l.Logf(NoticeLevel, format, args...)
+	l.logf(NoticeLevel, format, args)
 }
 
 // Debug logs a message at level Debug
 func (l *Logger) Debug(args ...interface{}) {
-	l.Log(DebugLevel, args...)
+	l.log(DebugLevel, args)
 }
 
 // Debugf logs a message at level Debug
 func (l *Logger) Debugf(format string, args ...interface{}) {
-	l.Logf(DebugLevel, format, args...)
+	l.logf(DebugLevel, format, args)
 }
 
 // Fatal logs a message at level Fatal
 func (l *Logger) Fatal(args ...interface{}) {
-	l.Log(FatalLevel, args...)
+	l.log(FatalLevel, args)
 }
 
 // Fatalf logs a message at level Fatal
 func (l *Logger) Fatalf(format string, args ...interface{}) {
-	l.Logf(FatalLevel, format, args...)
+	l.logf(FatalLevel, format, args)
 }
 
 // Fatalln logs a message at level Fatal
 func (l *Logger) Fatalln(args ...interface{}) {
-	l.Log(FatalLevel, args...)
+	l.log(FatalLevel, args)
 }
 
 // Panic logs a message at level Panic
 func (l *Logger) Panic(args ...interface{}) {
-	l.Log(PanicLevel, args...)
+	l.log(PanicLevel, args)
 }
 
 // Panicf logs a message at level Panic
 func (l *Logger) Panicf(format string, args ...interface{}) {
-	l.Logf(PanicLevel, format, args...)
+	l.logf(PanicLevel, format, args)
 }
 
 // Panicln logs a message at level Panic
 func (l *Logger) Panicln(args ...interface{}) {
-	l.Log(PanicLevel, args...)
+	l.log(PanicLevel, args)
 }
 
 //
@@ -448,28 +459,44 @@ func (l *Logger) Panicln(args ...interface{}) {
 // ---------------------------------------------------------------------------
 //
 
-func (l *Logger) write(level Level, r *Record) {
-	var matchedHandlers []Handler
+func (l *Logger) matchHandlers(level Level) ([]Handler, bool) {
+	// alloc: 1 times for match handlers
+	var matched []Handler
 	for _, handler := range l.handlers {
 		if handler.IsHandling(level) {
-			matchedHandlers = append(matchedHandlers, handler)
+			matched = append(matched, handler)
 		}
 	}
 
-	// log level is don't match
-	if len(matchedHandlers) == 0 {
-		return
-	}
+	return matched, len(matched) > 0
+}
 
-	// init record
-	r.Init(l.LowerLevelName)
-
-	// log caller
-	if l.ReportCaller {
-		// l.mu.Lock()
-		r.Caller = getCaller(l.MaxCallerDepth, l.CallerSkip)
-		// l.mu.Unlock()
-	}
+func (l *Logger) write(level Level, r *Record, matched []Handler) {
+	// // alloc: 1 times for match handlers
+	// var matched []Handler
+	// for _, handler := range l.handlers {
+	// 	if handler.IsHandling(level) {
+	// 		matched = append(matched, handler)
+	// 	}
+	// }
+	//
+	// // log level is don't match
+	// if len(matched) == 0 {
+	// 	return
+	// }
+	//
+	// // init record
+	// r.Init(l.LowerLevelName)
+	// l.mu.Lock()
+	// defer l.mu.Unlock()
+	//
+	// // log caller. will alloc 3 times
+	// if l.ReportCaller {
+	// 	caller, ok := getCaller(l.CallerSkip)
+	// 	if ok {
+	// 		r.Caller = &caller
+	// 	}
+	// }
 
 	// processing log record
 	for i := range l.processors {
@@ -477,19 +504,20 @@ func (l *Logger) write(level Level, r *Record) {
 	}
 
 	// handling log record
-	for _, handler := range matchedHandlers {
+	for _, handler := range matched {
 		if err := handler.Handle(r); err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "Failed to dispatch handler: %v\n", err)
+			_, _ = fmt.Fprintf(os.Stderr, "slog: failed to handle log: %v\n", err)
 		}
 	}
 
-	// If is Panic level
+	// flush logs on level <= error level.
+	if level <= ErrorLevel {
+		l.FlushAll()
+	}
+
 	if level <= PanicLevel {
-		l.FlushAll()
 		panic(r)
-		// If is Fatal Level
 	} else if level <= FatalLevel {
-		l.FlushAll()
 		l.Exit(1)
 	}
 }

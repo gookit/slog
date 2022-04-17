@@ -28,7 +28,7 @@ type bufferHandler struct {
 	handler.LevelsWithFormatter
 }
 
-func (h *bufferHandler) Handle(*slog.Record) error {
+func (h *bufferHandler) Handle(_ *slog.Record) error {
 	panic("implement me")
 }
 
@@ -48,4 +48,27 @@ func TestLogger_ReportCaller(t *testing.T) {
 
 	str := buf.String()
 	assert.Contains(t, str, `"caller":"logger_test.go`)
+}
+
+func TestLogger_Log(t *testing.T) {
+	l := slog.NewWithConfig(func(l *slog.Logger) {
+		l.ReportCaller = true
+		l.ExitFunc = slog.DoNothingOnExit
+	})
+
+	l.AddHandler(handler.NewConsoleHandler(slog.AllLevels))
+	l.Log(slog.InfoLevel, "a", slog.InfoLevel, "message")
+}
+
+func TestLogger_Log_allLevel(t *testing.T) {
+	l := slog.NewWithConfig(func(l *slog.Logger) {
+		l.ReportCaller = true
+		l.ExitFunc = slog.DoNothingOnExit
+	})
+
+	l.AddHandler(handler.NewConsoleHandler(slog.AllLevels))
+
+	for _, level := range slog.NormalLevels {
+		l.Log(level, "a", level.Name(), "message")
+	}
 }

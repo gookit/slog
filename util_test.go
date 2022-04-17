@@ -34,6 +34,6 @@ func TestInner_parseTemplateToFields(t *testing.T) {
 
 	ss = parseTemplateToFields(DefaultTemplate)
 	str = revertTemplateString(ss)
-	dump.P(ss)
+	dump.P(ss, str)
 	assert.Equal(t, DefaultTemplate, str)
 }
