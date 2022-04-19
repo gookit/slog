@@ -1,4 +1,4 @@
-package bufwriter
+package bufline
 
 import (
 	"io"
@@ -39,6 +39,7 @@ func NewBufWriterSize(w io.Writer, size int) *Writer {
 	if size <= 0 {
 		size = defaultBufSize
 	}
+
 	return &Writer{
 		buf: make([]byte, size),
 		wr:  w,
@@ -53,7 +54,7 @@ func NewBufWriter(w io.Writer) *Writer {
 // Size returns the size of the underlying buffer in bytes.
 func (b *Writer) Size() int { return len(b.buf) }
 
-// Reset discards any unflushed buffered data, clears any error, and
+// Reset discards any un-flushed buffered data, clears any error, and
 // resets b to write its output to w.
 func (b *Writer) Reset(w io.Writer) {
 	b.err = nil
