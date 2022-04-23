@@ -1,4 +1,5 @@
 // Package handler provide useful common log handlers.
+//
 // eg: file, console, multi_file, rotate_file, stream, syslog, email
 package handler
 
@@ -6,19 +7,9 @@ import (
 	"bufio"
 	"io"
 	"os"
-	"sync"
 
 	"github.com/gookit/slog"
 )
-
-// var (
-// 	// program pid
-// 	pid = os.Getpid()
-// 	// program name
-// 	pName = filepath.Base(os.Args[0])
-// 	hName = "unknownHost" // TODO
-// 	// uName = "unknownUser"
-// )
 
 // defaultBufferSize sizes the buffer associated with each log file. It's large
 // so that log records can accumulate without the logging thread blocking
@@ -33,94 +24,62 @@ var (
 	DefaultFileFlags = os.O_CREATE | os.O_WRONLY | os.O_APPEND
 )
 
-type lockWrapper struct {
-	sync.Mutex
-	disable bool
+// Builder struct for create handler
+type Builder struct {
+	Output   io.Writer
+	Filepath string
+	BuffSize int
+	Levels   []slog.Level
 }
 
-// Lock it
-func (lw *lockWrapper) Lock() {
-	if false == lw.disable {
-		lw.Mutex.Lock()
-	}
+// NewBuilder create
+func NewBuilder() *Builder {
+	return &Builder{}
 }
 
-// Unlock it
-func (lw *lockWrapper) Unlock() {
-	if !lw.disable {
-		lw.Mutex.Unlock()
-	}
+// Build slog handler.
+func (b *Builder) reset() {
+	b.Output = nil
+	b.Levels = b.Levels[:0]
+	b.Filepath = ""
+	b.BuffSize = 0
 }
 
-// UseLock locker
-func (lw *lockWrapper) UseLock(enable bool) {
-	lw.disable = false == enable
-}
+// Build slog handler.
+func (b *Builder) Build() slog.Handler {
+	defer b.reset()
 
-// LockEnabled status
-func (lw *lockWrapper) LockEnabled() bool {
-	return lw.disable == false
-}
-
-// NopFlushClose no operation. provide empty Flush(), Close() methods
-type NopFlushClose struct{}
-
-// Flush logs to disk
-func (h *NopFlushClose) Flush() error {
-	return nil
-}
-
-// Close handler
-func (h *NopFlushClose) Close() error {
-	return nil
-}
-
-type fileWrapper struct {
-	fpath string
-	file  *os.File
-}
-
-// func newFileHandler(fpath string) *fileWrapper {
-// 	return &fileWrapper{fpath: fpath}
-// }
-
-// ReopenFile the log file
-func (h *fileWrapper) ReopenFile() error {
-	if h.file != nil {
-		h.file.Close()
+	if b.Output != nil {
+		return b.buildFromWriter(b.Output)
 	}
 
-	file, err := QuickOpenFile(h.fpath)
-	if err != nil {
-		return err
+	if b.Filepath != "" {
+		f, err := QuickOpenFile(b.Filepath)
+		if err != nil {
+			panic(err)
+		}
+
+		return b.buildFromWriter(f)
 	}
 
-	h.file = file
-	return err
+	panic("missing some information for build handler")
 }
 
-// Write contents to *os.File
-func (h *fileWrapper) Write(bts []byte) (n int, err error) {
-	return h.file.Write(bts)
-}
-
-// Writer return *os.File
-func (h *fileWrapper) Writer() io.Writer {
-	return h.file
-}
-
-// Close handler, will be flush logs to file, then close file
-func (h *fileWrapper) Close() error {
-	if err := h.Flush(); err != nil {
-		return err
+// Build slog handler.
+func (b *Builder) buildFromWriter(w io.Writer) slog.Handler {
+	if scw, ok := w.(SyncCloseWriter); ok {
+		return NewSyncCloseHandler(scw, b.Levels)
 	}
 
-	return h.file.Close()
-}
+	if fcw, ok := w.(FlushCloseWriter); ok {
+		return NewFlushCloseHandler(fcw, b.Levels)
+	}
 
-// Flush logs to disk file
-func (h *fileWrapper) Flush() error {
-	return h.file.Sync()
+	if wc, ok := w.(io.WriteCloser); ok {
+		return NewWriteCloser(wc, b.Levels)
+	}
+
+	return NewIOWriter(w, b.Levels)
 }
 
 type bufFileWrapper struct {
@@ -132,6 +91,13 @@ type bufFileWrapper struct {
 	NoBuffer bool
 	// BuffSize for enable buffer
 	BuffSize int
+}
+
+// CloseBuffer for write logs
+func (h *bufFileWrapper) init() {
+	if h.BuffSize > 0 {
+		// TODO create buff io
+	}
 }
 
 // CloseBuffer for write logs

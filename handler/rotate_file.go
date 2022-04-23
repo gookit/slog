@@ -122,10 +122,10 @@ func (h *RotateFileHandler) Handle(r *slog.Record) (err error) {
 	if err == nil {
 		h.written += uint64(n)
 
-		// do rotating file by time
+		// do rotate file by time
 		err = h.byTimeRotatingFile()
 
-		// do rotating file by size
+		// do rotate file by size
 		if h.written >= h.MaxSize {
 			err = h.bySizeRotatingFile()
 		}
@@ -147,7 +147,7 @@ func (h *RotateFileHandler) byTimeRotatingFile() error {
 	// rename current to new file
 	newFilepath := h.fpath + "." + now.Format(h.suffixFormat)
 
-	// do rotating file
+	// do rotate file
 	err := h.doRotatingFile(newFilepath)
 
 	// storage next rotating time

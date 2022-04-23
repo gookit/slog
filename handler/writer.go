@@ -10,8 +10,6 @@ import (
 type IOWriterHandler struct {
 	lockWrapper
 	LevelsWithFormatter
-
-	// Output io.WriteCloser
 	Output io.Writer
 }
 

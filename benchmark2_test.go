@@ -24,12 +24,8 @@ func TestLogger_newRecord_AllocTimes(t *testing.T) {
 }
 
 func Test_formatArgsWithSpaces_oneElem_AllocTimes(t *testing.T) {
-	l := Std()
-	l.Output = ioutil.Discard
-	defer l.Reset()
-
 	// output: 1 times -> 0 times
-	fmt.Println("Alloc Times:", int(testing.AllocsPerRun(100, func() {
+	fmt.Println("Alloc Times:", int(testing.AllocsPerRun(10, func() {
 		// logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
 		formatArgsWithSpaces([]interface{}{
 			"msg", // 2343, -23, 123.2,
@@ -67,7 +63,8 @@ func TestRecord_logBytes_AllocTimes(t *testing.T) {
 		r := l.newRecord()
 
 		_, _ = bb.Write([]byte("info message"))
-		r.logBytes(InfoLevel, bb.B)
+		r.Message = string(bb.B)
+		r.logBytes(InfoLevel)
 
 		l.releaseRecord(r)
 	})))
@@ -105,16 +102,20 @@ func Test_AllocTimes_stringsPool(t *testing.T) {
 
 func TestLogger_Info_AllocTimes(t *testing.T) {
 	l := Std()
-	l.Output = ioutil.Discard
+	// l.Output = ioutil.Discard
+	l.ReportCaller = false
 	l.LowerLevelName = true
+	// 启用 color 会导致多次(10次左右)内存分配
+	l.Formatter.(*TextFormatter).EnableColor = false
+
 	defer l.Reset()
 
 	// l.Info("msg")
 	// return
 
-	// output: 0 times
-	fmt.Println("Alloc Times:", int(testing.AllocsPerRun(100, func() {
-		// logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
+	// output: 2 times
+	fmt.Println("Alloc Times:", int(testing.AllocsPerRun(5, func() {
+		// l.Info("rate", "15", "low", 16, "high", 123.2, "msg")
 		l.Info("msg")
 	})))
 }

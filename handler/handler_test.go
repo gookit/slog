@@ -10,15 +10,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var doNothing = func(code int) {
-	// do nothing
-}
-
 func TestConsoleHandlerWithColor(t *testing.T) {
 	l := slog.NewWithHandlers(handler.NewConsoleHandler(slog.AllLevels))
 	l.Configure(func(l *slog.Logger) {
 		l.ReportCaller = true
-		l.ExitFunc = doNothing
+		l.ExitFunc = slog.DoNothingOnExit
 	})
 
 	l.Trace("this is a simple log message")

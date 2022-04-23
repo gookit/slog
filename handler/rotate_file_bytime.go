@@ -11,7 +11,7 @@ import (
 //
 // EveryDay:
 // 	- "error.log.20201223"
-// EveryHour, Every30Minutes,EveryMinute:
+// EveryHour, Every30Minutes, EveryMinute:
 // 	- "error.log.20201223_1500"
 // 	- "error.log.20201223_1530"
 // 	- "error.log.20201223_1523"
