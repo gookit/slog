@@ -1,15 +1,15 @@
-package bufline
+package bufwrite
 
 import (
 	"io"
 )
 
 const (
-	defaultBufSize = 4096
+	defaultBufSize = 1024 * 8
 )
 
-// Writer implements buffering for an io.Writer object.
-// If an error occurs writing to a Writer, no more data will be
+// LineWriter implements buffering for an io.Writer object.
+// If an error occurs writing to a LineWriter, no more data will be
 // accepted and all subsequent writes, and Flush, will return the error.
 // After all data has been written, the client should call the
 // Flush method to guarantee all data has been forwarded to
@@ -20,19 +20,19 @@ const (
 // Change:
 //
 // always keep write full line. more difference please see Write
-type Writer struct {
+type LineWriter struct {
 	err error
 	buf []byte
 	n   int
 	wr  io.Writer
 }
 
-// NewBufWriterSize returns a new Writer whose buffer has at least the specified
-// size. If the argument io.Writer is already a Writer with large enough
-// size, it returns the underlying Writer.
-func NewBufWriterSize(w io.Writer, size int) *Writer {
-	// Is it already a Writer?
-	b, ok := w.(*Writer)
+// NewLineWriterSize returns a new LineWriter whose buffer has at least the specified
+// size. If the argument io.Writer is already a LineWriter with large enough
+// size, it returns the underlying LineWriter.
+func NewLineWriterSize(w io.Writer, size int) *LineWriter {
+	// Is it already a LineWriter?
+	b, ok := w.(*LineWriter)
 	if ok && len(b.buf) >= size {
 		return b
 	}
@@ -40,32 +40,42 @@ func NewBufWriterSize(w io.Writer, size int) *Writer {
 		size = defaultBufSize
 	}
 
-	return &Writer{
+	return &LineWriter{
 		buf: make([]byte, size),
 		wr:  w,
 	}
 }
 
-// NewBufWriter returns a new Writer whose buffer has the default size.
-func NewBufWriter(w io.Writer) *Writer {
-	return NewBufWriterSize(w, defaultBufSize)
+// NewLineWriter returns a new LineWriter whose buffer has the default size.
+func NewLineWriter(w io.Writer) *LineWriter {
+	return NewLineWriterSize(w, defaultBufSize)
 }
 
 // Size returns the size of the underlying buffer in bytes.
-func (b *Writer) Size() int { return len(b.buf) }
+func (b *LineWriter) Size() int { return len(b.buf) }
 
 // Reset discards any un-flushed buffered data, clears any error, and
 // resets b to write its output to w.
-func (b *Writer) Reset(w io.Writer) {
+func (b *LineWriter) Reset(w io.Writer) {
 	b.err = nil
 	b.n = 0
 	b.wr = w
 }
 
+// Close implements the io.Closer
+func (b *LineWriter) Close() error {
+	return b.Flush()
+}
+
+// Sync implements the Syncer
+func (b *LineWriter) Sync() error {
+	return b.Flush()
+}
+
 // Flush writes any buffered data to the underlying io.Writer.
 //
 // TIP: please add lock before call the method.
-func (b *Writer) Flush() error {
+func (b *LineWriter) Flush() error {
 	if b.err != nil {
 		return b.err
 	}
@@ -89,16 +99,16 @@ func (b *Writer) Flush() error {
 }
 
 // Available returns how many bytes are unused in the buffer.
-func (b *Writer) Available() int { return len(b.buf) - b.n }
+func (b *LineWriter) Available() int { return len(b.buf) - b.n }
 
 // Buffered returns the number of bytes that have been written into the current buffer.
-func (b *Writer) Buffered() int { return b.n }
+func (b *LineWriter) Buffered() int { return b.n }
 
 // Write writes the contents of p into the buffer.
 // It returns the number of bytes written.
 // If nn < len(p), it also returns an error explaining
 // why the write is short.
-func (b *Writer) Write(p []byte) (nn int, err error) {
+func (b *LineWriter) Write(p []byte) (nn int, err error) {
 	// 原来的会造成 p 写了一部分到 b.wr, 还有一部分在 b.buf，
 	// 如果现在外部工具从 b.wr 收集数据，会收集到一行无法解析的数据(例如每个p是一行json日志)
 	// for len(p) > b.Available() && b.err == nil {
