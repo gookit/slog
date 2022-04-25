@@ -19,10 +19,6 @@ func TestNewFileHandler(t *testing.T) {
 	h, err := handler.NewFileHandler(testFile, false)
 	assert.NoError(t, err)
 
-	h.Configure(func(h *handler.FileHandler) {
-		h.NoBuffer = true
-	})
-
 	l := slog.NewWithHandlers(h)
 	l.Info("info message")
 	l.Warn("warn message")

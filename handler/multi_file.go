@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"bufio"
+	"io"
 
 	"github.com/gookit/slog"
 )
@@ -9,14 +9,13 @@ import (
 // MultiFileHandler definition
 type MultiFileHandler struct {
 	lockWrapper
-	bufio *bufio.Writer
-
+	writers map[string]io.Writer
 	// FileDir for save log files
 	FileDir string
-	// Files can use multi file for record level logs. eg:
+	// FileLevels can use multi file for record level logs. eg:
+	//
 	//  "error.log": []slog.Level{slog.Warn, slog.Error},
 	//  "info.log": []slog.Level{slog.Trace, slog.Info, slog.Notice}
-	// FileLevels map[string][]slog.Level
 	FileLevels map[string]slog.Levels
 	// NoBuffer on write log records
 	NoBuffer bool

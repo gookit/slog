@@ -8,7 +8,6 @@ import (
 
 // IOWriterHandler definition
 type IOWriterHandler struct {
-	lockWrapper
 	LevelsWithFormatter
 	Output io.Writer
 }
@@ -50,9 +49,6 @@ func (h *IOWriterHandler) Handle(record *slog.Record) error {
 	if err != nil {
 		return err
 	}
-
-	h.Lock()
-	defer h.Unlock()
 
 	_, err = h.Output.Write(bts)
 	return err

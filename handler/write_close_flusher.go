@@ -10,6 +10,11 @@ type FlushCloseHandler struct {
 	Output FlushCloseWriter
 }
 
+// NewFlushCloser create new FlushCloseHandler
+func NewFlushCloser(out FlushCloseWriter, levels []slog.Level) *FlushCloseHandler {
+	return NewFlushCloseHandler(out, levels)
+}
+
 // NewFlushCloseHandler create new FlushCloseHandler
 //
 // Usage:

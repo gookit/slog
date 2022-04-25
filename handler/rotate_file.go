@@ -1,107 +1,56 @@
 package handler
 
 import (
-	"os"
-	"time"
-
 	"github.com/gookit/slog"
+	"github.com/gookit/slog/rotatefile"
 )
 
 // RotateFileHandler struct definition
 // It also supports splitting log files by time and size
 type RotateFileHandler struct {
-	lockWrapper
-	bufFileWrapper
-
-	// LevelsWithFormatter support limit log levels and formatter
+	// lockWrapper
 	LevelsWithFormatter
-
-	// for size rotating
-	written   uint64
-	rotateNum uint
-
-	// for time rotating
-	rotateTime     rotateTime
-	suffixFormat   string
-	checkInterval  int64
-	nextRotatingAt int64
-
-	// for clear log files
-	MaxFileCount int // The number of files should be kept
-	MaxKeepTime  int // Time to wait until old logs are purged.
-
-	// file contents max size
-	MaxSize uint64
-	// RenameFunc build filename for rotate file
-	RenameFunc func(fpath string, rotateNum uint) string
+	output FlushCloseWriter
 }
 
 // MustRotateFile instance
-func MustRotateFile(logfile string, rt rotateTime) *RotateFileHandler {
+func MustRotateFile(logfile string, rt rotatefile.RotateTime) *RotateFileHandler {
 	h, err := NewRotateFileHandler(logfile, rt)
 	if err != nil {
 		panic(err)
 	}
-
 	return h
 }
 
 // NewRotateFile instance
-func NewRotateFile(logfile string, rt rotateTime) (*RotateFileHandler, error) {
+func NewRotateFile(logfile string, rt rotatefile.RotateTime) (*RotateFileHandler, error) {
 	return NewRotateFileHandler(logfile, rt)
 }
 
 // NewRotateFileHandler instance
-func NewRotateFileHandler(logfile string, rt rotateTime) (*RotateFileHandler, error) {
-	h := &RotateFileHandler{
-		rotateTime: rt,
-		// file contents size
-		MaxSize: DefaultMaxSize,
-		// default log all levels
-		LevelsWithFormatter: newLvsFormatter(slog.AllLevels),
-		// build new log filename.
-		// eg: "error.log" => "error.log.010215_00001"
-		RenameFunc: defaultNewLogfileFunc,
-	}
+func NewRotateFileHandler(logfile string, rt rotatefile.RotateTime) (*RotateFileHandler, error) {
+	cfg := NewConfig()
+	cfg.RotateTime = rt
 
-	// init
-	h.checkInterval, h.suffixFormat = rt.GetIntervalAndFormat()
+	return NewRotateFileByConfig(logfile, cfg)
+}
 
-	// fw := fileWrapper{fpath: filepath}
-	fw := bufFileWrapper{
-		BuffSize: defaultBufferSize,
-	}
-	fw.fpath = logfile
-	// set prop
-	h.bufFileWrapper = fw
-
-	// open log file
-	if err := h.ReopenFile(); err != nil {
-		return nil, err
-	}
-
-	// storage next rotating time
-	fileInfo, err := h.file.Stat()
+// NewRotateFileByConfig instance
+func NewRotateFileByConfig(logfile string, cfg *Config) (*RotateFileHandler, error) {
+	cfg.Logfile = logfile
+	writer, err := cfg.CreateWriter()
 	if err != nil {
 		return nil, err
 	}
 
-	h.nextRotatingAt = fileInfo.ModTime().Unix() + h.checkInterval
+	h := &RotateFileHandler{
+		output: writer,
+		// with log levels and formatter
+		LevelsWithFormatter: newLvsFormatter(cfg.Levels),
+	}
 
 	return h, nil
 }
-
-// func (h *RotateFileHandler) Write(p []byte) (n int, err error) {
-// 	if h.written+uint64(len(p)) >= h.MaxSize {
-// 		if err := h.rotateFile(time.Now()); err != nil {
-// 			return 0, err
-// 		}
-// 	}
-//
-// 	n, err = h.file.Write(p)
-// 	h.written += uint64(n)
-// 	return
-// }
 
 // Handle the log record
 func (h *RotateFileHandler) Handle(r *slog.Record) (err error) {
@@ -112,83 +61,105 @@ func (h *RotateFileHandler) Handle(r *slog.Record) (err error) {
 	}
 
 	// if lock enabled
-	h.Lock()
-	defer h.Unlock()
-
-	var n int
+	// h.Lock()
+	// defer h.Unlock()
 
 	// write logs
-	n, err = h.Write(bts)
-	if err == nil {
-		h.written += uint64(n)
-
-		// do rotate file by time
-		err = h.byTimeRotatingFile()
-
-		// do rotate file by size
-		if h.written >= h.MaxSize {
-			err = h.bySizeRotatingFile()
-		}
-	}
+	_, err = h.output.Write(bts)
 	return
 }
 
-func (h *RotateFileHandler) byTimeRotatingFile() error {
-	now := time.Now()
-	if h.nextRotatingAt > now.Unix() {
-		return nil
-	}
-
-	// close file
-	if err := h.Close(); err != nil {
+// Close handler, will be flush logs to file, then close file
+func (h *RotateFileHandler) Close() error {
+	if err := h.Flush(); err != nil {
 		return err
 	}
 
-	// rename current to new file
-	newFilepath := h.fpath + "." + now.Format(h.suffixFormat)
-
-	// do rotate file
-	err := h.doRotatingFile(newFilepath)
-
-	// storage next rotating time
-	h.nextRotatingAt = now.Unix() + h.checkInterval
-	return err
+	return h.output.Close()
 }
 
-// rotateFile closes the syncBuffer's file and starts a new one.
-func (h *RotateFileHandler) bySizeRotatingFile() error {
-	// close file
-	if err := h.Close(); err != nil {
-		return err
-	}
-
-	// rename current to new file
-	h.rotateNum++
-	newFilepath := h.RenameFunc(h.fpath, h.rotateNum)
-
-	// do rotating file
-	return h.doRotatingFile(newFilepath)
+// Flush logs to disk file
+func (h *RotateFileHandler) Flush() error {
+	return h.output.Flush()
 }
 
-// rotateFile closes the syncBuffer's file and starts a new one.
-func (h *RotateFileHandler) doRotatingFile(newFilepath string) error {
-	err := os.Rename(h.fpath, newFilepath)
+//
+// ---------------------------------------------------------------------------
+// rotate file by size
+// ---------------------------------------------------------------------------
+//
+
+// MustSizeRotateFile instance
+func MustSizeRotateFile(logfile string, sizeMb int) *RotateFileHandler {
+	h, err := NewSizeRotateFileHandler(logfile, sizeMb)
 	if err != nil {
-		return err
+		panic(err)
 	}
+	return h
+}
 
-	// reopen file
-	h.file, err = QuickOpenFile(h.fpath)
+// NewSizeRotateFile instance
+func NewSizeRotateFile(logfile string, sizeMb int) (*RotateFileHandler, error) {
+	return NewSizeRotateFileHandler(logfile, sizeMb)
+}
+
+// NewSizeRotateFileHandler instance
+func NewSizeRotateFileHandler(logfile string, sizeMb int) (*RotateFileHandler, error) {
+	cfg := NewConfig()
+	// close rotate by time.
+	cfg.RotateTime = 0
+	cfg.MaxSize = uint(sizeMb)
+
+	return NewRotateFileByConfig(logfile, cfg)
+}
+
+//
+// ---------------------------------------------------------------------------
+// rotate log file by time
+// ---------------------------------------------------------------------------
+//
+
+// RotateTime rotate log file by time.
+//
+// EveryDay:
+// 	- "error.log.20201223"
+// EveryHour, Every30Minutes, EveryMinute:
+// 	- "error.log.20201223_1500"
+// 	- "error.log.20201223_1530"
+// 	- "error.log.20201223_1523"
+type RotateTime = rotatefile.RotateTime
+
+const (
+	EveryDay  = rotatefile.EveryDay
+	EveryHour = rotatefile.EveryDay
+
+	Every30Minutes = rotatefile.Every30Min
+	Every15Minutes = rotatefile.Every15Min
+
+	EveryMinute = rotatefile.EveryMinute
+	EverySecond = rotatefile.EverySecond // only use for tests
+)
+
+// MustTimeRotateFile instance
+func MustTimeRotateFile(logfile string, rt rotatefile.RotateTime) *RotateFileHandler {
+	h, err := NewTimeRotateFileHandler(logfile, rt)
 	if err != nil {
-		return err
+		panic(err)
 	}
+	return h
+}
 
-	// if enable buffer
-	if h.bufio != nil {
-		h.bufio.Reset(h.file)
-	}
+// NewTimeRotateFile instance
+func NewTimeRotateFile(logfile string, rt rotatefile.RotateTime) (*RotateFileHandler, error) {
+	return NewTimeRotateFileHandler(logfile, rt)
+}
 
-	// reset h.written
-	h.written = 0
-	return nil
+// NewTimeRotateFileHandler instance
+func NewTimeRotateFileHandler(logfile string, rt rotatefile.RotateTime) (*RotateFileHandler, error) {
+	cfg := NewConfig()
+	// close rotate by size.
+	cfg.MaxSize = 0
+	cfg.RotateTime = rt
+
+	return NewRotateFileByConfig(logfile, cfg)
 }

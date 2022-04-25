@@ -8,7 +8,6 @@ import (
 
 // bufferWrapper struct
 type bufferWrapper struct {
-	lockWrapper
 	buffer  *bufio.Writer
 	handler slog.FormatterWriterHandler
 }
@@ -28,9 +27,6 @@ func (w *bufferWrapper) IsHandling(level slog.Level) bool {
 
 // Flush all buffers to the `h.fcWriter.Writer()`
 func (w *bufferWrapper) Flush() error {
-	w.Lock()
-	defer w.Unlock()
-
 	if err := w.buffer.Flush(); err != nil {
 		return err
 	}
@@ -53,13 +49,6 @@ func (w *bufferWrapper) Handle(record *slog.Record) error {
 	if err != nil {
 		return err
 	}
-
-	w.Lock()
-	defer w.Unlock()
-
-	// if w.buffer == nil {
-	// 	w.buffer = bufio.NewWriterSize(w.handler.Writer(), w.buffSize)
-	// }
 
 	_, err = w.buffer.Write(bts)
 	return err

@@ -4,11 +4,46 @@ import (
 	"github.com/gookit/slog"
 )
 
+// SyncCloseWrapper definition
+type SyncCloseWrapper struct {
+	Output SyncCloseWriter
+}
+
+// NewSyncCloseWrapper instance
+func NewSyncCloseWrapper(out SyncCloseWriter) SyncCloseWrapper {
+	return SyncCloseWrapper{
+		Output: out,
+	}
+}
+
+// Close the handler
+func (w *SyncCloseWrapper) Close() error {
+	if err := w.Flush(); err != nil {
+		return err
+	}
+	return w.Output.Close()
+}
+
+// Flush the handler
+func (w *SyncCloseWrapper) Flush() error {
+	return w.Output.Sync()
+}
+
+// Write the handler
+func (w *SyncCloseWrapper) Write(p []byte) (int, error) {
+	return w.Output.Write(p)
+}
+
 // SyncCloseHandler definition
 type SyncCloseHandler struct {
 	// lockWrapper
 	LevelsWithFormatter
 	Output SyncCloseWriter
+}
+
+// NewSyncCloser create new SyncCloseHandler
+func NewSyncCloser(out SyncCloseWriter, levels []slog.Level) *SyncCloseHandler {
+	return NewSyncCloseHandler(out, levels)
 }
 
 // NewSyncCloseHandler create new SyncCloseHandler

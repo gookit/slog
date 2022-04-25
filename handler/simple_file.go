@@ -1,15 +1,14 @@
 package handler
 
 import (
+	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/slog"
 )
 
 // SimpleFileHandler struct
 // - no buffer, will direct write logs to file.
 type SimpleFileHandler struct {
-	fileWrapper
-	lockWrapper
-	// LevelWithFormatter support level and formatter
+	out SyncCloseWrapper
 	LevelWithFormatter
 }
 
@@ -23,7 +22,7 @@ func MustSimpleFile(filepath string) *SimpleFileHandler {
 	return h
 }
 
-// NewSimpleFileHandler new instance
+// NewSimpleFile new instance
 func NewSimpleFile(filepath string) (*SimpleFileHandler, error) {
 	return NewSimpleFileHandler(filepath)
 }
@@ -31,25 +30,23 @@ func NewSimpleFile(filepath string) (*SimpleFileHandler, error) {
 // NewSimpleFileHandler instance
 //
 // Usage:
-// 	h, err := NewSimpleFileHandler("", DefaultFileFlags)
-// custom file flags
-// 	h, err := NewSimpleFileHandler("", os.O_CREATE | os.O_WRONLY | os.O_APPEND)
+// 	h, err := NewSimpleFileHandler("/tmp/error.log")
+//
 // custom formatter
 //	h.SetFormatter(slog.NewJSONFormatter())
 //	slog.PushHandler(h)
 //	slog.Info("log message")
-func NewSimpleFileHandler(filepath string) (*SimpleFileHandler, error) {
-	fh := fileWrapper{fpath: filepath}
-	if err := fh.ReopenFile(); err != nil {
+func NewSimpleFileHandler(filePath string) (*SimpleFileHandler, error) {
+	file, err := fsutil.QuickOpenFile(filePath)
+	if err != nil {
 		return nil, err
 	}
 
 	h := &SimpleFileHandler{
-		fileWrapper: fh,
+		out: NewSyncCloseWrapper(file),
+		// init default log level
+		LevelWithFormatter: newLvFormatter(slog.InfoLevel),
 	}
-
-	// init default log level
-	h.Level = slog.InfoLevel
 
 	return h, nil
 }
@@ -62,11 +59,7 @@ func (h *SimpleFileHandler) Handle(r *slog.Record) (err error) {
 		return
 	}
 
-	// if enable lock
-	h.Lock()
-	defer h.Unlock()
-
 	// direct write logs
-	_, err = h.file.Write(bts)
+	_, err = h.out.Write(bts)
 	return
 }
