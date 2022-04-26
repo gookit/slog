@@ -134,6 +134,9 @@ func (fn ClockFn) Now() time.Time {
 	return fn()
 }
 
+// ConfigFn for setting config
+type ConfigFn func(c *Config)
+
 // Config struct for rotate dispatcher
 type Config struct {
 	// Filepath the log file path, will be rotating
@@ -182,9 +185,17 @@ func (c *Config) maxSizeByte() uint64 {
 	return uint64(c.MaxSize * oneMByte)
 }
 
-// Create new RotateWriter
-func (c *Config) Create() (*RotateWriter, error) {
-	return New(c)
+// With more config setting func
+func (c *Config) With(fns ...ConfigFn) *Config {
+	for _, fn := range fns {
+		fn(c)
+	}
+	return c
+}
+
+// Create new Writer
+func (c *Config) Create() (*Writer, error) {
+	return NewWriter(c)
 }
 
 var (
@@ -224,15 +235,27 @@ func NewDefaultConfig() *Config {
 
 // NewConfig by file path
 func NewConfig(filePath string) *Config {
-	c := NewDefaultConfig()
-	c.Filepath = filePath
-
-	return c
+	return NewConfigWith(WithFilepath(filePath))
 }
 
 // NewConfigWith custom func
-func NewConfigWith(fn func(c *Config)) *Config {
-	c := NewDefaultConfig()
-	fn(c)
-	return c
+func NewConfigWith(fns ...ConfigFn) *Config {
+	return NewDefaultConfig().With(fns...)
+}
+
+// EmptyConfigWith new empty config with custom func
+func EmptyConfigWith(fns ...ConfigFn) *Config {
+	c := &Config{
+		RenameFunc: DefaultFilenameFn,
+		TimeClock:  DefaultTimeClockFn,
+	}
+
+	return c.With(fns...)
+}
+
+// WithFilepath setting
+func WithFilepath(logfile string) ConfigFn {
+	return func(c *Config) {
+		c.Filepath = logfile
+	}
 }

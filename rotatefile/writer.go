@@ -11,10 +11,10 @@ import (
 	"github.com/gookit/goutil/fsutil"
 )
 
-// RotateWriter a flush, close, writer and support rotate file.
+// Writer a flush, close, writer and support rotate file.
 //
 // refer https://github.com/flike/golog/blob/master/filehandler.go
-type RotateWriter struct {
+type Writer struct {
 	sync.Mutex
 	cfg  *Config
 	file *os.File
@@ -35,11 +35,9 @@ type RotateWriter struct {
 	nextRotatingAt int64
 }
 
-// New create rotate dispatcher with config.
-func New(c *Config) (*RotateWriter, error) {
-	d := &RotateWriter{
-		cfg: c,
-	}
+// NewWriter create rotate dispatcher with config.
+func NewWriter(c *Config) (*Writer, error) {
+	d := &Writer{cfg: c}
 
 	if err := d.init(); err != nil {
 		return nil, err
@@ -47,13 +45,13 @@ func New(c *Config) (*RotateWriter, error) {
 	return d, nil
 }
 
-// NewFromPath create rotate dispatcher with file path.
-func NewFromPath(filePath string) (*RotateWriter, error) {
-	return New(NewConfig(filePath))
+// NewWriterWith create rotate writer with some settings.
+func NewWriterWith(fns ...ConfigFn) (*Writer, error) {
+	return NewWriter(NewConfigWith(fns...))
 }
 
 // init rotate dispatcher
-func (d *RotateWriter) init() error {
+func (d *Writer) init() error {
 	d.fileDir = path.Dir(d.cfg.Filepath)
 	d.maxSize = d.cfg.maxSizeByte()
 	d.backupDur = d.cfg.backupDuration()
@@ -81,7 +79,7 @@ func (d *RotateWriter) init() error {
 }
 
 // ReopenFile the log file
-func (d *RotateWriter) ReopenFile() error {
+func (d *Writer) ReopenFile() error {
 	if d.file != nil {
 		d.file.Close()
 	}
@@ -90,7 +88,7 @@ func (d *RotateWriter) ReopenFile() error {
 }
 
 // ReopenFile the log file
-func (d *RotateWriter) openFile() error {
+func (d *Writer) openFile() error {
 	file, err := fsutil.OpenFile(d.cfg.Filepath, DefaultFileFlags, DefaultFilePerm)
 	if err != nil {
 		return err
@@ -101,18 +99,18 @@ func (d *RotateWriter) openFile() error {
 }
 
 // Flush sync data to disk. alias of Sync()
-func (d *RotateWriter) Flush() error {
+func (d *Writer) Flush() error {
 	return d.file.Sync()
 }
 
 // Sync data to disk.
-func (d *RotateWriter) Sync() error {
+func (d *Writer) Sync() error {
 	return d.file.Sync()
 }
 
-// Close the dispatcher.
+// Close the writer.
 // will sync data to disk, then close the file handle
-func (d *RotateWriter) Close() error {
+func (d *Writer) Close() error {
 	err := d.file.Sync()
 	if err != nil {
 		return err
@@ -128,7 +126,7 @@ func (d *RotateWriter) Close() error {
 //
 
 // async clean old files by config
-func (d *RotateWriter) asyncCleanBackups() {
+func (d *Writer) asyncCleanBackups() {
 	if d.cfg.BackupNum == 0 && d.cfg.BackupTime == 0 {
 		return
 	}
@@ -142,7 +140,7 @@ func (d *RotateWriter) asyncCleanBackups() {
 }
 
 // Clean old files by config
-func (d *RotateWriter) Clean() (err error) {
+func (d *Writer) Clean() (err error) {
 	maxNum := int(d.cfg.BackupNum)
 	if maxNum > 0 && len(d.oldFiles) > maxNum {
 		var idx int
@@ -196,12 +194,12 @@ func (d *RotateWriter) Clean() (err error) {
 //
 
 // WriteString implements the io.StringWriter
-func (d *RotateWriter) WriteString(s string) (n int, err error) {
+func (d *Writer) WriteString(s string) (n int, err error) {
 	return d.Write([]byte(s))
 }
 
 // Write data to file. then check and do rotate file.
-func (d *RotateWriter) Write(p []byte) (n int, err error) {
+func (d *Writer) Write(p []byte) (n int, err error) {
 	// if enable lock
 	if d.cfg.CloseLock == false {
 		d.Lock()
@@ -224,7 +222,7 @@ func (d *RotateWriter) Write(p []byte) (n int, err error) {
 }
 
 // Rotate the file by config.
-func (d *RotateWriter) Rotate() (err error) {
+func (d *Writer) Rotate() (err error) {
 	// do rotate file by time
 	if d.checkInterval > 0 {
 		err = d.rotatingByTime()
@@ -240,7 +238,7 @@ func (d *RotateWriter) Rotate() (err error) {
 	return
 }
 
-func (d *RotateWriter) rotatingByTime() error {
+func (d *Writer) rotatingByTime() error {
 	now := d.cfg.TimeClock.Now()
 	if d.nextRotatingAt > now.Unix() {
 		return nil
@@ -257,7 +255,7 @@ func (d *RotateWriter) rotatingByTime() error {
 	return err
 }
 
-func (d *RotateWriter) rotatingBySize() error {
+func (d *Writer) rotatingBySize() error {
 	// rename current to new file
 	d.rotateNum++
 
@@ -268,7 +266,7 @@ func (d *RotateWriter) rotatingBySize() error {
 }
 
 // rotateFile closes the syncBuffer's file and starts a new one.
-func (d *RotateWriter) rotatingFile(newFilepath string) error {
+func (d *Writer) rotatingFile(newFilepath string) error {
 	// close the current file
 	if err := d.Close(); err != nil {
 		return err

@@ -5,12 +5,13 @@ import (
 	"sync"
 )
 
-// RotateFiler interface
-type RotateFiler interface {
-	Flush() error
-	Sync() error
-	// WriteCloser the output writer
+// RotateWriter interface
+type RotateWriter interface {
 	io.WriteCloser
+	Clean() error
+	Flush() error
+	Rotate() error
+	Sync() error
 }
 
 // RotateFiles multi files. TODO
