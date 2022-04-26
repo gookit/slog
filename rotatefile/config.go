@@ -162,7 +162,8 @@ type Config struct {
 	//
 	// default see DefaultFilenameFn
 	RenameFunc func(filePath string, rotateNum uint) string
-	TimeClock  Clocker
+	// TimeClock for rotate
+	TimeClock Clocker
 }
 
 func (c *Config) backupDuration() time.Duration {
@@ -181,8 +182,8 @@ func (c *Config) maxSizeByte() uint64 {
 	return uint64(c.MaxSize * oneMByte)
 }
 
-// Create new RotateDispatcher
-func (c *Config) Create() (*RotateDispatcher, error) {
+// Create new RotateWriter
+func (c *Config) Create() (*RotateWriter, error) {
 	return New(c)
 }
 
