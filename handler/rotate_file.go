@@ -14,7 +14,7 @@ type RotateFileHandler struct {
 }
 
 // MustRotateFile instance
-func MustRotateFile(logfile string, rt rotatefile.RotateTime) *RotateFileHandler {
+func MustRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) *RotateFileHandler {
 	h, err := NewRotateFileHandler(logfile, rt)
 	if err != nil {
 		panic(err)
@@ -23,22 +23,17 @@ func MustRotateFile(logfile string, rt rotatefile.RotateTime) *RotateFileHandler
 }
 
 // NewRotateFile instance
-func NewRotateFile(logfile string, rt rotatefile.RotateTime) (*RotateFileHandler, error) {
+func NewRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*RotateFileHandler, error) {
 	return NewRotateFileHandler(logfile, rt)
 }
 
 // NewRotateFileHandler instance
-func NewRotateFileHandler(logfile string, rt rotatefile.RotateTime) (*RotateFileHandler, error) {
-	cfg := NewConfig()
+func NewRotateFileHandler(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*RotateFileHandler, error) {
+	cfg := NewConfig(fns...)
+	cfg.Logfile = logfile
 	cfg.RotateTime = rt
 
-	return NewRotateFileByConfig(logfile, cfg)
-}
-
-// NewRotateFileByConfig instance
-func NewRotateFileByConfig(logfile string, cfg *Config) (*RotateFileHandler, error) {
-	cfg.Logfile = logfile
-	writer, err := cfg.CreateWriter()
+	writer, err := cfg.RotateWriter()
 	if err != nil {
 		return nil, err
 	}
@@ -105,12 +100,8 @@ func NewSizeRotateFile(logfile string, sizeMb int) (*RotateFileHandler, error) {
 
 // NewSizeRotateFileHandler instance
 func NewSizeRotateFileHandler(logfile string, sizeMb int) (*RotateFileHandler, error) {
-	cfg := NewConfig()
 	// close rotate by time.
-	cfg.RotateTime = 0
-	cfg.MaxSize = uint(sizeMb)
-
-	return NewRotateFileByConfig(logfile, cfg)
+	return NewRotateFileHandler(logfile, 0, WithMaxSize(sizeMb))
 }
 
 //
@@ -127,8 +118,11 @@ func NewSizeRotateFileHandler(logfile string, sizeMb int) (*RotateFileHandler, e
 // 	- "error.log.20201223_1500"
 // 	- "error.log.20201223_1530"
 // 	- "error.log.20201223_1523"
+//
+// Deprecated: please use rotatefile.RotateTime
 type RotateTime = rotatefile.RotateTime
 
+// Deprecated: Please use define constants on pkg rotatefile. e.g. rotatefile.EveryDay
 const (
 	EveryDay  = rotatefile.EveryDay
 	EveryHour = rotatefile.EveryDay
@@ -156,10 +150,6 @@ func NewTimeRotateFile(logfile string, rt rotatefile.RotateTime) (*RotateFileHan
 
 // NewTimeRotateFileHandler instance
 func NewTimeRotateFileHandler(logfile string, rt rotatefile.RotateTime) (*RotateFileHandler, error) {
-	cfg := NewConfig()
 	// close rotate by size.
-	cfg.MaxSize = 0
-	cfg.RotateTime = rt
-
-	return NewRotateFileByConfig(logfile, cfg)
+	return NewRotateFileHandler(logfile, rt, WithMaxSize(0))
 }

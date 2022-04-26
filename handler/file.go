@@ -10,8 +10,6 @@ import (
 
 // FileHandler definition
 type FileHandler struct {
-	// fileWrapper
-	// lockWrapper
 	// LevelsWithFormatter support limit log levels and formatter
 	LevelsWithFormatter
 	output SyncCloseWriter
@@ -19,15 +17,12 @@ type FileHandler struct {
 
 // JSONFileHandler create new FileHandler with JSON formatter
 func JSONFileHandler(logfile string) (*FileHandler, error) {
-	cfg := NewSimpleConfig()
-	cfg.UseJSON = true
-
-	return NewFileHandler(logfile, cfg)
+	return NewFileHandler(logfile, WithUseJSON(true))
 }
 
 // MustFileHandler create file handler
-func MustFileHandler(logfile string, cfg *SimpleConfig) *FileHandler {
-	h, err := NewFileHandler(logfile, cfg)
+func MustFileHandler(logfile string, fns ...ConfigFn) *FileHandler {
+	h, err := NewFileHandler(logfile, fns...)
 	if err != nil {
 		panic(err)
 	}
@@ -35,15 +30,15 @@ func MustFileHandler(logfile string, cfg *SimpleConfig) *FileHandler {
 }
 
 // NewBuffFileHandler create file handler with buff size
-func NewBuffFileHandler(filePath string, buffSize int) (*FileHandler, error) {
-	cfg := NewSimpleConfig()
-	cfg.BuffSize = buffSize
+func NewBuffFileHandler(filePath string, buffSize int, fns ...ConfigFn) (*FileHandler, error) {
+	fns = append(fns, WithBuffSize(buffSize))
 
-	return NewFileHandler(filePath, cfg)
+	return NewFileHandler(filePath, fns...)
 }
 
 // NewFileHandler create new FileHandler
-func NewFileHandler(logfile string, cfg *SimpleConfig) (h *FileHandler, err error) {
+func NewFileHandler(logfile string, fns ...ConfigFn) (h *FileHandler, err error) {
+	cfg := NewConfig(fns...)
 	cfg.Logfile = logfile
 
 	var output SyncCloseWriter
@@ -65,8 +60,6 @@ func NewFileHandler(logfile string, cfg *SimpleConfig) (h *FileHandler, err erro
 
 	if cfg.UseJSON {
 		h.SetFormatter(slog.NewJSONFormatter())
-	} else {
-		h.SetFormatter(slog.NewTextFormatter())
 	}
 
 	return h, nil

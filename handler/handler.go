@@ -22,62 +22,26 @@ var (
 	DefaultFileFlags = os.O_CREATE | os.O_WRONLY | os.O_APPEND
 )
 
-// Builder struct for create handler
-type Builder struct {
-	Output   io.Writer
-	Filepath string
-	BuffSize int
-	Levels   []slog.Level
+// FlushWriter is the interface satisfied by logging destinations.
+type FlushWriter interface {
+	Flush() error
+	// Writer the output writer
+	io.Writer
 }
 
-// NewBuilder create
-func NewBuilder() *Builder {
-	return &Builder{}
+// FlushCloseWriter is the interface satisfied by logging destinations.
+type FlushCloseWriter interface {
+	Flush() error
+	// WriteCloser the output writer
+	io.WriteCloser
 }
 
-// Build slog handler.
-func (b *Builder) reset() {
-	b.Output = nil
-	b.Levels = b.Levels[:0]
-	b.Filepath = ""
-	b.BuffSize = 0
-}
-
-// Build slog handler.
-func (b *Builder) Build() slog.Handler {
-	defer b.reset()
-
-	if b.Output != nil {
-		return b.buildFromWriter(b.Output)
-	}
-
-	if b.Filepath != "" {
-		f, err := QuickOpenFile(b.Filepath)
-		if err != nil {
-			panic(err)
-		}
-
-		return b.buildFromWriter(f)
-	}
-
-	panic("missing some information for build handler")
-}
-
-// Build slog handler.
-func (b *Builder) buildFromWriter(w io.Writer) slog.Handler {
-	if scw, ok := w.(SyncCloseWriter); ok {
-		return NewSyncCloseHandler(scw, b.Levels)
-	}
-
-	if fcw, ok := w.(FlushCloseWriter); ok {
-		return NewFlushCloseHandler(fcw, b.Levels)
-	}
-
-	if wc, ok := w.(io.WriteCloser); ok {
-		return NewWriteCloser(wc, b.Levels)
-	}
-
-	return NewIOWriter(w, b.Levels)
+// SyncCloseWriter is the interface satisfied by logging destinations.
+// such as os.File
+type SyncCloseWriter interface {
+	Sync() error
+	// WriteCloser the output writer
+	io.WriteCloser
 }
 
 /********************************************************************************

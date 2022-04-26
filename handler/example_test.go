@@ -6,15 +6,11 @@ import (
 )
 
 func ExampleFileHandler() {
-	c1 := handler.NewSimpleConfig(func(c *handler.SimpleConfig) {
-		c.Levels = slog.Levels{slog.PanicLevel, slog.ErrorLevel, slog.WarnLevel}
-	})
-	h1 := handler.MustFileHandler("/tmp/error.log", c1)
+	withLevels := handler.WithLogLevels(slog.Levels{slog.PanicLevel, slog.ErrorLevel, slog.WarnLevel})
+	h1 := handler.MustFileHandler("/tmp/error.log", withLevels)
 
-	c2 := handler.NewSimpleConfig(func(c *handler.SimpleConfig) {
-		c.Levels = slog.Levels{slog.InfoLevel, slog.NoticeLevel, slog.DebugLevel, slog.TraceLevel}
-	})
-	h2 := handler.MustFileHandler("/tmp/info.log", c2)
+	withLevels = handler.WithLogLevels(slog.Levels{slog.InfoLevel, slog.NoticeLevel, slog.DebugLevel, slog.TraceLevel})
+	h2 := handler.MustFileHandler("/tmp/info.log", withLevels)
 
 	slog.PushHandler(h1)
 	slog.PushHandler(h2)
