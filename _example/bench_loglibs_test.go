@@ -71,6 +71,7 @@ func BenchmarkGookitSlogNegative(b *testing.B) {
 	logger := slog.NewWithHandlers(
 		handler.NewIOWriter(ioutil.Discard, []slog.Level{slog.ErrorLevel}),
 	)
+	logger.ReportCaller = false
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -131,6 +132,7 @@ func BenchmarkGookitSlogPositive(b *testing.B) {
 	logger := slog.NewWithHandlers(
 		handler.NewIOWriter(ioutil.Discard, slog.NormalLevels),
 	)
+	logger.ReportCaller = false
 
 	b.ReportAllocs()
 	b.ResetTimer()
