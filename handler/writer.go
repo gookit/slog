@@ -8,7 +8,7 @@ import (
 
 // IOWriterHandler definition
 type IOWriterHandler struct {
-	LevelsWithFormatter
+	slog.LevelFormattable
 	Output io.Writer
 }
 
@@ -29,7 +29,7 @@ func NewIOWriterHandler(out io.Writer, levels []slog.Level) *IOWriterHandler {
 	return &IOWriterHandler{
 		Output: out,
 		// init log levels
-		LevelsWithFormatter: newLvsFormatter(levels),
+		LevelFormattable: slog.NewLvsFormatter(levels),
 	}
 }
 

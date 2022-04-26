@@ -9,6 +9,11 @@ import (
 	"github.com/gookit/slog/rotatefile"
 )
 
+const (
+	BuffModeLine = "line"
+	BuffModeBite = "bite"
+)
+
 // ConfigFn for config some settings
 type ConfigFn func(c *Config)
 
@@ -18,6 +23,8 @@ type Config struct {
 	Logfile string `json:"logfile" yaml:"logfile"`
 	// UseJSON for format logs
 	UseJSON bool `json:"use_json" yaml:"use_json"`
+	// BuffMode type. allow: line, bite
+	BuffMode string `json:"buff_mode" yaml:"buff_mode"`
 	// BuffSize for enable buffer
 	BuffSize int `json:"buff_size" yaml:"buff_size"`
 	// Levels for log record
@@ -30,15 +37,26 @@ type Config struct {
 	RenameFunc func(filepath string, rotateNum uint) string
 }
 
+// With more config settings func
+func (c *Config) With(fns ...ConfigFn) *Config {
+	for _, fn := range fns {
+		fn(c)
+	}
+	return c
+}
+
 // SyncCloseWriter build by config
 func (c *Config) SyncCloseWriter() (output SyncCloseWriter, err error) {
 	output, err = fsutil.QuickOpenFile(c.Logfile)
 
 	// wrap buffer
 	if c.BuffSize > 0 {
-		output = bufwrite.NewBufIOWriterSize(output, c.BuffSize)
+		if c.BuffMode == BuffModeLine {
+			output = bufwrite.NewLineWriterSize(output, c.BuffSize)
+		} else {
+			output = bufwrite.NewBufIOWriterSize(output, c.BuffSize)
+		}
 	}
-
 	return
 }
 
@@ -51,7 +69,11 @@ func (c *Config) RotateWriter() (output FlushCloseWriter, err error) {
 
 	// wrap buffer
 	if c.BuffSize > 0 {
-		output = bufwrite.NewBufIOWriterSize(output, c.BuffSize)
+		if c.BuffMode == BuffModeLine {
+			output = bufwrite.NewLineWriterSize(output, c.BuffSize)
+		} else {
+			output = bufwrite.NewBufIOWriterSize(output, c.BuffSize)
+		}
 	}
 	return
 }
@@ -74,16 +96,14 @@ func (c *Config) RotateConfig() *rotatefile.Config {
 func NewConfig(fns ...ConfigFn) *Config {
 	c := &Config{
 		MaxSize:  rotatefile.DefaultMaxSize,
+		BuffMode: BuffModeLine,
 		BuffSize: DefaultBufferSize,
 		Levels:   slog.NormalLevels,
 		// time rotate settings
 		RotateTime: rotatefile.EveryHour,
 	}
 
-	for _, fn := range fns {
-		fn(c)
-	}
-	return c
+	return c.With(fns...)
 }
 
 // WithLogfile setting
@@ -97,6 +117,13 @@ func WithLogfile(logfile string) ConfigFn {
 func WithRotateTime(rt rotatefile.RotateTime) ConfigFn {
 	return func(c *Config) {
 		c.RotateTime = rt
+	}
+}
+
+// WithBuffMode setting
+func WithBuffMode(buffMode string) ConfigFn {
+	return func(c *Config) {
+		c.BuffMode = buffMode
 	}
 }
 

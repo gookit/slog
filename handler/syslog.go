@@ -1,3 +1,4 @@
+//go:build !windows && !nacl && !plan9
 // +build !windows,!nacl,!plan9
 
 package handler
@@ -10,8 +11,8 @@ import (
 
 // SysLogHandler struct
 type SysLogHandler struct {
-	slWriter *syslog.Writer
-	LevelWithFormatter
+	slog.LevelWithFormatter
+	writer *syslog.Writer
 }
 
 // NewSysLogHandler instance
@@ -22,7 +23,7 @@ func NewSysLogHandler(priority syslog.Priority, tag string) (*SysLogHandler, err
 	}
 
 	h := &SysLogHandler{
-		slWriter: slWriter,
+		writer: slWriter,
 	}
 
 	// init default log level
@@ -30,20 +31,22 @@ func NewSysLogHandler(priority syslog.Priority, tag string) (*SysLogHandler, err
 	return h, nil
 }
 
-// Handle an record
+// Handle a log record
 func (h *SysLogHandler) Handle(record *slog.Record) error {
 	bts, err := h.Formatter().Format(record)
 	if err != nil {
 		return err
 	}
 
-	return h.slWriter.Info(string(bts))
+	return h.writer.Info(string(bts))
 }
 
+// Close handler
 func (h *SysLogHandler) Close() error {
-	return h.slWriter.Close()
+	return h.writer.Close()
 }
 
+// Flush handler
 func (h *SysLogHandler) Flush() error {
 	return nil
 }

@@ -6,7 +6,9 @@ package handler
 import (
 	"io"
 	"os"
+	"sync"
 
+	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/slog"
 )
 
@@ -52,15 +54,12 @@ type SyncCloseWriter interface {
 //
 // - support set log formatter
 // - only support set one log level
+//
+// Deprecated: please use slog.LevelWithFormatter instead.
 type LevelWithFormatter struct {
 	slog.Formattable
 	// Level for log message. if current level <= Level will log message
 	Level slog.Level
-}
-
-// create new instance
-func newLvFormatter(lv slog.Level) LevelWithFormatter {
-	return LevelWithFormatter{Level: lv}
 }
 
 // IsHandling Check if the current level can be handling
@@ -72,15 +71,12 @@ func (h *LevelWithFormatter) IsHandling(level slog.Level) bool {
 //
 // - support set log formatter
 // - support setting multi log levels
+//
+// Deprecated: please use slog.LevelsWithFormatter instead.
 type LevelsWithFormatter struct {
 	slog.Formattable
 	// Levels for log message
 	Levels []slog.Level
-}
-
-// create new instance
-func newLvsFormatter(lvs []slog.Level) LevelsWithFormatter {
-	return LevelsWithFormatter{Levels: lvs}
 }
 
 // IsHandling Check if the current level can be handling
@@ -91,4 +87,54 @@ func (h *LevelsWithFormatter) IsHandling(level slog.Level) bool {
 		}
 	}
 	return false
+}
+
+// NopFlushClose no operation.
+//
+// provide empty Flush(), Close() methods, useful for tests.
+type NopFlushClose struct{}
+
+// Flush logs to disk
+func (h *NopFlushClose) Flush() error {
+	return nil
+}
+
+// Close handler
+func (h *NopFlushClose) Close() error {
+	return nil
+}
+
+// LockWrapper struct
+type LockWrapper struct {
+	sync.Mutex
+	disable bool
+}
+
+// Lock it
+func (lw *LockWrapper) Lock() {
+	if false == lw.disable {
+		lw.Mutex.Lock()
+	}
+}
+
+// Unlock it
+func (lw *LockWrapper) Unlock() {
+	if !lw.disable {
+		lw.Mutex.Unlock()
+	}
+}
+
+// EnableLock enable lock
+func (lw *LockWrapper) EnableLock(enable bool) {
+	lw.disable = false == enable
+}
+
+// LockEnabled status
+func (lw *LockWrapper) LockEnabled() bool {
+	return lw.disable == false
+}
+
+// QuickOpenFile like os.OpenFile
+func QuickOpenFile(filepath string) (*os.File, error) {
+	return fsutil.OpenFile(filepath, DefaultFileFlags, DefaultFilePerm)
 }

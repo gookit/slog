@@ -2,7 +2,6 @@ package slog
 
 import (
 	"errors"
-	"io"
 	"strings"
 )
 
@@ -55,50 +54,6 @@ func (ls Levels) Contains(level Level) bool {
 		}
 	}
 	return false
-}
-
-// FlushWriter is the interface satisfied by logging destinations.
-type FlushWriter interface {
-	Flush() error
-	// Writer the output writer
-	io.Writer
-}
-
-// FlushCloseWriter is the interface satisfied by logging destinations.
-type FlushCloseWriter interface {
-	Flush() error
-	// WriteCloser the output writer
-	io.WriteCloser
-}
-
-// FormatterWriterHandler interface
-type FormatterWriterHandler interface {
-	Handler
-	// Formatter record formatter
-	Formatter() Formatter
-	// Writer the output writer
-	Writer() io.Writer
-}
-
-//
-// Handler interface
-//
-
-// Handler interface definition
-type Handler interface {
-	// Closer Close handler.
-	// You should first call Flush() on close logic.
-	// Refer the FileHandler.Close() handle
-	io.Closer
-	// Flush and sync logs to disk file.
-	Flush() error
-	// IsHandling Checks whether the given record will be handled by this handler.
-	IsHandling(level Level) bool
-	// Handle a log record.
-	//
-	// All records may be passed to this method, and the handler should discard
-	// those that it does not want to handle.
-	Handle(*Record) error
 }
 
 //
@@ -169,6 +124,12 @@ type FormattableHandler interface {
 	Formatter() Formatter
 	// SetFormatter set the log formatter
 	SetFormatter(Formatter)
+}
+
+// LevelFormattable support limit log levels and provide formatter
+type LevelFormattable interface {
+	FormattableHandler
+	IsHandling(level Level) bool
 }
 
 // Formattable definition

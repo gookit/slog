@@ -8,7 +8,7 @@ import (
 
 // MultiFileHandler definition
 type MultiFileHandler struct {
-	lockWrapper
+	LockWrapper
 	writers map[string]io.Writer
 	// FileDir for save log files
 	FileDir string
@@ -48,6 +48,6 @@ func (h *MultiFileHandler) Flush() error {
 	panic("implement me")
 }
 
-func (h *MultiFileHandler) Handle(record *slog.Record) error {
+func (h *MultiFileHandler) Handle(_ *slog.Record) error {
 	panic("implement me")
 }

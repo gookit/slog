@@ -8,8 +8,8 @@ import (
 
 // WriteCloserHandler definition
 type WriteCloserHandler struct {
-	// lockWrapper
-	LevelsWithFormatter
+	// LockWrapper
+	slog.LevelFormattable
 	Output io.WriteCloser
 }
 
@@ -30,7 +30,7 @@ func NewIOWriteCloserHandler(out io.WriteCloser, levels []slog.Level) *WriteClos
 	return &WriteCloserHandler{
 		Output: out,
 		// init log levels
-		LevelsWithFormatter: newLvsFormatter(levels),
+		LevelFormattable: slog.NewLvsFormatter(levels),
 	}
 }
 

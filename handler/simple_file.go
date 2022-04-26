@@ -5,15 +5,8 @@ import (
 	"github.com/gookit/slog"
 )
 
-// SimpleFileHandler struct
-// - no buffer, will direct write logs to file.
-type SimpleFileHandler struct {
-	out SyncCloseWrapper
-	LevelWithFormatter
-}
-
 // MustSimpleFile new instance
-func MustSimpleFile(filepath string) *SimpleFileHandler {
+func MustSimpleFile(filepath string) *SyncCloseHandler {
 	h, err := NewSimpleFileHandler(filepath)
 	if err != nil {
 		panic(err)
@@ -23,7 +16,7 @@ func MustSimpleFile(filepath string) *SimpleFileHandler {
 }
 
 // NewSimpleFile new instance
-func NewSimpleFile(filepath string) (*SimpleFileHandler, error) {
+func NewSimpleFile(filepath string) (*SyncCloseHandler, error) {
 	return NewSimpleFileHandler(filepath)
 }
 
@@ -36,30 +29,17 @@ func NewSimpleFile(filepath string) (*SimpleFileHandler, error) {
 //	h.SetFormatter(slog.NewJSONFormatter())
 //	slog.PushHandler(h)
 //	slog.Info("log message")
-func NewSimpleFileHandler(filePath string) (*SimpleFileHandler, error) {
+func NewSimpleFileHandler(filePath string) (*SyncCloseHandler, error) {
 	file, err := fsutil.QuickOpenFile(filePath)
 	if err != nil {
 		return nil, err
 	}
 
-	h := &SimpleFileHandler{
-		out: NewSyncCloseWrapper(file),
+	h := &SyncCloseHandler{
+		Output: file,
 		// init default log level
-		LevelWithFormatter: newLvFormatter(slog.InfoLevel),
+		LevelFormattable: slog.NewLvFormatter(slog.InfoLevel),
 	}
 
 	return h, nil
-}
-
-// Handle the log record
-func (h *SimpleFileHandler) Handle(r *slog.Record) (err error) {
-	var bts []byte
-	bts, err = h.Formatter().Format(r)
-	if err != nil {
-		return
-	}
-
-	// direct write logs
-	_, err = h.out.Write(bts)
-	return
 }

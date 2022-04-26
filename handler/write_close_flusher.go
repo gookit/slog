@@ -6,7 +6,7 @@ import (
 
 // FlushCloseHandler definition
 type FlushCloseHandler struct {
-	LevelsWithFormatter
+	slog.LevelFormattable
 	Output FlushCloseWriter
 }
 
@@ -27,7 +27,7 @@ func NewFlushCloseHandler(out FlushCloseWriter, levels []slog.Level) *FlushClose
 	return &FlushCloseHandler{
 		Output: out,
 		// init log levels
-		LevelsWithFormatter: newLvsFormatter(levels),
+		LevelFormattable: slog.NewLvsFormatter(levels),
 	}
 }
 

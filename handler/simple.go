@@ -8,7 +8,7 @@ import (
 
 // SimpleHandler definition
 type SimpleHandler struct {
-	LevelWithFormatter
+	slog.LevelFormattable
 	Output io.Writer
 }
 
@@ -34,7 +34,7 @@ func NewSimpleHandler(out io.Writer, level slog.Level) *SimpleHandler {
 	return &SimpleHandler{
 		Output: out,
 		// init log levels
-		LevelWithFormatter: newLvFormatter(level),
+		LevelFormattable: slog.NewLvFormatter(level),
 	}
 }
 

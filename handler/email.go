@@ -8,18 +8,16 @@ import (
 
 // EmailOption struct
 type EmailOption struct {
-	SmtpHost string // eg "smtp.gmail.com"
-	SmtpPort string // eg "587"
-	FromAddr string // eg "yourEmail@gmail.com"
-	Password string
+	SmtpHost string `json:"smtp_host"` // eg "smtp.gmail.com"
+	SmtpPort string `json:"smtp_port"` // eg "587"
+	FromAddr string `json:"from_addr"` // eg "yourEmail@gmail.com"
+	Password string `json:"password"`
 }
 
 // EmailHandler struct
 type EmailHandler struct {
-	// NopFlushClose provide empty Flush(), Close() methods
 	NopFlushClose
-	// LevelWithFormatter support level and formatter
-	LevelWithFormatter
+	slog.LevelWithFormatter
 	// From the sender email information
 	From EmailOption
 	// ToAddresses list

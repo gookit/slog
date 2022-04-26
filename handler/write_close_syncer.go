@@ -4,40 +4,9 @@ import (
 	"github.com/gookit/slog"
 )
 
-// SyncCloseWrapper definition
-type SyncCloseWrapper struct {
-	Output SyncCloseWriter
-}
-
-// NewSyncCloseWrapper instance
-func NewSyncCloseWrapper(out SyncCloseWriter) SyncCloseWrapper {
-	return SyncCloseWrapper{
-		Output: out,
-	}
-}
-
-// Close the handler
-func (w *SyncCloseWrapper) Close() error {
-	if err := w.Flush(); err != nil {
-		return err
-	}
-	return w.Output.Close()
-}
-
-// Flush the handler
-func (w *SyncCloseWrapper) Flush() error {
-	return w.Output.Sync()
-}
-
-// Write the handler
-func (w *SyncCloseWrapper) Write(p []byte) (int, error) {
-	return w.Output.Write(p)
-}
-
 // SyncCloseHandler definition
 type SyncCloseHandler struct {
-	// lockWrapper
-	LevelsWithFormatter
+	slog.LevelFormattable
 	Output SyncCloseWriter
 }
 
@@ -58,7 +27,7 @@ func NewSyncCloseHandler(out SyncCloseWriter, levels []slog.Level) *SyncCloseHan
 	return &SyncCloseHandler{
 		Output: out,
 		// init log levels
-		LevelsWithFormatter: newLvsFormatter(levels),
+		LevelFormattable: slog.NewLvsFormatter(levels),
 	}
 }
 
@@ -87,4 +56,34 @@ func (h *SyncCloseHandler) Handle(record *slog.Record) error {
 
 	_, err = h.Output.Write(bts)
 	return err
+}
+
+// SyncCloseWrapper definition
+type SyncCloseWrapper struct {
+	Output SyncCloseWriter
+}
+
+// NewSyncCloseWrapper instance
+func NewSyncCloseWrapper(out SyncCloseWriter) SyncCloseWrapper {
+	return SyncCloseWrapper{
+		Output: out,
+	}
+}
+
+// Close the handler
+func (w *SyncCloseWrapper) Close() error {
+	if err := w.Flush(); err != nil {
+		return err
+	}
+	return w.Output.Close()
+}
+
+// Flush the handler
+func (w *SyncCloseWrapper) Flush() error {
+	return w.Output.Sync()
+}
+
+// Write the handler
+func (w *SyncCloseWrapper) Write(p []byte) (int, error) {
+	return w.Output.Write(p)
 }

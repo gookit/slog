@@ -8,14 +8,14 @@ import (
 // RotateFileHandler struct definition
 // It also supports splitting log files by time and size
 type RotateFileHandler struct {
-	// lockWrapper
-	LevelsWithFormatter
+	// LockWrapper
+	slog.LevelFormattable
 	output FlushCloseWriter
 }
 
 // MustRotateFile instance
 func MustRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) *RotateFileHandler {
-	h, err := NewRotateFileHandler(logfile, rt)
+	h, err := NewRotateFileHandler(logfile, rt, fns...)
 	if err != nil {
 		panic(err)
 	}
@@ -24,14 +24,12 @@ func MustRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) *
 
 // NewRotateFile instance
 func NewRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*RotateFileHandler, error) {
-	return NewRotateFileHandler(logfile, rt)
+	return NewRotateFileHandler(logfile, rt, fns...)
 }
 
 // NewRotateFileHandler instance
 func NewRotateFileHandler(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*RotateFileHandler, error) {
-	cfg := NewConfig(fns...)
-	cfg.Logfile = logfile
-	cfg.RotateTime = rt
+	cfg := NewConfig(fns...).With(WithLogfile(logfile), WithRotateTime(rt))
 
 	writer, err := cfg.RotateWriter()
 	if err != nil {
@@ -41,7 +39,7 @@ func NewRotateFileHandler(logfile string, rt rotatefile.RotateTime, fns ...Confi
 	h := &RotateFileHandler{
 		output: writer,
 		// with log levels and formatter
-		LevelsWithFormatter: newLvsFormatter(cfg.Levels),
+		LevelFormattable: slog.NewLvsFormatter(cfg.Levels),
 	}
 
 	return h, nil
