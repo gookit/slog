@@ -64,7 +64,15 @@ func (b *LineWriter) Reset(w io.Writer) {
 
 // Close implements the io.Closer
 func (b *LineWriter) Close() error {
-	return b.Flush()
+	if err := b.Flush(); err != nil {
+		return err
+	}
+
+	// is closer
+	if c, ok := b.wr.(io.Closer); ok {
+		return c.Close()
+	}
+	return nil
 }
 
 // Sync implements the Syncer
