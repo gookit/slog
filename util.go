@@ -5,7 +5,6 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/gookit/goutil/stdutil"
 	"github.com/gookit/goutil/strutil"
@@ -17,22 +16,22 @@ const (
 	defaultKnownSlogFrames int = 4
 )
 
-var (
-	// qualified package name, cached at first use. eg: "github.com/gookit/slog"
-	slogPackage string
-
-	// Positions in the call stack when tracing to report the calling method
-	minCallerDepth int
-
-	// Used for caller information initialisation
-	callerInitOnce sync.Once
-
-	// argFmtPool bytebufferpool.Pool
-)
+// var (
+// argFmtPool bytebufferpool.Pool
+// )
 
 // Stack that attempts to recover the data for all goroutines.
-func getCallStacks(callerSkip int) []byte {
-	return nil
+// func getCallStacks(callerSkip int) []byte {
+// 	return nil
+// }
+
+func buildLowerLevelName() map[Level]string {
+	mp := make(map[Level]string, len(LevelNames))
+	for level, s := range LevelNames {
+		mp[level] = strings.ToLower(s)
+	}
+
+	return mp
 }
 
 // getCaller retrieves the name of the first non-slog calling function

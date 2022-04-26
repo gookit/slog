@@ -46,6 +46,12 @@ type Handler interface {
 	Handle(*Record) error
 }
 
+// LevelFormattable support limit log levels and provide formatter
+type LevelFormattable interface {
+	FormattableHandler
+	IsHandling(level Level) bool
+}
+
 /********************************************************************************
  * Common parts for handler
  ********************************************************************************/
@@ -56,7 +62,7 @@ type Handler interface {
 // - only support set one log level
 type LevelWithFormatter struct {
 	Formattable
-	// Level for log message. if current level <= Level will log message
+	// Level for log message. if current level >= Level will log message
 	Level Level
 }
 

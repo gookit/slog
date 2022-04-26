@@ -9,6 +9,7 @@ import (
 )
 
 // Logger definition.
+//
 // The logger implements the `github.com/gookit/gsr.Logger`
 type Logger struct {
 	name string
@@ -26,7 +27,7 @@ type Logger struct {
 	LowerLevelName bool
 	CallerSkip     int
 
-	// Reusable empty record
+	// reusable empty record
 	recordPool sync.Pool
 
 	// handlers on exit
@@ -97,12 +98,6 @@ func (l *Logger) Configure(fn func(l *Logger)) *Logger {
 	return l
 }
 
-// Sync flushes buffered logs (if any).
-func (l *Logger) Sync() error {
-	// TODO
-	return nil
-}
-
 // FlushDaemon run flush handle on daemon
 //
 // Usage:
@@ -131,23 +126,35 @@ func (l *Logger) FlushTimeout(timeout time.Duration) {
 	}
 }
 
+// Sync flushes buffered logs (if any).
+//
+// alias of the Flush()
+func (l *Logger) Sync() error {
+	return Flush()
+}
+
 // Flush flushes all the logs and attempts to "sync" their data to disk.
 // l.mu is held.
-func (l *Logger) Flush() {
+func (l *Logger) Flush() error {
 	l.lockAndFlushAll()
+	return nil
 }
 
 // FlushAll flushes all the logs and attempts to "sync" their data to disk.
 //
 // alias of the Flush()
-func (l *Logger) FlushAll() {
+func (l *Logger) FlushAll() error {
 	l.lockAndFlushAll()
+	return nil
 }
 
 func (l *Logger) flushAll() {
 	// Flush from fatal down, in case there's trouble flushing.
 	l.VisitAll(func(handler Handler) error {
-		_ = handler.Flush() // ignore error
+		err := handler.Flush()
+		if err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "slog: call handler.Flush() failed. error=%v", err)
+		}
 		return nil
 	})
 }
@@ -163,7 +170,10 @@ func (l *Logger) lockAndFlushAll() {
 func (l *Logger) Close() {
 	l.VisitAll(func(handler Handler) error {
 		// Flush logs and then close
-		_ = handler.Close() // ignore error
+		err := handler.Close()
+		if err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "slog: call handler.Close() failed. error=%v", err)
+		}
 		return nil
 	})
 }
@@ -512,7 +522,7 @@ func (l *Logger) write(level Level, r *Record, matched []Handler) {
 
 	// flush logs on level <= error level.
 	if level <= ErrorLevel {
-		l.FlushAll()
+		_ = l.FlushAll()
 	}
 
 	if level <= PanicLevel {

@@ -2,19 +2,14 @@ package slog
 
 import (
 	"errors"
+	"fmt"
+	"os"
 	"strings"
 )
 
-// StringMap string map short name
-type StringMap = map[string]string
-
-// M short name of map[string]interface{}
-type M map[string]interface{}
-
-// String map to string
-func (m M) String() string {
-	return mapToString(m)
-}
+//
+// log level definitions
+//
 
 // Level type
 type Level uint32
@@ -38,7 +33,7 @@ func (l Level) LowerName() string {
 	return "unknown"
 }
 
-// ShouldHandling compare level
+// ShouldHandling compare level, if current level <= l, it will be record.
 func (l Level) ShouldHandling(curLevel Level) bool {
 	return curLevel <= l
 }
@@ -54,105 +49,6 @@ func (ls Levels) Contains(level Level) bool {
 		}
 	}
 	return false
-}
-
-//
-// Processor interface
-//
-
-// Processor interface definition
-type Processor interface {
-	// Process record
-	Process(record *Record)
-}
-
-// ProcessorFunc wrapper definition
-type ProcessorFunc func(record *Record)
-
-// Process record
-func (fn ProcessorFunc) Process(record *Record) {
-	fn(record)
-}
-
-// ProcessableHandler interface
-type ProcessableHandler interface {
-	// AddProcessor add an processor
-	AddProcessor(Processor)
-	// ProcessRecord handle an record
-	ProcessRecord(record *Record)
-}
-
-// Processable definition
-type Processable struct {
-	processors []Processor
-}
-
-// AddProcessor to the handler
-func (p *Processable) AddProcessor(processor Processor) {
-	p.processors = append(p.processors, processor)
-}
-
-// ProcessRecord process records
-func (p *Processable) ProcessRecord(r *Record) {
-	// processing log record
-	for _, processor := range p.processors {
-		processor.Process(r)
-	}
-}
-
-//
-// Formatter interface
-//
-
-// Formatter interface
-type Formatter interface {
-	// Format you can format record and write result to record.Buffer
-	Format(record *Record) ([]byte, error)
-}
-
-// FormatterFunc wrapper definition
-type FormatterFunc func(r *Record) error
-
-// Format a record
-func (fn FormatterFunc) Format(r *Record) error {
-	return fn(r)
-}
-
-// FormattableHandler interface
-type FormattableHandler interface {
-	// Formatter get the log formatter
-	Formatter() Formatter
-	// SetFormatter set the log formatter
-	SetFormatter(Formatter)
-}
-
-// LevelFormattable support limit log levels and provide formatter
-type LevelFormattable interface {
-	FormattableHandler
-	IsHandling(level Level) bool
-}
-
-// Formattable definition
-type Formattable struct {
-	formatter Formatter
-}
-
-// Formatter get formatter. if not set, will return TextFormatter
-func (f *Formattable) Formatter() Formatter {
-	if f.formatter == nil {
-		f.formatter = NewTextFormatter()
-	}
-	return f.formatter
-}
-
-// SetFormatter to handler
-func (f *Formattable) SetFormatter(formatter Formatter) {
-	f.formatter = formatter
-}
-
-// FormatRecord to bytes
-func (f *Formattable) FormatRecord(record *Record) ([]byte, error) {
-	return f.Formatter().Format(record)
 }
 
 // These are the different logging levels. You can set the logging level to log handler
@@ -176,6 +72,21 @@ const (
 	// TraceLevel level. Designates finer-grained informational events than the Debug.
 	TraceLevel Level = 800
 )
+
+//
+// some commonly definitions
+//
+
+// StringMap string map short name
+type StringMap = map[string]string
+
+// M short name of map[string]interface{}
+type M map[string]interface{}
+
+// String map to string
+func (m M) String() string {
+	return mapToString(m)
+}
 
 var (
 	FieldKeyTime = "time"
@@ -215,8 +126,11 @@ var (
 
 var (
 	DefaultChannelName = "application"
-	DefaultTimeFormat  = "2006/01/02 15:04:05"
+	DefaultTimeFormat  = "2006/01/02T15:04:05"
 	// TimeFormatRFC3339  = time.RFC3339
+
+	// DoNothingOnExit handler. use for testing.
+	DoNothingOnExit = func(code int) {}
 )
 
 var (
@@ -276,24 +190,21 @@ var (
 	}
 )
 
-// DoNothingOnExit handler. use for testing.
-var DoNothingOnExit = func(code int) {}
-
-func buildLowerLevelName() map[Level]string {
-	mp := make(map[Level]string, len(LevelNames))
-	for level, s := range LevelNames {
-		mp[level] = strings.ToLower(s)
-	}
-
-	return mp
-}
-
 // LevelName match
 func LevelName(l Level) string {
 	if n, ok := LevelNames[l]; ok {
 		return n
 	}
 	return "UNKNOWN"
+}
+
+// LevelByName convert name to level
+func LevelByName(ln string) Level {
+	l, err := Name2Level(ln)
+	if err != nil {
+		return InfoLevel
+	}
+	return l
 }
 
 // Name2Level convert name to level
@@ -316,14 +227,80 @@ func Name2Level(ln string) (Level, error) {
 	case "trace":
 		return TraceLevel, nil
 	}
-	return 0, errors.New("invalid log level name: %q" + ln)
+	return 0, errors.New("invalid log level name: " + ln)
 }
 
-// LevelByName convert name to level
-func LevelByName(ln string) Level {
-	l, err := Name2Level(ln)
-	if err != nil {
-		return InfoLevel
+//
+// exit handle logic
+//
+
+// global exit handler
+var exitHandlers = make([]func(), 0)
+
+func runExitHandlers() {
+	defer func() {
+		if err := recover(); err != nil {
+			_, _ = fmt.Fprintln(os.Stderr, "Run exit handler error:", err)
+		}
+	}()
+
+	for _, handler := range exitHandlers {
+		handler()
 	}
-	return l
+}
+
+// ExitHandlers get all global exitHandlers
+func ExitHandlers() []func() {
+	return exitHandlers
+}
+
+// RegisterExitHandler register an exit-handler on global exitHandlers
+func RegisterExitHandler(handler func()) {
+	exitHandlers = append(exitHandlers, handler)
+}
+
+// PrependExitHandler prepend register an exit-handler on global exitHandlers
+func PrependExitHandler(handler func()) {
+	exitHandlers = append([]func(){handler}, exitHandlers...)
+}
+
+// ResetExitHandlers reset all exitHandlers
+func ResetExitHandlers(applyToStd bool) {
+	exitHandlers = make([]func(), 0)
+
+	if applyToStd {
+		std.ResetExitHandlers()
+	}
+}
+
+func (l *Logger) runExitHandlers() {
+	defer func() {
+		if err := recover(); err != nil {
+			_, _ = fmt.Fprintln(os.Stderr, "Run exit handler error:", err)
+		}
+	}()
+
+	for _, handler := range l.exitHandlers {
+		handler()
+	}
+}
+
+// RegisterExitHandler register an exit-handler on global exitHandlers
+func (l *Logger) RegisterExitHandler(handler func()) {
+	l.exitHandlers = append(l.exitHandlers, handler)
+}
+
+// PrependExitHandler prepend register an exit-handler on global exitHandlers
+func (l *Logger) PrependExitHandler(handler func()) {
+	l.exitHandlers = append([]func(){handler}, l.exitHandlers...)
+}
+
+// ResetExitHandlers reset logger exitHandlers
+func (l *Logger) ResetExitHandlers() {
+	l.exitHandlers = make([]func(), 0)
+}
+
+// ExitHandlers get all exitHandlers of the logger
+func (l *Logger) ExitHandlers() []func() {
+	return l.exitHandlers
 }
