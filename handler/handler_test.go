@@ -10,6 +10,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	sampleData = slog.M{
+		"name": "inhere",
+		"age":  100,
+	}
+)
+
 func TestConsoleHandlerWithColor(t *testing.T) {
 	l := slog.NewWithHandlers(handler.NewConsoleHandler(slog.AllLevels))
 	l.Configure(func(l *slog.Logger) {
@@ -67,7 +74,8 @@ func TestNewBufferedHandler(t *testing.T) {
 	str := string(bts)
 	assert.Contains(t, str, "[INFO]")
 
-	l.FlushAll()
+	err = l.FlushAll()
+	assert.NoError(t, err)
 }
 
 func TestBufferWrapper(t *testing.T) {
@@ -95,5 +103,24 @@ func TestBufferWrapper(t *testing.T) {
 	str := string(bts)
 	assert.Contains(t, str, "[INFO]")
 
-	l.FlushAll()
+	err = l.FlushAll()
+	assert.NoError(t, err)
+}
+
+func logAllLevel(log slog.SLogger, msg string) {
+	for _, level := range slog.AllLevels {
+		log.Log(level, msg)
+	}
+}
+
+func newLogRecord(msg string) *slog.Record {
+	r := &slog.Record{
+		Level:   slog.TraceLevel,
+		Channel: "handler_test",
+		Message: msg,
+		Time:    slog.DefaultClockFn.Now(),
+		Data:    sampleData,
+	}
+
+	return r
 }

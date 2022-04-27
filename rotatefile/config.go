@@ -141,11 +141,11 @@ type ConfigFn func(c *Config)
 type Config struct {
 	// Filepath the log file path, will be rotating
 	Filepath string `json:"filepath" yaml:"filepath"`
-	// MaxSize file contents max size, unit is MB(megabytes).
+	// MaxSize file contents max size, unit is bytes.
 	// If is equals zero, disable rotate file by size
 	//
 	// default see DefaultMaxSize
-	MaxSize uint `json:"max_size" yaml:"max_size"`
+	MaxSize uint64 `json:"max_size" yaml:"max_size"`
 	// RotateTime the file rotate interval time, unit is seconds.
 	// If is equals zero, disable rotate file by time
 	//
@@ -178,13 +178,6 @@ func (c *Config) backupDuration() time.Duration {
 	return time.Duration(c.BackupTime) * time.Hour
 }
 
-func (c *Config) maxSizeByte() uint64 {
-	if c.MaxSize < 1 {
-		return 0
-	}
-	return uint64(c.MaxSize * oneMByte)
-}
-
 // With more config setting func
 func (c *Config) With(fns ...ConfigFn) *Config {
 	for _, fn := range fns {
@@ -199,11 +192,9 @@ func (c *Config) Create() (*Writer, error) {
 }
 
 var (
-	oneMByte uint = 1024 * 1024
+	OneMByte uint64 = 1024 * 1024
 	// DefaultMaxSize of a log file, default 20M.
-	//
-	// unit is MB(megabytes)
-	DefaultMaxSize uint = 20
+	DefaultMaxSize = 20 * OneMByte
 	// DefaultFilePerm perm and flags for create log file
 	DefaultFilePerm os.FileMode = 0664
 	// DefaultFileFlags for open log file

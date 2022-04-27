@@ -31,8 +31,8 @@ type Config struct {
 	Levels []slog.Level `json:"levels" yaml:"levels"`
 	// RotateTime for rotate file
 	RotateTime rotatefile.RotateTime `json:"rotate_time" yaml:"rotate_time"`
-	// MaxSize on rotate file by size. unit is: MB
-	MaxSize uint `json:"max_size" yaml:"max_size"`
+	// MaxSize on rotate file by size.
+	MaxSize uint64 `json:"max_size" yaml:"max_size"`
 	// RenameFunc build filename for rotate file
 	RenameFunc func(filepath string, rotateNum uint) string
 }
@@ -92,13 +92,21 @@ func (c *Config) RotateConfig() *rotatefile.Config {
 	return rc
 }
 
-// NewConfig new config instance
+// NewEmptyConfig new config instance
+func NewEmptyConfig(fns ...ConfigFn) *Config {
+	c := &Config{
+		Levels: slog.AllLevels,
+	}
+	return c.With(fns...)
+}
+
+// NewConfig new config instance with some default settings.
 func NewConfig(fns ...ConfigFn) *Config {
 	c := &Config{
 		MaxSize:  rotatefile.DefaultMaxSize,
 		BuffMode: BuffModeLine,
 		BuffSize: DefaultBufferSize,
-		Levels:   slog.NormalLevels,
+		Levels:   slog.AllLevels,
 		// time rotate settings
 		RotateTime: rotatefile.EveryHour,
 	}
@@ -137,7 +145,7 @@ func WithBuffSize(buffSize int) ConfigFn {
 // WithMaxSize setting
 func WithMaxSize(maxSize int) ConfigFn {
 	return func(c *Config) {
-		c.MaxSize = uint(maxSize)
+		c.MaxSize = uint64(maxSize)
 	}
 }
 

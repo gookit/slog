@@ -83,8 +83,8 @@ func (h *RotateFileHandler) Flush() error {
 //
 
 // MustSizeRotateFile instance
-func MustSizeRotateFile(logfile string, sizeMb int) *RotateFileHandler {
-	h, err := NewSizeRotateFileHandler(logfile, sizeMb)
+func MustSizeRotateFile(logfile string, size int) *RotateFileHandler {
+	h, err := NewSizeRotateFileHandler(logfile, size)
 	if err != nil {
 		panic(err)
 	}
@@ -92,14 +92,14 @@ func MustSizeRotateFile(logfile string, sizeMb int) *RotateFileHandler {
 }
 
 // NewSizeRotateFile instance
-func NewSizeRotateFile(logfile string, sizeMb int) (*RotateFileHandler, error) {
-	return NewSizeRotateFileHandler(logfile, sizeMb)
+func NewSizeRotateFile(logfile string, maxSize int) (*RotateFileHandler, error) {
+	return NewSizeRotateFileHandler(logfile, maxSize)
 }
 
 // NewSizeRotateFileHandler instance
-func NewSizeRotateFileHandler(logfile string, sizeMb int) (*RotateFileHandler, error) {
+func NewSizeRotateFileHandler(logfile string, maxSize int) (*RotateFileHandler, error) {
 	// close rotate by time.
-	return NewRotateFileHandler(logfile, 0, WithMaxSize(sizeMb))
+	return NewRotateFileHandler(logfile, 0, WithMaxSize(maxSize))
 }
 
 //

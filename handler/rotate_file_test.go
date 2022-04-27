@@ -25,19 +25,20 @@ func TestNewSizeRotateFileHandler(t *testing.T) {
 		l.Info("info", "message", i)
 		l.Warn("warn message", i)
 	}
-	l.Flush()
+
+	err = l.Flush()
+	assert.NoError(t, err)
+
 	// checkLogFileContents(t, fpath)
 }
 
 func TestNewRotateFileHandler(t *testing.T) {
 	// by size
 	fpath := "./testdata/both-rotate-file1.log"
-	h, err := handler.NewRotateFileHandler(fpath, handler.EveryMinute)
+	h, err := handler.NewRotateFileHandler(fpath, handler.EveryMinute, handler.WithMaxSize(128))
 
 	assert.NoError(t, err)
 	assert.True(t, fsutil.IsFile(fpath))
-
-	h.MaxSize = 128
 
 	l := slog.NewWithHandlers(h)
 	l.ReportCaller = true
@@ -46,7 +47,7 @@ func TestNewRotateFileHandler(t *testing.T) {
 		l.Info("info", "message", i)
 		l.Warn("warn message", i)
 	}
-	l.Flush()
+	l.MustFlush()
 
 	// by time
 	fpath = "./testdata/both-rotate-file2.log"
@@ -63,7 +64,8 @@ func TestNewRotateFileHandler(t *testing.T) {
 		fmt.Println("second ", i+1)
 		time.Sleep(time.Second * 1)
 	}
-	l.Flush()
+	err = l.FlushAll()
+	assert.NoError(t, err)
 }
 
 func TestNewTimeRotateFileHandler_EveryDay(t *testing.T) {
@@ -82,7 +84,7 @@ func TestNewTimeRotateFileHandler_EveryDay(t *testing.T) {
 		fmt.Println("number ", i+1)
 		// time.Sleep(time.Second * 1)
 	}
-	l.Flush()
+	l.MustFlush()
 
 	checkLogFileContents(t, fpath)
 }
@@ -103,12 +105,12 @@ func TestNewTimeRotateFileHandler_EveryHour(t *testing.T) {
 		fmt.Println("number ", i+1)
 		// time.Sleep(time.Second * 1)
 	}
-	l.Flush()
+	l.MustFlush()
 
 	checkLogFileContents(t, fpath)
 }
 
-func checkLogFileContents(t *testing.T, logfile string)  {
+func checkLogFileContents(t *testing.T, logfile string) {
 	assert.True(t, fsutil.IsFile(logfile))
 
 	bts, err := ioutil.ReadFile(logfile)
@@ -137,6 +139,6 @@ func TestNewTimeRotateFileHandler(t *testing.T) {
 		fmt.Println("second ", i+1)
 		time.Sleep(time.Second * 1)
 	}
-	l.Flush()
+	l.MustFlush()
 	// assert.NoError(t, os.Remove(fpath))
 }

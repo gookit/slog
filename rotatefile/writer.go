@@ -26,7 +26,6 @@ type Writer struct {
 
 	// context use for rotating file by size
 	written   uint64 // written size
-	maxSize   uint64 // file max size byte. equals Config.MaxSize * oneMByte
 	rotateNum uint   // rotate times number
 
 	// context use for rotating file by time
@@ -53,7 +52,6 @@ func NewWriterWith(fns ...ConfigFn) (*Writer, error) {
 // init rotate dispatcher
 func (d *Writer) init() error {
 	d.fileDir = path.Dir(d.cfg.Filepath)
-	d.maxSize = d.cfg.maxSizeByte()
 	d.backupDur = d.cfg.backupDuration()
 
 	if d.cfg.BackupNum > 0 {
@@ -232,7 +230,7 @@ func (d *Writer) Rotate() (err error) {
 	}
 
 	// do rotate file by size
-	if d.cfg.MaxSize > 0 && d.written >= d.maxSize {
+	if d.cfg.MaxSize > 0 && d.written >= d.cfg.MaxSize {
 		err = d.rotatingBySize()
 	}
 	return

@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"io"
+
 	"github.com/gookit/slog"
 )
 
@@ -42,6 +44,11 @@ func (h *SyncCloseHandler) Close() error {
 // Flush the handler
 func (h *SyncCloseHandler) Flush() error {
 	return h.Output.Sync()
+}
+
+// Writer of the handler
+func (h *SyncCloseHandler) Writer() io.Writer {
+	return h.Output
 }
 
 // Handle log record
