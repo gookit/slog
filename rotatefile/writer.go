@@ -1,7 +1,6 @@
 package rotatefile
 
 import (
-	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -132,7 +131,7 @@ func (d *Writer) asyncCleanBackups() {
 	go func() {
 		err := d.Clean()
 		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "slog: clean backup files error: %v", err)
+			printlnStderr("rotatefile: clean backup files error:", err)
 		}
 	}()
 }

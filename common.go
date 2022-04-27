@@ -2,8 +2,6 @@ package slog
 
 import (
 	"errors"
-	"fmt"
-	"os"
 	"strings"
 	"time"
 )
@@ -97,6 +95,8 @@ func (fn ClockFn) Now() time.Time {
 	return fn()
 }
 
+// NOTICE: you must set `Logger.ReportCaller=true` for reporting caller.
+// then config the Logger.CallerFlag by follow flags.
 const (
 	// CallerFlagFull full func name with filename and with line.
 	// eg: "github.com/gookit/slog_test.TestLogger_ReportCaller(),logger_test.go:48"
@@ -110,15 +110,15 @@ const (
 	// CallerFlagFcName only report func name.
 	// eg: "TestLogger_ReportCaller"
 	CallerFlagFcName
-	// CallerFlagFile full filepath with line.
+	// CallerFlagFpLine full filepath with line.
 	// eg: "/work/go/gookit/slog/logger_test.go:48"
-	CallerFlagFile
-	// CallerFlagFnLine only filename with line.
+	CallerFlagFpLine
+	// CallerFlagFnLine report filename with line.
 	// eg: "logger_test.go:48"
 	CallerFlagFnLine
-	// CallerFlagFLFcN only filename with line and with short func name.
+	// CallerFlagFnlFcn report filename with line and with short func name.
 	// eg: "logger_test.go:48,TestLogger_ReportCaller"
-	CallerFlagFLFcN
+	CallerFlagFnlFcn
 )
 
 var (
@@ -160,7 +160,6 @@ var (
 var (
 	// ErrorKey Define the key when adding errors using WithError.
 	ErrorKey = "error"
-	// bufferPool *sync.Pool
 
 	// DefaultChannelName for log record
 	DefaultChannelName = "application"
@@ -282,7 +281,7 @@ var exitHandlers = make([]func(), 0)
 func runExitHandlers() {
 	defer func() {
 		if err := recover(); err != nil {
-			_, _ = fmt.Fprintln(os.Stderr, "Run exit handler error:", err)
+			printlnStderr("slog: run exit handler error:", err)
 		}
 	}()
 
@@ -318,7 +317,7 @@ func ResetExitHandlers(applyToStd bool) {
 func (l *Logger) runExitHandlers() {
 	defer func() {
 		if err := recover(); err != nil {
-			_, _ = fmt.Fprintln(os.Stderr, "Run exit handler error:", err)
+			printlnStderr("slog: Run exit handler error:", err)
 		}
 	}()
 

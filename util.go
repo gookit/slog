@@ -1,6 +1,8 @@
 package slog
 
 import (
+	"fmt"
+	"os"
 	"path"
 	"runtime"
 	"strconv"
@@ -147,4 +149,8 @@ func parseTemplateToFields(tplStr string) []string {
 	}
 
 	return vars
+}
+
+func printlnStderr(args ...interface{}) {
+	_, _ = fmt.Fprintln(os.Stderr, args...)
 }

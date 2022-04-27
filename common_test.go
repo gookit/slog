@@ -49,3 +49,10 @@ func TestLevel_ShouldHandling(t *testing.T) {
 	assert.True(t, slog.DebugLevel.ShouldHandling(slog.InfoLevel))
 	assert.False(t, slog.DebugLevel.ShouldHandling(slog.TraceLevel))
 }
+
+func TestLevels_Contains(t *testing.T) {
+	assert.True(t, slog.DangerLevels.Contains(slog.ErrorLevel))
+	assert.False(t, slog.DangerLevels.Contains(slog.InfoLevel))
+	assert.True(t, slog.NormalLevels.Contains(slog.InfoLevel))
+	assert.False(t, slog.NormalLevels.Contains(slog.PanicLevel))
+}

@@ -2,7 +2,6 @@ package slog
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"sync"
 	"time"
@@ -22,19 +21,22 @@ type SLogger interface {
 // The logger implements the `github.com/gookit/gsr.Logger`
 type Logger struct {
 	name string
-
+	// lock for write logs
 	mu sync.Mutex
 
 	handlers   []Handler
 	processors []Processor
 
+	//
 	// logger options
+	//
 
-	// ReportCaller on log message
-	ReportCaller   bool
+	// LowerLevelName use lower level name
 	LowerLevelName bool
-	CallerSFlag    int
-	CallerSkip     int
+	// ReportCaller on write log record
+	ReportCaller bool
+	CallerSkip   int
+	CallerFlag   uint8
 	// TimeClock custom time clock, timezone
 	TimeClock ClockFn
 
@@ -126,7 +128,7 @@ func (l *Logger) FlushTimeout(timeout time.Duration) {
 	done := make(chan bool, 1)
 	go func() {
 		l.lockAndFlushAll()
-		// _, _ = fmt.Fprintln(os.Stderr, "slog: Flush logs error.", err)
+		// printlnStderr( "slog: flush logs error: ", err)
 
 		done <- true
 	}()
@@ -134,7 +136,7 @@ func (l *Logger) FlushTimeout(timeout time.Duration) {
 	select {
 	case <-done:
 	case <-time.After(timeout):
-		_, _ = fmt.Fprintln(os.Stderr, "slog: Flush took longer than", timeout)
+		printlnStderr("slog: flush took longer than", timeout)
 	}
 }
 
@@ -170,7 +172,7 @@ func (l *Logger) flushAll() {
 	l.VisitAll(func(handler Handler) error {
 		err := handler.Flush()
 		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "slog: call handler.Flush() failed. error=%v", err)
+			printlnStderr("slog: call handler.Flush() failed. error:", err)
 		}
 		return nil
 	})
@@ -189,7 +191,7 @@ func (l *Logger) Close() {
 		// Flush logs and then close
 		err := handler.Close()
 		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "slog: call handler.Close() failed. error=%v", err)
+			printlnStderr("slog: call handler.Close() failed. error:", err)
 		}
 		return nil
 	})
@@ -533,7 +535,7 @@ func (l *Logger) write(level Level, r *Record, matched []Handler) {
 	// handling log record
 	for _, handler := range matched {
 		if err := handler.Handle(r); err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "slog: failed to handle log: %v\n", err)
+			printlnStderr("slog: failed to handle log: %v", err)
 		}
 	}
 

@@ -26,20 +26,20 @@ More usage please see README.
 package slog
 
 import (
-	"bytes"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/gookit/color"
 )
 
+// var bufferPool *sync.Pool
+
 func init() {
-	bufferPool = &sync.Pool{
-		New: func() interface{} {
-			return new(bytes.Buffer)
-		},
-	}
+	// bufferPool = &sync.Pool{
+	// 	New: func() interface{} {
+	// 		return new(bytes.Buffer)
+	// 	},
+	// }
 
 	// start at the bottom of the stack before the package-name cache is primed
 	// minCallerDepth = 1

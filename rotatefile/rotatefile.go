@@ -1,7 +1,9 @@
 package rotatefile
 
 import (
+	"fmt"
 	"io"
+	"os"
 	"sync"
 )
 
@@ -22,4 +24,8 @@ type RotateFiles struct {
 	sync.Mutex
 	cfg     *Config
 	pattern string
+}
+
+func printlnStderr(args ...interface{}) {
+	_, _ = fmt.Fprintln(os.Stderr, args...)
 }
