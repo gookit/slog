@@ -10,7 +10,7 @@ import (
 type RotateFileHandler struct {
 	// LockWrapper
 	slog.LevelFormattable
-	output FlushCloseWriter
+	Output FlushCloseWriter
 }
 
 // MustRotateFile instance
@@ -37,7 +37,7 @@ func NewRotateFileHandler(logfile string, rt rotatefile.RotateTime, fns ...Confi
 	}
 
 	h := &RotateFileHandler{
-		output: writer,
+		Output: writer,
 		// with log levels and formatter
 		LevelFormattable: slog.NewLvsFormatter(cfg.Levels),
 	}
@@ -58,7 +58,7 @@ func (h *RotateFileHandler) Handle(r *slog.Record) (err error) {
 	// defer h.Unlock()
 
 	// write logs
-	_, err = h.output.Write(bts)
+	_, err = h.Output.Write(bts)
 	return
 }
 
@@ -68,12 +68,12 @@ func (h *RotateFileHandler) Close() error {
 		return err
 	}
 
-	return h.output.Close()
+	return h.Output.Close()
 }
 
 // Flush logs to disk file
 func (h *RotateFileHandler) Flush() error {
-	return h.output.Flush()
+	return h.Output.Flush()
 }
 
 //
@@ -83,8 +83,8 @@ func (h *RotateFileHandler) Flush() error {
 //
 
 // MustSizeRotateFile instance
-func MustSizeRotateFile(logfile string, size int) *RotateFileHandler {
-	h, err := NewSizeRotateFileHandler(logfile, size)
+func MustSizeRotateFile(logfile string, size int, fns ...ConfigFn) *RotateFileHandler {
+	h, err := NewSizeRotateFileHandler(logfile, size, fns...)
 	if err != nil {
 		panic(err)
 	}
@@ -92,14 +92,15 @@ func MustSizeRotateFile(logfile string, size int) *RotateFileHandler {
 }
 
 // NewSizeRotateFile instance
-func NewSizeRotateFile(logfile string, maxSize int) (*RotateFileHandler, error) {
-	return NewSizeRotateFileHandler(logfile, maxSize)
+func NewSizeRotateFile(logfile string, maxSize int, fns ...ConfigFn) (*RotateFileHandler, error) {
+	return NewSizeRotateFileHandler(logfile, maxSize, fns...)
 }
 
 // NewSizeRotateFileHandler instance
-func NewSizeRotateFileHandler(logfile string, maxSize int) (*RotateFileHandler, error) {
+func NewSizeRotateFileHandler(logfile string, maxSize int, fns ...ConfigFn) (*RotateFileHandler, error) {
 	// close rotate by time.
-	return NewRotateFileHandler(logfile, 0, WithMaxSize(maxSize))
+	fns = append(fns, WithMaxSize(maxSize))
+	return NewRotateFileHandler(logfile, 0, fns...)
 }
 
 //
@@ -133,8 +134,8 @@ const (
 )
 
 // MustTimeRotateFile instance
-func MustTimeRotateFile(logfile string, rt rotatefile.RotateTime) *RotateFileHandler {
-	h, err := NewTimeRotateFileHandler(logfile, rt)
+func MustTimeRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) *RotateFileHandler {
+	h, err := NewTimeRotateFileHandler(logfile, rt, fns...)
 	if err != nil {
 		panic(err)
 	}
@@ -142,12 +143,13 @@ func MustTimeRotateFile(logfile string, rt rotatefile.RotateTime) *RotateFileHan
 }
 
 // NewTimeRotateFile instance
-func NewTimeRotateFile(logfile string, rt rotatefile.RotateTime) (*RotateFileHandler, error) {
-	return NewTimeRotateFileHandler(logfile, rt)
+func NewTimeRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*RotateFileHandler, error) {
+	return NewTimeRotateFileHandler(logfile, rt, fns...)
 }
 
 // NewTimeRotateFileHandler instance
-func NewTimeRotateFileHandler(logfile string, rt rotatefile.RotateTime) (*RotateFileHandler, error) {
+func NewTimeRotateFileHandler(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*RotateFileHandler, error) {
 	// close rotate by size.
-	return NewRotateFileHandler(logfile, rt, WithMaxSize(0))
+	fns = append(fns, WithMaxSize(0))
+	return NewRotateFileHandler(logfile, rt, fns...)
 }

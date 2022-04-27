@@ -69,7 +69,7 @@ func BenchmarkLogrusNegative(b *testing.B) {
 	}
 }
 
-func BenchmarkGookit_SlogNegative(b *testing.B) {
+func BenchmarkGookitSlogNegative(b *testing.B) {
 	logger := slog.NewWithHandlers(
 		handler.NewIOWriter(ioutil.Discard, []slog.Level{slog.ErrorLevel}),
 	)
@@ -130,7 +130,7 @@ func BenchmarkLogrusPositive(b *testing.B) {
 	}
 }
 
-func BenchmarkGookit_SlogPositive(b *testing.B) {
+func BenchmarkGookitSlogPositive(b *testing.B) {
 	logger := slog.NewWithHandlers(
 		handler.NewIOWriter(ioutil.Discard, slog.NormalLevels),
 	)

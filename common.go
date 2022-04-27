@@ -98,9 +98,12 @@ func (fn ClockFn) Now() time.Time {
 // NOTICE: you must set `Logger.ReportCaller=true` for reporting caller.
 // then config the Logger.CallerFlag by follow flags.
 const (
+	// CallerFlagFnlFcn report short func name with filename and with line.
+	// eg: "logger_test.go:48,TestLogger_ReportCaller"
+	CallerFlagFnlFcn uint8 = iota
 	// CallerFlagFull full func name with filename and with line.
 	// eg: "github.com/gookit/slog_test.TestLogger_ReportCaller(),logger_test.go:48"
-	CallerFlagFull uint8 = iota
+	CallerFlagFull
 	// CallerFlagFunc full package with func name.
 	// eg: "github.com/gookit/slog_test.TestLogger_ReportCaller"
 	CallerFlagFunc
@@ -110,9 +113,6 @@ const (
 	// CallerFlagFpLine report full filepath with line.
 	// eg: "/work/go/gookit/slog/logger_test.go:48"
 	CallerFlagFpLine
-	// CallerFlagFnlFcn report filename with line and with short func name.
-	// eg: "logger_test.go:48,TestLogger_ReportCaller"
-	CallerFlagFnlFcn
 	// CallerFlagFnLine report filename with line.
 	// eg: "logger_test.go:48"
 	CallerFlagFnLine

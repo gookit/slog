@@ -371,8 +371,8 @@ BenchmarkPhusLogNegative
 BenchmarkPhusLogNegative-4              784099310               15.24 ns/op            0 B/op          0 allocs/op
 BenchmarkLogrusNegative
 BenchmarkLogrusNegative-4               289939296               41.60 ns/op           16 B/op          1 allocs/op
-BenchmarkGookit_SlogNegative
-> BenchmarkGookit_SlogNegative-4           29131203               417.4 ns/op           125 B/op          4 allocs/op
+BenchmarkGookitSlogNegative
+> BenchmarkGookitSlogNegative-4           29131203               417.4 ns/op           125 B/op          4 allocs/op
 BenchmarkZapPositive
 BenchmarkZapPositive-4                   9910075              1219 ns/op             192 B/op          1 allocs/op
 BenchmarkZeroLogPositive
@@ -381,8 +381,8 @@ BenchmarkPhusLogPositive
 BenchmarkPhusLogPositive-4              26743148               446.2 ns/op             0 B/op          0 allocs/op
 BenchmarkLogrusPositive
 BenchmarkLogrusPositive-4                2658482              4481 ns/op             608 B/op         17 allocs/op
-BenchmarkGookit_SlogPositive
-> BenchmarkGookit_SlogPositive-4            8349562              1441 ns/op             165 B/op          6 allocs/op
+BenchmarkGookitSlogPositive
+> BenchmarkGookitSlogPositive-4            8349562              1441 ns/op             165 B/op          6 allocs/op
 PASS
 ok      command-line-arguments  146.669s
 ```

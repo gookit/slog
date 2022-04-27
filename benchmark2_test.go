@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/gookit/goutil/dump"
-	"github.com/valyala/bytebufferpool"
 )
 
 func TestLogger_newRecord_AllocTimes(t *testing.T) {
@@ -49,30 +48,6 @@ func Test_AllocTimes_formatArgsWithSpaces_manyElem(t *testing.T) {
 	})))
 }
 
-func TestRecord_logBytes_AllocTimes(t *testing.T) {
-	l := Std()
-	l.Output = ioutil.Discard
-	defer l.Reset()
-
-	// use buffer pool
-	bb := bytebufferpool.Get()
-
-	// output: 18 times
-	fmt.Println("Alloc Times:", int(testing.AllocsPerRun(10, func() {
-		// logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
-		r := l.newRecord()
-
-		bb.Reset()
-		_, _ = bb.Write([]byte("info message"))
-		r.Message = string(bb.B)
-		r.logBytes(InfoLevel)
-
-		l.releaseRecord(r)
-	})))
-
-	bytebufferpool.Put(bb)
-}
-
 func Test_AllocTimes_stringsPool(t *testing.T) {
 	l := Std()
 	l.Output = ioutil.Discard
@@ -101,7 +76,7 @@ func Test_AllocTimes_stringsPool(t *testing.T) {
 	dump.P(ln, cp)
 }
 
-func TestLogger_Info_AllocTimes(t *testing.T) {
+func TestLogger_Info_oneElem_AllocTimes(t *testing.T) {
 	l := Std()
 	// l.Output = ioutil.Discard
 	l.ReportCaller = false
@@ -118,7 +93,7 @@ func TestLogger_Info_AllocTimes(t *testing.T) {
 	})))
 }
 
-func TestLogger_Info_AllocTimes1(t *testing.T) {
+func TestLogger_Info_moreElem_AllocTimes(t *testing.T) {
 	l := NewStdLogger()
 	// l.Output = ioutil.Discard
 	l.ReportCaller = false
@@ -128,9 +103,14 @@ func TestLogger_Info_AllocTimes1(t *testing.T) {
 
 	defer l.Reset()
 
-	// output: 2 times
+	// output: 5 times
 	fmt.Println("Alloc Times:", int(testing.AllocsPerRun(5, func() {
 		l.Info("rate", "15", "low", 16, "high", 123.2, "msg")
+	})))
+
+	// output: 5 times
+	fmt.Println("Alloc Times:", int(testing.AllocsPerRun(5, func() {
+		l.Info("rate", "15", "low", 16, "high")
 		// l.Info("msg")
 	})))
 }

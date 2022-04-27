@@ -71,7 +71,7 @@ func TestNewSimpleFileHandler(t *testing.T) {
 
 	assert.True(t, fsutil.IsFile(logfile))
 	// assert.NoError(t, os.Remove(logfile))
-	bts, err := ioutil.ReadFile(testFile)
+	bts, err := ioutil.ReadFile(logfile)
 	assert.NoError(t, err)
 
 	str := string(bts)

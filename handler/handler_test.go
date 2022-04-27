@@ -12,8 +12,9 @@ import (
 
 var (
 	sampleData = slog.M{
-		"name": "inhere",
-		"age":  100,
+		"name":  "inhere",
+		"age":   100,
+		"skill": "go,php,java",
 	}
 )
 
@@ -22,15 +23,10 @@ func TestConsoleHandlerWithColor(t *testing.T) {
 	l.Configure(func(l *slog.Logger) {
 		l.ReportCaller = true
 		l.ExitFunc = slog.DoNothingOnExit
+		l.PanicFunc = slog.DoNothingOnPanic
 	})
 
-	l.Trace("this is a simple log message")
-	l.Debug("this is a simple log message")
-	l.Info("this is a simple log message")
-	l.Notice("this is a simple log message")
-	l.Warn("this is a simple log message")
-	l.Error("this is a simple log message")
-	l.Fatal("this is a simple log message")
+	logAllLevel(l, "this is a simple log message")
 }
 
 func TestConsoleHandlerNoColor(t *testing.T) {

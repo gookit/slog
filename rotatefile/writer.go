@@ -14,7 +14,8 @@ import (
 //
 // refer https://github.com/flike/golog/blob/master/filehandler.go
 type Writer struct {
-	sync.Mutex
+	mu sync.Mutex
+	// config of the writer
 	cfg  *Config
 	file *os.File
 	// file dir path for the Config.Filepath
@@ -73,6 +74,11 @@ func (d *Writer) init() error {
 	}
 
 	return nil
+}
+
+// Config get the config
+func (d *Writer) Config() *Config {
+	return d.cfg
 }
 
 // ReopenFile the log file
@@ -199,8 +205,8 @@ func (d *Writer) WriteString(s string) (n int, err error) {
 func (d *Writer) Write(p []byte) (n int, err error) {
 	// if enable lock
 	if d.cfg.CloseLock == false {
-		d.Lock()
-		defer d.Unlock()
+		d.mu.Lock()
+		defer d.mu.Unlock()
 	}
 
 	n, err = d.file.Write(p)

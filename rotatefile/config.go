@@ -218,6 +218,7 @@ func NewDefaultConfig() *Config {
 	return &Config{
 		MaxSize:    DefaultMaxSize,
 		BackupNum:  20,
+		BackupTime: 24 * 7, // keep a week.
 		RotateTime: EveryHour,
 		RenameFunc: DefaultFilenameFn,
 		TimeClock:  DefaultTimeClockFn,

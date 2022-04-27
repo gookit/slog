@@ -13,6 +13,7 @@ const NamedTemplate = "{{datetime}} channel={{channel}} level={{level}} [file={{
 
 // ColorTheme for format log to console
 var ColorTheme = map[Level]color.Color{
+	PanicLevel:  color.FgRed,
 	FatalLevel:  color.FgRed,
 	ErrorLevel:  color.FgMagenta,
 	WarnLevel:   color.FgYellow,
