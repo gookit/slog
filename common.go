@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 )
 
 //
@@ -88,6 +89,38 @@ func (m M) String() string {
 	return mapToString(m)
 }
 
+// ClockFn func
+type ClockFn func() time.Time
+
+// Now implements the Clocker
+func (fn ClockFn) Now() time.Time {
+	return fn()
+}
+
+const (
+	// CallerFlagFull full func name with filename and with line.
+	// eg: "github.com/gookit/slog_test.TestLogger_ReportCaller(),logger_test.go:48"
+	CallerFlagFull uint8 = iota
+	// CallerFlagFunc full package with func name.
+	// eg: "github.com/gookit/slog_test.TestLogger_ReportCaller"
+	CallerFlagFunc
+	// CallerFlagPkg report full package name.
+	// eg: "github.com/gookit/slog_test"
+	CallerFlagPkg
+	// CallerFlagFcName only report func name.
+	// eg: "TestLogger_ReportCaller"
+	CallerFlagFcName
+	// CallerFlagFile full filepath with line.
+	// eg: "/work/go/gookit/slog/logger_test.go:48"
+	CallerFlagFile
+	// CallerFlagFnLine only filename with line.
+	// eg: "logger_test.go:48"
+	CallerFlagFnLine
+	// CallerFlagFLFcN only filename with line and with short func name.
+	// eg: "logger_test.go:48,TestLogger_ReportCaller"
+	CallerFlagFLFcN
+)
+
 var (
 	FieldKeyTime = "time"
 	FieldKeyDate = "date"
@@ -125,12 +158,21 @@ var (
 )
 
 var (
+	// ErrorKey Define the key when adding errors using WithError.
+	ErrorKey = "error"
+	// bufferPool *sync.Pool
+
+	// DefaultChannelName for log record
 	DefaultChannelName = "application"
 	DefaultTimeFormat  = "2006/01/02T15:04:05"
 	// TimeFormatRFC3339  = time.RFC3339
 
 	// DoNothingOnExit handler. use for testing.
 	DoNothingOnExit = func(code int) {}
+
+	DefaultClockFn = ClockFn(func() time.Time {
+		return time.Now()
+	})
 )
 
 var (

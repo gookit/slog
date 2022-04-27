@@ -6,7 +6,16 @@ import (
 	"os"
 	"sync"
 	"time"
+
+	"github.com/gookit/gsr"
 )
+
+// SLogger interface
+type SLogger interface {
+	gsr.Logger
+	Log(level Level, v ...interface{})
+	Logf(level Level, format string, v ...interface{})
+}
 
 // Logger definition.
 //
@@ -14,18 +23,20 @@ import (
 type Logger struct {
 	name string
 
-	// timezone
-	tz time.Time
 	mu sync.Mutex
 
 	handlers   []Handler
 	processors []Processor
 
-	// options
+	// logger options
+
 	// ReportCaller on log message
 	ReportCaller   bool
 	LowerLevelName bool
+	CallerSFlag    int
 	CallerSkip     int
+	// TimeClock custom time clock, timezone
+	TimeClock ClockFn
 
 	// reusable empty record
 	recordPool sync.Pool
@@ -35,7 +46,7 @@ type Logger struct {
 	ExitFunc     func(code int)
 }
 
-// New create an new logger
+// New create a new logger
 func New() *Logger {
 	return NewWithName("logger")
 }
@@ -62,6 +73,7 @@ func NewWithName(name string) *Logger {
 		// options
 		ReportCaller: true,
 		CallerSkip:   6,
+		TimeClock:    DefaultClockFn,
 	}
 
 	logger.recordPool.New = func() interface{} {
@@ -138,6 +150,11 @@ func (l *Logger) Sync() error {
 func (l *Logger) Flush() error {
 	l.lockAndFlushAll()
 	return nil
+}
+
+// MustFlush flush logs. will ignore error
+func (l *Logger) MustFlush() {
+	l.lockAndFlushAll()
 }
 
 // FlushAll flushes all the logs and attempts to "sync" their data to disk.

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"runtime"
-	"sync"
 	"time"
 )
 
@@ -47,12 +46,6 @@ type Record struct {
 	// field caches mapping for optimize performance. TODO use map[string][]byte ?
 	strMp map[string]string
 }
-
-var (
-	// ErrorKey Define the key when adding errors using WithError.
-	ErrorKey   = "error"
-	bufferPool *sync.Pool
-)
 
 func newRecord(logger *Logger) *Record {
 	return &Record{
@@ -315,7 +308,7 @@ func (r *Record) Init(lowerLevelName bool) {
 
 	// init log time
 	if r.Time.IsZero() {
-		r.Time = time.Now()
+		r.Time = r.logger.TimeClock.Now()
 	}
 
 	r.microSecond = r.Time.Nanosecond() / 1000
