@@ -6,7 +6,7 @@ SHELL := /bin/bash
 NAME := slog
 BUILD_TARGET = build
 MAIN_SRC_FILE=cmd/main.go
-GO := GO111MODULE=on go
+GO :=go
 GO_NOMOD :=GO111MODULE=off go
 REV := $(shell git rev-parse --short HEAD 2> /dev/null || echo 'unknown')
 ORG := gookit
@@ -70,6 +70,7 @@ list: ## List all make targets
 .PHONY: help
 .DEFAULT_GOAL := help
 help:
+	@echo -e "Some useful commands for develop\n"
 	@grep -h -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 full: check ## Build and run the tests
@@ -116,6 +117,10 @@ test-report: make-reports-dir get-test-deps test-coverage ## Create the test rep
 
 test-report-html: make-reports-dir get-test-deps test-coverage ## Create the test report in HTML format
 	@gocov convert $(COVER_OUT) | gocov-html > $(REPORTS_DIR)/cover.html && open $(REPORTS_DIR)/cover.html
+
+test-bench: ## run bench test report in _example dir
+	cd ./_example; go mod tidy; \
+	go test -v -cpu=4 -run=none -bench=. -benchtime=10s -benchmem bench_loglibs_test.go
 
 install: $(GO_DEPENDENCIES) ## Install the binary
 	GOBIN=${GOPATH}/bin $(GO) install $(BUILDFLAGS) $(MAIN_SRC_FILE)

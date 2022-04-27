@@ -12,11 +12,9 @@ import (
 func TestLoggerBasic(t *testing.T) {
 	l := slog.New()
 	l.SetName("testName")
-
 	assert.Equal(t, "testName", l.Name())
 
 	l = slog.NewWithName("testName")
-
 	assert.Equal(t, "testName", l.Name())
 }
 
@@ -24,17 +22,10 @@ func TestLogger_AddHandlers(t *testing.T) {
 
 }
 
-type bufferHandler struct {
-	slog.LevelsWithFormatter
-}
-
-func (h *bufferHandler) Handle(_ *slog.Record) error {
-	panic("implement me")
-}
-
 func TestLogger_ReportCaller(t *testing.T) {
 	l := slog.NewWithConfig(func(logger *slog.Logger) {
 		logger.ReportCaller = true
+		logger.CallerFlag = slog.CallerFlagFnLine
 	})
 
 	var buf bytes.Buffer

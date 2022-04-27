@@ -175,14 +175,14 @@ import (
 	"github.com/gookit/slog/handler"
 )
 
-func myfunc() {
+func main() {
 	defer slog.MustFlush()
 
-	h1 := handler.MustFileHandler("/tmp/error.log", true)
-	h1.Levels = slog.Levels{slog.PanicLevel, slog.ErrorLevel, slog.WarnLevel}
+	// DangerLevels 包含： slog.PanicLevel, slog.ErrorLevel, slog.WarnLevel
+	h1 := handler.MustFileHandler("/tmp/error.log", handler.WithLogLevels(slog.DangerLevels))
 
-	h2 := handler.MustFileHandler("/tmp/info.log", true)
-	h2.Levels = slog.Levels{slog.InfoLevel, slog.NoticeLevel, slog.DebugLevel, slog.TraceLevel}
+	// NormalLevels 包含： slog.InfoLevel, slog.NoticeLevel, slog.DebugLevel, slog.TraceLevel
+	h2 := handler.MustFileHandler("/tmp/info.log", handler.WithLogLevels(slog.NormalLevels))
 
 	slog.PushHandler(h1)
 	slog.PushHandler(h2)
@@ -276,7 +276,8 @@ Logger -{
 
 ### Processor
 
-`Processor` - 日志记录(`Record`)处理器。你可以使用它在日志 `Record` 到达 `Handler` 处理之前，对Record进行额外的操作，比如：新增字段，添加扩展信息等
+`Processor` - 日志记录(`Record`)处理器。
+你可以使用它在日志 `Record` 到达 `Handler` 处理之前，对Record进行额外的操作，比如：新增字段，添加扩展信息等
 
 这里使用内置的processor `slog.AddHostname` 作为示例，它可以在每条日志记录上添加新字段 `hostname`。
 
@@ -294,7 +295,7 @@ slog.Info("message")
 
 ### Handler
 
-`Handler` - 日志处理器，每条日志都会经过 `Handler.Handle()` 处理，在这里你可以将日志发送到 控制台，文件，远程服务器。
+`Handler` - 日志处理器，每条日志都会经过 `Handler.Handle()` 处理，在这里你可以将日志发送到 控制台，文件，远程服务器等等。
 
 > 你可以自定义任何想要的 `Handler`，只需要实现 `slog.Handler` 接口即可。
 
@@ -337,6 +338,53 @@ type FormatterFunc func(r *Record) ([]byte, error)
 func (fn FormatterFunc) Format(r *Record) ([]byte, error) {
 	return fn(r)
 }
+```
+
+## 测试以及性能
+
+### 单元测试
+
+运行单元测试
+
+```bash
+go test ./...
+```
+
+### 性能测试
+
+```bash
+make test-bench
+```
+
+> record ad 2022.04.27
+
+```text
+% make test-bench
+goos: darwin
+goarch: amd64
+cpu: Intel(R) Core(TM) i7-3740QM CPU @ 2.70GHz
+BenchmarkZapNegative
+BenchmarkZapNegative-4                  128133166               93.97 ns/op          192 B/op          1 allocs/op
+BenchmarkZeroLogNegative
+BenchmarkZeroLogNegative-4              909583207               13.41 ns/op            0 B/op          0 allocs/op
+BenchmarkPhusLogNegative
+BenchmarkPhusLogNegative-4              784099310               15.24 ns/op            0 B/op          0 allocs/op
+BenchmarkLogrusNegative
+BenchmarkLogrusNegative-4               289939296               41.60 ns/op           16 B/op          1 allocs/op
+BenchmarkGookit_SlogNegative
+> BenchmarkGookit_SlogNegative-4           29131203               417.4 ns/op           125 B/op          4 allocs/op
+BenchmarkZapPositive
+BenchmarkZapPositive-4                   9910075              1219 ns/op             192 B/op          1 allocs/op
+BenchmarkZeroLogPositive
+BenchmarkZeroLogPositive-4              13966810               871.0 ns/op             0 B/op          0 allocs/op
+BenchmarkPhusLogPositive
+BenchmarkPhusLogPositive-4              26743148               446.2 ns/op             0 B/op          0 allocs/op
+BenchmarkLogrusPositive
+BenchmarkLogrusPositive-4                2658482              4481 ns/op             608 B/op         17 allocs/op
+BenchmarkGookit_SlogPositive
+> BenchmarkGookit_SlogPositive-4            8349562              1441 ns/op             165 B/op          6 allocs/op
+PASS
+ok      command-line-arguments  146.669s
 ```
 
 ## Gookit packages

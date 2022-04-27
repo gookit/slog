@@ -13,7 +13,9 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// go test -v -cpu=4 -run=none -bench=. -benchtime=10s -benchmem bench_loglibs_test.go
+// in _example dir:
+//
+// 	go test -v -cpu=4 -run=none -bench=. -benchtime=10s -benchmem bench_loglibs_test.go
 //
 // code refer:
 // 	https://github.com/phuslu/log
@@ -67,7 +69,7 @@ func BenchmarkLogrusNegative(b *testing.B) {
 	}
 }
 
-func BenchmarkGookitSlogNegative(b *testing.B) {
+func BenchmarkGookit_SlogNegative(b *testing.B) {
 	logger := slog.NewWithHandlers(
 		handler.NewIOWriter(ioutil.Discard, []slog.Level{slog.ErrorLevel}),
 	)
@@ -128,7 +130,7 @@ func BenchmarkLogrusPositive(b *testing.B) {
 	}
 }
 
-func BenchmarkGookitSlogPositive(b *testing.B) {
+func BenchmarkGookit_SlogPositive(b *testing.B) {
 	logger := slog.NewWithHandlers(
 		handler.NewIOWriter(ioutil.Discard, slog.NormalLevels),
 	)

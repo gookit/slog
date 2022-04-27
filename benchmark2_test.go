@@ -57,7 +57,7 @@ func TestRecord_logBytes_AllocTimes(t *testing.T) {
 	// use buffer pool
 	bb := bytebufferpool.Get()
 
-	// output: 50 times
+	// output: 18 times
 	fmt.Println("Alloc Times:", int(testing.AllocsPerRun(10, func() {
 		// logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
 		r := l.newRecord()
@@ -111,12 +111,26 @@ func TestLogger_Info_AllocTimes(t *testing.T) {
 
 	defer l.Reset()
 
-	// l.Info("msg")
-	// return
-
 	// output: 2 times
 	fmt.Println("Alloc Times:", int(testing.AllocsPerRun(5, func() {
 		// l.Info("rate", "15", "low", 16, "high", 123.2, "msg")
 		l.Info("msg")
+	})))
+}
+
+func TestLogger_Info_AllocTimes1(t *testing.T) {
+	l := NewStdLogger()
+	// l.Output = ioutil.Discard
+	l.ReportCaller = false
+	l.LowerLevelName = true
+	// 启用 color 会导致多次(10次左右)内存分配
+	l.Formatter.(*TextFormatter).EnableColor = false
+
+	defer l.Reset()
+
+	// output: 2 times
+	fmt.Println("Alloc Times:", int(testing.AllocsPerRun(5, func() {
+		l.Info("rate", "15", "low", 16, "high", 123.2, "msg")
+		// l.Info("msg")
 	})))
 }
