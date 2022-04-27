@@ -13,7 +13,7 @@ func TestDefine_basic(t *testing.T) {
 	assert.NotEmpty(t, slog.NoTimeFields)
 	assert.NotEmpty(t, slog.FieldKeyDate)
 	assert.NotEmpty(t, slog.FieldKeyTime)
-	assert.NotEmpty(t, slog.FieldKeyPkg)
+	assert.NotEmpty(t, slog.FieldKeyCaller)
 	assert.NotEmpty(t, slog.FieldKeyError)
 }
 

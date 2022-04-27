@@ -110,16 +110,7 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 		case field == FieldKeyTimestamp:
 			buf.WriteString(strconv.Itoa(r.MicroSecond()))
 		case field == FieldKeyCaller && r.Caller != nil:
-			buf.WriteString(formatCaller(r.Caller, field))
-		case field == FieldKeyFLFC && r.Caller != nil: // eg: "logger_test.go:48,TestLogger_ReportCaller"
-			buf.WriteString(formatCaller(r.Caller, field))
-		case field == FieldKeyFLine && r.Caller != nil: // "logger_test.go:48"
-			buf.WriteString(formatCaller(r.Caller, field))
-		case field == FieldKeyFunc && r.Caller != nil:
-			// "github.com/gookit/slog_test.TestLogger_ReportCaller"
-			buf.WriteString(r.Caller.Function)
-		case field == FieldKeyFile && r.Caller != nil: // "/work/go/gookit/slog/logger_test.go:48"
-			buf.WriteString(formatCaller(r.Caller, field))
+			buf.WriteString(formatCaller(r.Caller, r.CallerFlag))
 		case field == FieldKeyLevel:
 			// output colored logs for console
 			if f.EnableColor {

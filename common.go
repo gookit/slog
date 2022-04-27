@@ -107,47 +107,35 @@ const (
 	// CallerFlagPkg report full package name.
 	// eg: "github.com/gookit/slog_test"
 	CallerFlagPkg
-	// CallerFlagFcName only report func name.
-	// eg: "TestLogger_ReportCaller"
-	CallerFlagFcName
-	// CallerFlagFpLine full filepath with line.
+	// CallerFlagFpLine report full filepath with line.
 	// eg: "/work/go/gookit/slog/logger_test.go:48"
 	CallerFlagFpLine
-	// CallerFlagFnLine report filename with line.
-	// eg: "logger_test.go:48"
-	CallerFlagFnLine
 	// CallerFlagFnlFcn report filename with line and with short func name.
 	// eg: "logger_test.go:48,TestLogger_ReportCaller"
 	CallerFlagFnlFcn
+	// CallerFlagFnLine report filename with line.
+	// eg: "logger_test.go:48"
+	CallerFlagFnLine
+	// CallerFlagFcName only report func name.
+	// eg: "TestLogger_ReportCaller"
+	CallerFlagFcName
 )
 
 var (
+	// FieldKeyData define the key name for Record.Data
+	FieldKeyData = "data"
 	FieldKeyTime = "time"
 	FieldKeyDate = "date"
 
 	FieldKeyDatetime  = "datetime"
 	FieldKeyTimestamp = "timestamp"
 
-	// FieldKeyData = "data"
-	FieldKeyData = "data"
-
+	// FieldKeyCaller the field key name for report caller.
+	//
+	// For caller style please see CallerFlagFull, CallerFlagFunc and more.
+	//
 	// NOTICE: you must set `Logger.ReportCaller=true` for reporting caller
-
-	// FieldKeyCaller filename with line with func name.
-	// eg: "github.com/gookit/slog_test.TestLogger_ReportCaller(),logger_test.go:48"
 	FieldKeyCaller = "caller"
-	// FieldKeyFunc package with func name. eg: "github.com/gookit/slog_test.TestLogger_ReportCaller"
-	FieldKeyFunc = "func"
-	// FieldKeyPkg package name. "github.com/gookit/slog_test"
-	FieldKeyPkg = "package"
-	// FieldKeyFcName only report func name. eg: "TestLogger_ReportCaller"
-	FieldKeyFcName = "fcname"
-	// FieldKeyFile full filepath with line. eg: "/work/go/gookit/slog/logger_test.go:48"
-	FieldKeyFile = "file"
-	// FieldKeyFLine filename with line. eg: "logger_test.go:48"
-	FieldKeyFLine = "fline"
-	// FieldKeyFLFC filename with line and with short func name. eg: "logger_test.go:48,TestLogger_ReportCaller"
-	FieldKeyFLFC = "flfc"
 
 	FieldKeyLevel = "level"
 	FieldKeyError = "error"
@@ -175,6 +163,9 @@ var (
 )
 
 var (
+	// PrintLevel for use logger.Print / Printf / Println
+	PrintLevel = InfoLevel
+
 	// AllLevels exposing all logging levels
 	AllLevels = Levels{
 		PanicLevel,
@@ -187,11 +178,9 @@ var (
 		TraceLevel,
 	}
 
+	// DangerLevels define the commonly danger log levels
 	DangerLevels = Levels{PanicLevel, FatalLevel, ErrorLevel, WarnLevel}
 	NormalLevels = Levels{InfoLevel, NoticeLevel, DebugLevel, TraceLevel}
-
-	// PrintLevel for use logger.Print / Printf / Println
-	PrintLevel = InfoLevel
 
 	// LevelNames all level mapping name
 	LevelNames = map[Level]string{
@@ -207,28 +196,6 @@ var (
 
 	// lower level name.
 	lowerLevelNames = buildLowerLevelName()
-)
-
-var (
-	// DefaultFields default log export fields
-	DefaultFields = []string{
-		FieldKeyDatetime,
-		FieldKeyChannel,
-		FieldKeyLevel,
-		FieldKeyCaller,
-		FieldKeyMessage,
-		FieldKeyData,
-		FieldKeyExtra,
-	}
-
-	// NoTimeFields log export fields without time
-	NoTimeFields = []string{
-		FieldKeyChannel,
-		FieldKeyLevel,
-		FieldKeyMessage,
-		FieldKeyData,
-		FieldKeyExtra,
-	}
 )
 
 // LevelName match

@@ -6,18 +6,41 @@ import (
 	"github.com/valyala/bytebufferpool"
 )
 
+var (
+	// DefaultFields default log export fields for json formatter.
+	DefaultFields = []string{
+		FieldKeyDatetime,
+		FieldKeyChannel,
+		FieldKeyLevel,
+		FieldKeyCaller,
+		FieldKeyMessage,
+		FieldKeyData,
+		FieldKeyExtra,
+	}
+
+	// NoTimeFields log export fields without time
+	NoTimeFields = []string{
+		FieldKeyChannel,
+		FieldKeyLevel,
+		FieldKeyMessage,
+		FieldKeyData,
+		FieldKeyExtra,
+	}
+)
+
 // JSONFormatter definition
 type JSONFormatter struct {
-	// Fields exported log fields.
+	// Fields exported log fields. default is DefaultFields
 	Fields []string
 	// Aliases for output fields. you can change export field name.
+	//
 	// item: `"field" : "output name"`
 	// eg: {"message": "msg"} export field will display "msg"
 	Aliases StringMap
 
 	// PrettyPrint will indent all json logs
 	PrettyPrint bool
-	// TimeFormat the time format layout. default is time.RFC3339
+	// TimeFormat the time format layout. default is DefaultTimeFormat
 	TimeFormat string
 }
 
@@ -32,7 +55,6 @@ func NewJSONFormatter(fn ...func(*JSONFormatter)) *JSONFormatter {
 	if len(fn) > 0 {
 		fn[0](f)
 	}
-
 	return f
 }
 
@@ -59,16 +81,7 @@ func (f *JSONFormatter) Format(r *Record) ([]byte, error) {
 			logData[outName] = r.MicroSecond()
 		case field == FieldKeyCaller && r.Caller != nil:
 			// "logger_test.go:48,TestLogger_ReportCaller"
-			logData[outName] = formatCaller(r.Caller, field)
-		case field == FieldKeyFLine && r.Caller != nil:
-			// "logger_test.go:48"
-			logData[outName] = formatCaller(r.Caller, field)
-		case field == FieldKeyFunc && r.Caller != nil:
-			// "github.com/gookit/slog_test.TestLogger_ReportCaller"
-			logData[outName] = r.Caller.Function
-		case field == FieldKeyFile && r.Caller != nil:
-			// "/work/go/gookit/slog/logger_test.go:48"
-			logData[outName] = formatCaller(r.Caller, field)
+			logData[outName] = formatCaller(r.Caller, r.CallerFlag)
 		case field == FieldKeyLevel:
 			logData[outName] = r.LevelName()
 		case field == FieldKeyChannel:

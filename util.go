@@ -48,23 +48,29 @@ func getCaller(callerSkip int) (fr runtime.Frame, ok bool) {
 	return f, f.PC != 0
 }
 
-func formatCaller(rf *runtime.Frame, field string) (cs string) {
-	switch field {
-	case FieldKeyCaller:
+func formatCaller(rf *runtime.Frame, flag uint8) (cs string) {
+	switch flag {
+	case CallerFlagFull:
 		// eg: "github.com/gookit/slog_test.TestLogger_ReportCaller,logger_test.go:48"
 		return rf.Function + "," + path.Base(rf.File) + ":" + strconv.FormatInt(int64(rf.Line), 10)
-	case FieldKeyFLFC:
+	case CallerFlagFunc:
+		return rf.Function
+	case CallerFlagPkg:
+		i := strings.LastIndex(rf.Function, "/")
+		return rf.Function[:i+1]
+	case CallerFlagFpLine:
+		return rf.File + ":" + strconv.Itoa(rf.Line)
+	case CallerFlagFnlFcn:
 		ss := strings.Split(rf.Function, ".")
 		return path.Base(rf.File) + ":" + strconv.Itoa(rf.Line) + "," + ss[len(ss)-1]
-	case FieldKeyFile: // eg: "/work/go/gookit/slog/logger_test.go:48"
-		return rf.File + ":" + strconv.Itoa(rf.Line)
-	case FieldKeyFLine:
+	case CallerFlagFnLine:
 		return path.Base(rf.File) + ":" + strconv.Itoa(rf.Line)
-	case FieldKeyFcName:
+	case CallerFlagFcName:
 		ss := strings.Split(rf.Function, ".")
 		return ss[len(ss)-1]
 	}
 
+	// default use CallerFlagFpLine
 	return rf.File + ":" + strconv.Itoa(rf.Line)
 }
 

@@ -3,7 +3,6 @@ package slog_test
 import (
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/gookit/goutil/dump"
 	"github.com/gookit/slog"
@@ -16,7 +15,7 @@ func newTestRecord() *slog.Record {
 		Channel: slog.DefaultChannelName,
 		Level:   slog.InfoLevel,
 		Message: "TEST_LOG_MESSAGE",
-		Time:    time.Now(),
+		Time:    slog.DefaultClockFn.Now(),
 		Data: map[string]interface{}{
 			"data_key0": "value",
 			"username":  "inhere",

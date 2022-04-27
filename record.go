@@ -38,6 +38,8 @@ type Record struct {
 
 	// Caller information
 	Caller *runtime.Frame
+	// CallerFlag value. default is equals to Logger.CallerFlag
+	CallerFlag uint8
 	// Formatted []byte
 
 	// stacks []byte
@@ -311,6 +313,7 @@ func (r *Record) Init(lowerLevelName bool) {
 		r.Time = r.logger.TimeClock.Now()
 	}
 
+	r.CallerFlag = r.logger.CallerFlag
 	r.microSecond = r.Time.Nanosecond() / 1000
 }
 
