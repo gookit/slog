@@ -115,12 +115,18 @@ func logAllLevel(log slog.SLogger, msg string) {
 
 func newLogRecord(msg string) *slog.Record {
 	r := &slog.Record{
-		Level:   slog.TraceLevel,
 		Channel: "handler_test",
+		Level:   slog.InfoLevel,
 		Message: msg,
 		Time:    slog.DefaultClockFn.Now(),
 		Data:    sampleData,
+		Extra: map[string]interface{}{
+			"source":     "linux",
+			"extra_key0": "hello",
+			"sub":        slog.M{"sub_key1": "val0"},
+		},
 	}
 
+	r.Init(false)
 	return r
 }

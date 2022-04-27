@@ -58,10 +58,11 @@ func TestRecord_logBytes_AllocTimes(t *testing.T) {
 	bb := bytebufferpool.Get()
 
 	// output: 50 times
-	fmt.Println("Alloc Times:", int(testing.AllocsPerRun(100, func() {
+	fmt.Println("Alloc Times:", int(testing.AllocsPerRun(10, func() {
 		// logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
 		r := l.newRecord()
 
+		bb.Reset()
 		_, _ = bb.Write([]byte("info message"))
 		r.Message = string(bb.B)
 		r.logBytes(InfoLevel)

@@ -89,7 +89,7 @@ func (f *TextFormatter) Fields() []string {
 //goland:noinspection GoUnhandledErrorResult
 func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 	buf := bytebufferpool.Get()
-	// buf.Reset()
+	buf.Reset()
 	defer bytebufferpool.Put(buf)
 
 	for _, field := range f.fields {

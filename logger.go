@@ -43,9 +43,10 @@ type Logger struct {
 	// reusable empty record
 	recordPool sync.Pool
 
-	// handlers on exit
+	// handlers on exit, panic.
 	exitHandlers []func()
 	ExitFunc     func(code int)
+	PanicFunc    func(v interface{})
 }
 
 // New create a new logger
@@ -71,6 +72,7 @@ func NewWithName(name string) *Logger {
 		name: name,
 		// exit handle
 		ExitFunc:     os.Exit,
+		PanicFunc:    DefaultPanicFn,
 		exitHandlers: []func(){},
 		// options
 		ReportCaller: true,
@@ -136,7 +138,7 @@ func (l *Logger) FlushTimeout(timeout time.Duration) {
 	select {
 	case <-done:
 	case <-time.After(timeout):
-		printlnStderr("slog: flush took longer than", timeout)
+		printlnStderr("slog: flush took longer than timeout:", timeout)
 	}
 }
 
@@ -480,73 +482,4 @@ func (l *Logger) Panicf(format string, args ...interface{}) {
 // Panicln logs a message at level Panic
 func (l *Logger) Panicln(args ...interface{}) {
 	l.log(PanicLevel, args)
-}
-
-//
-// ---------------------------------------------------------------------------
-// Do handling log message
-// ---------------------------------------------------------------------------
-//
-
-func (l *Logger) matchHandlers(level Level) ([]Handler, bool) {
-	// alloc: 1 times for match handlers
-	var matched []Handler
-	for _, handler := range l.handlers {
-		if handler.IsHandling(level) {
-			matched = append(matched, handler)
-		}
-	}
-
-	return matched, len(matched) > 0
-}
-
-func (l *Logger) write(level Level, r *Record, matched []Handler) {
-	// // alloc: 1 times for match handlers
-	// var matched []Handler
-	// for _, handler := range l.handlers {
-	// 	if handler.IsHandling(level) {
-	// 		matched = append(matched, handler)
-	// 	}
-	// }
-	//
-	// // log level is don't match
-	// if len(matched) == 0 {
-	// 	return
-	// }
-	//
-	// // init record
-	// r.Init(l.LowerLevelName)
-	// l.mu.Lock()
-	// defer l.mu.Unlock()
-	//
-	// // log caller. will alloc 3 times
-	// if l.ReportCaller {
-	// 	caller, ok := getCaller(l.CallerSkip)
-	// 	if ok {
-	// 		r.Caller = &caller
-	// 	}
-	// }
-
-	// processing log record
-	for i := range l.processors {
-		l.processors[i].Process(r)
-	}
-
-	// handling log record
-	for _, handler := range matched {
-		if err := handler.Handle(r); err != nil {
-			printlnStderr("slog: failed to handle log: %v", err)
-		}
-	}
-
-	// flush logs on level <= error level.
-	if level <= ErrorLevel {
-		_ = l.FlushAll()
-	}
-
-	if level <= PanicLevel {
-		panic(r)
-	} else if level <= FatalLevel {
-		l.Exit(1)
-	}
 }

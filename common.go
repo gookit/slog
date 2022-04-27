@@ -155,8 +155,12 @@ var (
 	// TimeFormatRFC3339  = time.RFC3339
 
 	// DoNothingOnExit handler. use for testing.
-	DoNothingOnExit = func(code int) {}
+	DoNothingOnExit  = func(code int) {}
+	DoNothingOnPanic = func(v interface{}) {}
 
+	DefaultPanicFn = func(v interface{}) {
+		panic(v)
+	}
 	DefaultClockFn = ClockFn(func() time.Time {
 		return time.Now()
 	})
@@ -284,7 +288,7 @@ func ResetExitHandlers(applyToStd bool) {
 func (l *Logger) runExitHandlers() {
 	defer func() {
 		if err := recover(); err != nil {
-			printlnStderr("slog: Run exit handler error:", err)
+			printlnStderr("slog: run exit handler error:", err)
 		}
 	}()
 

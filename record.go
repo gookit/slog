@@ -261,68 +261,6 @@ func (r *Record) SetFields(fields M) *Record {
 // ---------------------------------------------------------------------------
 //
 
-func (r *Record) logBytes(level Level) {
-	// Will reduce memory allocation once
-	// r.Message = strutil.Byte2str(message)
-
-	// var buf *bytes.Buffer
-	// buf = bufferPool.Get().(*bytes.Buffer)
-	// defer bufferPool.Put(buf)
-	// r.Buffer = buf
-
-	// TODO release on here ??
-	// defer r.logger.releaseRecord(r)
-
-	handlers, ok := r.logger.matchHandlers(level)
-	if !ok {
-		return
-	}
-
-	// init record
-	r.Level = level
-	r.Init(r.logger.LowerLevelName)
-
-	r.logger.mu.Lock()
-	defer r.logger.mu.Unlock()
-
-	// log caller. will alloc 3 times
-	if r.logger.ReportCaller {
-		caller, ok := getCaller(r.logger.CallerSkip)
-		if ok {
-			r.Caller = &caller
-		}
-	}
-
-	// do write log message
-	r.logger.write(level, r, handlers)
-
-	// r.Buffer = nil
-}
-
-// Init something for record.
-func (r *Record) Init(lowerLevelName bool) {
-	// use lower level name
-	if lowerLevelName {
-		r.levelName = r.Level.LowerName()
-	} else {
-		r.levelName = r.Level.Name()
-	}
-
-	// init log time
-	if r.Time.IsZero() {
-		r.Time = r.logger.TimeClock.Now()
-	}
-
-	r.CallerFlag = r.logger.CallerFlag
-	r.microSecond = r.Time.Nanosecond() / 1000
-}
-
-//
-// ---------------------------------------------------------------------------
-// Add log message with level
-// ---------------------------------------------------------------------------
-//
-
 func (r *Record) log(level Level, args []interface{}) {
 	// will reduce memory allocation once
 	// r.Message = strutil.Byte2str(formatArgsWithSpaces(args))
@@ -460,6 +398,11 @@ func (r *Record) LevelName() string {
 // MicroSecond of the record
 func (r *Record) MicroSecond() int {
 	return r.microSecond
+}
+
+// GoString of the record
+func (r *Record) GoString() string {
+	return fmt.Sprintf("slog: %s", r.Message)
 }
 
 // func (r *Record) logString(level Level, message string) {

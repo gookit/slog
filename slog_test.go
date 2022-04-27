@@ -280,7 +280,7 @@ func TestExitHandlerWithError(t *testing.T) {
 	testutil.RewriteStderr()
 	slog.Exit(23)
 	str := testutil.RestoreStderr()
-	assert.Equal(t, "Run exit handler error: test error\n", str)
+	assert.Equal(t, "slog: run exit handler error: test error\n", str)
 }
 
 func TestLogger_ExitHandlerWithError(t *testing.T) {
@@ -297,5 +297,5 @@ func TestLogger_ExitHandlerWithError(t *testing.T) {
 	testutil.RewriteStderr()
 	l.Exit(23)
 	str := testutil.RestoreStderr()
-	assert.Equal(t, "Run exit handler error: test error\n", str)
+	assert.Equal(t, "slog: run exit handler error: test error\n", str)
 }
