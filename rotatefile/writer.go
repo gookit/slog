@@ -72,33 +72,12 @@ func (d *Writer) init() error {
 		nowTime := d.cfg.TimeClock.Now()
 		d.nextRotatingAt = d.cfg.RotateTime.FirstCheckTime(nowTime)
 	}
-
 	return nil
 }
 
 // Config get the config
-func (d *Writer) Config() *Config {
-	return d.cfg
-}
-
-// ReopenFile the log file
-func (d *Writer) ReopenFile() error {
-	if d.file != nil {
-		d.file.Close()
-	}
-
-	return d.openFile()
-}
-
-// ReopenFile the log file
-func (d *Writer) openFile() error {
-	file, err := fsutil.OpenFile(d.cfg.Filepath, DefaultFileFlags, DefaultFilePerm)
-	if err != nil {
-		return err
-	}
-
-	d.file = file
-	return nil
+func (d *Writer) Config() Config {
+	return *d.cfg
 }
 
 // Flush sync data to disk. alias of Sync()
@@ -291,5 +270,25 @@ func (d *Writer) rotatingFile(newFilepath string) error {
 
 	// reset written
 	d.written = 0
+	return nil
+}
+
+// ReopenFile the log file
+func (d *Writer) ReopenFile() error {
+	if d.file != nil {
+		d.file.Close()
+	}
+
+	return d.openFile()
+}
+
+// ReopenFile the log file
+func (d *Writer) openFile() error {
+	file, err := fsutil.OpenFile(d.cfg.Filepath, DefaultFileFlags, DefaultFilePerm)
+	if err != nil {
+		return err
+	}
+
+	d.file = file
 	return nil
 }

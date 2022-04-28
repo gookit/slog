@@ -50,7 +50,8 @@ func (rt RotateTime) FirstCheckTime(now time.Time) int64 {
 	case levelDay:
 		return timex.DayEnd(now).Unix()
 	case levelHour:
-		return timex.HourStart(now).Add(timex.OneHour).Unix()
+		// should check on H:59:59.500
+		return timex.HourStart(now).Add(timex.OneHour - 500*time.Millisecond).Unix()
 	case levelMin:
 		// eg: minutes=5
 		minutes := int(interval / 60)
@@ -155,9 +156,11 @@ type Config struct {
 	//
 	// default: false
 	CloseLock bool `json:"close_lock" yaml:"close_lock"`
-	// BackupNum max number for keep old files, 0 is not limit.
+	// BackupNum max number for keep old files.
+	// 0 is not limit, default is 20.
 	BackupNum uint `json:"backup_num" yaml:"backup_num"`
-	// BackupTime max time for keep old files, 0 is not limit.
+	// BackupTime max time for keep old files.
+	// 0 is not limit, default is a week.
 	//
 	// unit is hours
 	BackupTime uint `json:"backup_time" yaml:"backup_time"`
@@ -191,10 +194,18 @@ func (c *Config) Create() (*Writer, error) {
 	return NewWriter(c)
 }
 
-var (
+const (
 	OneMByte uint64 = 1024 * 1024
-	// DefaultMaxSize of a log file, default 20M.
+
+	// DefaultMaxSize of a log file. default is 20M.
 	DefaultMaxSize = 20 * OneMByte
+	// DefaultBackNum default backup numbers for old files.
+	DefaultBackNum uint = 20
+	// DefaultBackTime default backup time for old files. default keep a week.
+	DefaultBackTime uint = 24 * 7
+)
+
+var (
 	// DefaultFilePerm perm and flags for create log file
 	DefaultFilePerm os.FileMode = 0664
 	// DefaultFileFlags for open log file
@@ -217,8 +228,8 @@ var (
 func NewDefaultConfig() *Config {
 	return &Config{
 		MaxSize:    DefaultMaxSize,
-		BackupNum:  20,
-		BackupTime: 24 * 7, // keep a week.
+		BackupNum:  DefaultBackNum,
+		BackupTime: DefaultBackTime,
 		RotateTime: EveryHour,
 		RenameFunc: DefaultFilenameFn,
 		TimeClock:  DefaultTimeClockFn,

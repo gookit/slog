@@ -248,6 +248,13 @@ func (l *Logger) Name() string {
 	return l.name
 }
 
+// DoNothingOnPanicFatal do nothing on panic or fatal level.
+// useful on testing.
+func (l *Logger) DoNothingOnPanicFatal() {
+	l.PanicFunc = DoNothingOnPanic
+	l.ExitFunc = DoNothingOnExit
+}
+
 //
 // ---------------------------------------------------------------------------
 // Register handlers and processors

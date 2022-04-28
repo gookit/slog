@@ -21,7 +21,7 @@ func TestNewFileHandler(t *testing.T) {
 	assert.NoError(t, err)
 
 	l := slog.NewWithHandlers(h)
-	l.PanicFunc = slog.DoNothingOnPanic
+	l.DoNothingOnPanicFatal()
 	l.Info("info message")
 	l.Warn("warn message")
 	logAllLevel(l, "file handler message")

@@ -23,9 +23,9 @@ type Config struct {
 	Logfile string `json:"logfile" yaml:"logfile"`
 	// UseJSON for format logs
 	UseJSON bool `json:"use_json" yaml:"use_json"`
-	// BuffMode type. allow: line, bite
+	// BuffMode type name. allow: line, bite
 	BuffMode string `json:"buff_mode" yaml:"buff_mode"`
-	// BuffSize for enable buffer
+	// BuffSize for enable buffer. set 0 to disable buffer
 	BuffSize int `json:"buff_size" yaml:"buff_size"`
 	// Levels for log record
 	Levels []slog.Level `json:"levels" yaml:"levels"`
@@ -62,7 +62,18 @@ func (c *Config) SyncCloseWriter() (output SyncCloseWriter, err error) {
 
 // RotateWriter build rotate writer by config
 func (c *Config) RotateWriter() (output FlushCloseWriter, err error) {
-	output, err = c.RotateConfig().Create()
+	// create a rotate config.
+	rc := rotatefile.NewConfig(c.Logfile)
+	rc.MaxSize = c.MaxSize
+	rc.CloseLock = true // has locked on logger.write()
+
+	rc.RotateTime = c.RotateTime
+	if c.RenameFunc != nil {
+		rc.RenameFunc = c.RenameFunc
+	}
+
+	// create a rotating writer
+	output, err = rc.Create()
 	if err != nil {
 		return nil, err
 	}
@@ -76,20 +87,6 @@ func (c *Config) RotateWriter() (output FlushCloseWriter, err error) {
 		}
 	}
 	return
-}
-
-// RotateConfig build
-func (c *Config) RotateConfig() *rotatefile.Config {
-	rc := rotatefile.NewConfig(c.Logfile)
-	rc.CloseLock = true // lock is opened on logger.write()
-	rc.RotateTime = c.RotateTime
-
-	rc.MaxSize = c.MaxSize
-	if c.RenameFunc != nil {
-		rc.RenameFunc = c.RenameFunc
-	}
-
-	return rc
 }
 
 // NewEmptyConfig new config instance
