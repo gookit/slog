@@ -20,10 +20,9 @@ var (
 
 func TestConsoleHandlerWithColor(t *testing.T) {
 	l := slog.NewWithHandlers(handler.NewConsoleHandler(slog.AllLevels))
+	l.DoNothingOnPanicFatal()
 	l.Configure(func(l *slog.Logger) {
 		l.ReportCaller = true
-		l.ExitFunc = slog.DoNothingOnExit
-		l.PanicFunc = slog.DoNothingOnPanic
 	})
 
 	logAllLevel(l, "this is a simple log message")
@@ -35,14 +34,10 @@ func TestConsoleHandlerNoColor(t *testing.T) {
 	h.TextFormatter().EnableColor = false
 
 	l := slog.NewWithHandlers(h)
+	l.DoNothingOnPanicFatal()
 	l.ReportCaller = true
 
-	l.Trace("this is a simple log message")
-	l.Debug("this is a simple log message")
-	l.Info("this is a simple log message")
-	l.Notice("this is a simple log message")
-	l.Warn("this is a simple log message")
-	l.Error("this is a simple log message")
+	logAllLevel(l, "this is a simple log message")
 }
 
 func TestNewBufferedHandler(t *testing.T) {
