@@ -26,8 +26,6 @@ English instructions please read [README](README.md)
   - `stream` 输出日志到指定的 `io.Writer`
   - `simple_file` 输出日志到指定文件，无缓冲直接写入文件
   - `file` 输出日志到指定文件，默认启用 `buffer` 缓冲写入
-  - `size_rotate_file` 输出日志到指定文件，并且支持按大小分割文件。默认启用 `buffer` 缓冲写入
-  - `time_rotate_file` 输出日志到指定文件，并且支持按时间分割文件。默认启用 `buffer` 缓冲写入
   - `rotate_file` 输出日志到指定文件，并且同时支持按时间、按大小分割文件。默认启用 `buffer` 缓冲写入
 
 ## GoDoc

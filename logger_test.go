@@ -2,8 +2,10 @@ package slog_test
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 
+	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
 	"github.com/stretchr/testify/assert"
@@ -44,22 +46,57 @@ func TestLogger_ReportCaller(t *testing.T) {
 func TestLogger_Log(t *testing.T) {
 	l := slog.NewWithConfig(func(l *slog.Logger) {
 		l.ReportCaller = true
-		l.ExitFunc = slog.DoNothingOnExit
+		l.DoNothingOnPanicFatal()
 	})
 
 	l.AddHandler(handler.NewConsoleHandler(slog.AllLevels))
 	l.Log(slog.InfoLevel, "a", slog.InfoLevel, "message")
 }
 
-func TestLogger_Log_allLevel(t *testing.T) {
+func TestLogger_log_allLevel(t *testing.T) {
 	l := slog.NewWithConfig(func(l *slog.Logger) {
 		l.ReportCaller = true
-		l.ExitFunc = slog.DoNothingOnExit
+		l.DoNothingOnPanicFatal()
 	})
 
 	l.AddHandler(handler.NewConsoleHandler(slog.AllLevels))
+	printAllLevelLogs(l, "this a", "log", "message")
+}
 
-	for _, level := range slog.NormalLevels {
-		l.Log(level, "a", level.Name(), "message")
-	}
+func TestLogger_logf_allLevel(t *testing.T) {
+	l := slog.NewWithConfig(func(l *slog.Logger) {
+		l.ReportCaller = true
+		l.CallerFlag = slog.CallerFlagFpLine
+		l.DoNothingOnPanicFatal()
+	})
+
+	l.AddHandler(handler.NewConsoleHandler(slog.AllLevels))
+	printfAllLevelLogs(l, "this a log %s", "message")
+}
+
+func printAllLevelLogs(l *slog.Logger, args ...interface{}) {
+	l.Print(args...)
+	l.Println(args...)
+	l.Trace(args...)
+	l.Debug(args...)
+	l.Info(args...)
+	l.Notice(args...)
+	l.Warn(args...)
+	l.Error(args...)
+	l.Fatal(args...)
+	l.Panic(args...)
+	l.ErrorT(errors.New("a error object"))
+	l.ErrorT(errorx.New("error with stack info"))
+}
+
+func printfAllLevelLogs(l *slog.Logger, tpl string, args ...interface{}) {
+	l.Printf(tpl, args...)
+	l.Tracef(tpl, args...)
+	l.Debugf(tpl, args...)
+	l.Infof(tpl, args...)
+	l.Noticef(tpl, args...)
+	l.Warnf(tpl, args...)
+	l.Errorf(tpl, args...)
+	l.Panicf(tpl, args...)
+	l.Fatalf(tpl, args...)
 }

@@ -14,29 +14,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewSizeRotateFileHandler(t *testing.T) {
-	fpath := "./testdata/size-rotate-file.log"
-	h, err := handler.NewSizeRotateFileHandler(fpath, 128)
-	assert.NoError(t, err)
-	assert.True(t, fsutil.IsFile(fpath))
-
-	l := slog.NewWithHandlers(h)
-	l.ReportCaller = true
-
-	for i := 0; i < 3; i++ {
-		l.Info("info", "message", i)
-		l.Warn("warn message", i)
-	}
-
-	err = l.Flush()
-	assert.NoError(t, err)
-
-	// checkLogFileContents(t, fpath)
-}
-
 func TestNewRotateFileHandler(t *testing.T) {
 	// by size
-	logfile := "./testdata/both-rotate-file1.log"
+	logfile := "./testdata/both-rotate-bytime.log"
 	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
 
 	h, err := handler.NewRotateFileHandler(logfile, handler.EveryMinute, handler.WithMaxSize(128))
@@ -54,7 +34,7 @@ func TestNewRotateFileHandler(t *testing.T) {
 	l.MustFlush()
 
 	// by time
-	logfile = "./testdata/both-rotate-file2.log"
+	logfile = "./testdata/both-rotate-bysize.log"
 	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
 
 	h, err = handler.NewRotateFileHandler(logfile, handler.EverySecond)
@@ -70,8 +50,30 @@ func TestNewRotateFileHandler(t *testing.T) {
 		fmt.Println("second ", i+1)
 		time.Sleep(time.Second * 1)
 	}
-	err = l.FlushAll()
+	l.Error("error message")
+
+	assert.NoError(t, l.FlushAll())
+}
+
+func TestNewSizeRotateFileHandler(t *testing.T) {
+	logfile := "./testdata/size-rotate-file.log"
+	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
+
+	h, err := handler.NewSizeRotateFileHandler(logfile, 468, handler.WithBuffSize(256))
 	assert.NoError(t, err)
+	assert.True(t, fsutil.IsFile(logfile))
+
+	l := slog.NewWithHandlers(h)
+	l.ReportCaller = true
+	l.CallerFlag = slog.CallerFlagFull
+
+	for i := 0; i < 4; i++ {
+		l.Info("this is a info", "message, index=", i)
+		l.Warn("this is a warn message, index=", i)
+	}
+
+	assert.NoError(t, l.Close())
+	checkLogFileContents(t, logfile)
 }
 
 func TestNewTimeRotateFileHandler_EveryDay(t *testing.T) {

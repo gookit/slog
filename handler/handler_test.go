@@ -41,12 +41,12 @@ func TestConsoleHandlerNoColor(t *testing.T) {
 }
 
 func TestNewBufferedHandler(t *testing.T) {
-	fpath := "./testdata/buffered-os-file.log"
-	assert.NoError(t, fsutil.DeleteIfFileExist(fpath))
+	logfile := "./testdata/buffer-os-file.log"
+	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
 
-	file, err := handler.QuickOpenFile(fpath)
+	file, err := handler.QuickOpenFile(logfile)
 	assert.NoError(t, err)
-	assert.True(t, fsutil.IsFile(fpath))
+	assert.True(t, fsutil.IsFile(logfile))
 
 	bh := handler.NewBuffered(file, 128)
 
@@ -54,12 +54,12 @@ func TestNewBufferedHandler(t *testing.T) {
 	l := slog.NewWithHandlers(bh)
 	l.Info("buffered info message")
 
-	bts, err := ioutil.ReadFile(fpath)
+	bts, err := ioutil.ReadFile(logfile)
 	assert.NoError(t, err)
 	assert.Empty(t, bts)
 
 	l.Warn("buffered warn message")
-	bts, err = ioutil.ReadFile(fpath)
+	bts, err = ioutil.ReadFile(logfile)
 	assert.NoError(t, err)
 
 	str := string(bts)
@@ -70,12 +70,12 @@ func TestNewBufferedHandler(t *testing.T) {
 }
 
 func TestBufferWrapper(t *testing.T) {
-	fpath := "./testdata/buffer-wrapper-simple-file.log"
-	assert.NoError(t, fsutil.DeleteIfFileExist(fpath))
+	logfile := "./testdata/buffer-wrap-handler.log"
+	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
 
-	h, err := handler.NewSimpleFile(fpath)
+	h, err := handler.NewSimpleFile(logfile)
 	assert.NoError(t, err)
-	assert.True(t, fsutil.IsFile(fpath))
+	assert.True(t, fsutil.IsFile(logfile))
 
 	bw := handler.BufferWrapper(h, 128)
 
@@ -83,12 +83,12 @@ func TestBufferWrapper(t *testing.T) {
 	l := slog.NewWithHandlers(bw)
 	l.Info("buffered info message")
 
-	bts, err := ioutil.ReadFile(fpath)
+	bts, err := ioutil.ReadFile(logfile)
 	assert.NoError(t, err)
 	assert.Empty(t, bts)
 
 	l.Warn("buffered warn message")
-	bts, err = ioutil.ReadFile(fpath)
+	bts, err = ioutil.ReadFile(logfile)
 	assert.NoError(t, err)
 
 	str := string(bts)
@@ -101,6 +101,12 @@ func TestBufferWrapper(t *testing.T) {
 func logAllLevel(log slog.SLogger, msg string) {
 	for _, level := range slog.AllLevels {
 		log.Log(level, msg)
+	}
+}
+
+func logfAllLevel(log slog.SLogger, tpl string, args ...interface{}) {
+	for _, level := range slog.AllLevels {
+		log.Logf(level, tpl, args...)
 	}
 }
 

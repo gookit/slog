@@ -51,7 +51,6 @@ func (h *GroupedHandler) Close() error {
 			return err
 		}
 	}
-
 	return nil
 }
 
@@ -63,6 +62,5 @@ func (h *GroupedHandler) Flush() error {
 			return err
 		}
 	}
-
 	return nil
 }

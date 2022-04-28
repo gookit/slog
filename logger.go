@@ -22,7 +22,8 @@ type SLogger interface {
 type Logger struct {
 	name string
 	// lock for write logs
-	mu sync.Mutex
+	mu  sync.Mutex
+	err error
 
 	handlers   []Handler
 	processors []Processor
@@ -174,6 +175,7 @@ func (l *Logger) flushAll() {
 	l.VisitAll(func(handler Handler) error {
 		err := handler.Flush()
 		if err != nil {
+			l.err = err
 			printlnStderr("slog: call handler.Flush() failed. error:", err)
 		}
 		return nil
@@ -188,15 +190,18 @@ func (l *Logger) lockAndFlushAll() {
 }
 
 // Close the logger
-func (l *Logger) Close() {
+func (l *Logger) Close() error {
 	l.VisitAll(func(handler Handler) error {
 		// Flush logs and then close
 		err := handler.Close()
 		if err != nil {
+			l.err = err
 			printlnStderr("slog: call handler.Close() failed. error:", err)
 		}
 		return nil
 	})
+
+	return l.err
 }
 
 // VisitAll logger handlers

@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/testutil"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
@@ -45,11 +46,11 @@ func TestStd(t *testing.T) {
 
 func TestTextFormatNoColor(t *testing.T) {
 	defer slog.Reset()
-	slog.Configure(func(logger *slog.SugaredLogger) {
-		f := logger.Formatter.(*slog.TextFormatter)
+	slog.Configure(func(l *slog.SugaredLogger) {
+		f := l.Formatter.(*slog.TextFormatter)
 		f.EnableColor = false
 
-		logger.ExitFunc = slog.DoNothingOnExit
+		l.DoNothingOnPanicFatal()
 	})
 
 	printLogs("print log message")
@@ -69,7 +70,7 @@ func TestTextFormatWithColor(t *testing.T) {
 
 	slog.Configure(func(l *slog.SugaredLogger) {
 		l.Level = slog.PanicLevel
-		l.ExitFunc = slog.DoNothingOnExit
+		l.DoNothingOnPanicFatal()
 	})
 
 	printLogs("this is a simple log message")
@@ -103,7 +104,9 @@ func printLogs(msg string) {
 	slog.Warn(msg)
 	slog.Error(msg)
 	slog.Fatal(msg)
+	slog.Panic(msg)
 	slog.ErrorT(errors.New(msg))
+	slog.ErrorT(errorx.New(msg))
 }
 
 func printfLogs(msg string, args ...interface{}) {
@@ -114,6 +117,7 @@ func printfLogs(msg string, args ...interface{}) {
 	slog.Noticef(msg, args...)
 	slog.Warnf(msg, args...)
 	slog.Errorf(msg, args...)
+	slog.Panicf(msg, args...)
 	slog.Fatalf(msg, args...)
 }
 

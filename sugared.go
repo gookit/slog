@@ -3,6 +3,8 @@ package slog
 import (
 	"io"
 	"os"
+
+	"github.com/gookit/color"
 )
 
 // SugaredLogger definition.
@@ -16,6 +18,17 @@ type SugaredLogger struct {
 	Output io.Writer
 	// Level for log handling. if log record level <= Level, it will be record.
 	Level Level
+}
+
+// NewStdLogger instance
+func NewStdLogger() *SugaredLogger {
+	return NewSugaredLogger(os.Stdout, DebugLevel).Configure(func(sl *SugaredLogger) {
+		sl.SetName("stdLogger")
+		sl.CallerSkip += 1
+		sl.ReportCaller = true
+		// auto enable console color
+		sl.Formatter.(*TextFormatter).EnableColor = color.SupportColor()
+	})
 }
 
 // NewSugaredLogger create new SugaredLogger

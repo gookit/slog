@@ -26,10 +26,7 @@ More usage please see README.
 package slog
 
 import (
-	"os"
 	"time"
-
-	"github.com/gookit/color"
 )
 
 // var bufferPool *sync.Pool
@@ -40,9 +37,6 @@ func init() {
 	// 		return new(bytes.Buffer)
 	// 	},
 	// }
-
-	// start at the bottom of the stack before the package-name cache is primed
-	// minCallerDepth = 1
 }
 
 //
@@ -55,21 +49,8 @@ func init() {
 // It is directly available without any additional configuration
 var std = NewStdLogger()
 
-// NewStdLogger instance
-func NewStdLogger() *SugaredLogger {
-	return NewSugaredLogger(os.Stdout, DebugLevel).Configure(func(sl *SugaredLogger) {
-		sl.SetName("stdLogger")
-		sl.CallerSkip += 1
-		sl.ReportCaller = true
-		// auto enable console color
-		sl.Formatter.(*TextFormatter).EnableColor = color.SupportColor()
-	})
-}
-
 // Std get std logger
-func Std() *SugaredLogger {
-	return std
-}
+func Std() *SugaredLogger { return std }
 
 // Reset the std logger
 func Reset() {
@@ -79,24 +60,16 @@ func Reset() {
 }
 
 // Configure the std logger
-func Configure(fn func(l *SugaredLogger)) {
-	std.Configure(fn)
-}
+func Configure(fn func(l *SugaredLogger)) { std.Configure(fn) }
 
 // Exit runs all the logger exit handlers and then terminates the program using os.Exit(code)
-func Exit(code int) {
-	std.Exit(code)
-}
+func Exit(code int) { std.Exit(code) }
 
 // SetExitFunc to the std logger
-func SetExitFunc(fn func(code int)) {
-	std.ExitFunc = fn
-}
+func SetExitFunc(fn func(code int)) { std.ExitFunc = fn }
 
 // Flush log messages
-func Flush() error {
-	return std.Flush()
-}
+func Flush() error { return std.Flush() }
 
 // MustFlush log messages
 func MustFlush() {
@@ -107,62 +80,40 @@ func MustFlush() {
 }
 
 // FlushTimeout flush logs with timeout.
-func FlushTimeout(timeout time.Duration) {
-	std.FlushTimeout(timeout)
-}
+func FlushTimeout(timeout time.Duration) { std.FlushTimeout(timeout) }
 
 // FlushDaemon run flush handle on daemon
 //
 // Usage:
 // 	go slog.FlushDaemon()
-func FlushDaemon() {
-	std.FlushDaemon()
-}
+func FlushDaemon() { std.FlushDaemon() }
 
 // SetLogLevel for the std logger
-func SetLogLevel(l Level) {
-	std.Level = l
-}
+func SetLogLevel(l Level) { std.Level = l }
 
 // SetFormatter to std logger
-func SetFormatter(f Formatter) {
-	std.Formatter = f
-}
+func SetFormatter(f Formatter) { std.Formatter = f }
 
 // GetFormatter of the std logger
-func GetFormatter() Formatter {
-	return std.Formatter
-}
+func GetFormatter() Formatter { return std.Formatter }
 
 // AddHandler to the std logger
-func AddHandler(h Handler) {
-	std.AddHandler(h)
-}
+func AddHandler(h Handler) { std.AddHandler(h) }
 
 // PushHandler to the std logger
-func PushHandler(h Handler) {
-	std.AddHandler(h)
-}
+func PushHandler(h Handler) { std.AddHandler(h) }
 
 // AddHandlers to the std logger
-func AddHandlers(hs ...Handler) {
-	std.AddHandlers(hs...)
-}
+func AddHandlers(hs ...Handler) { std.AddHandlers(hs...) }
 
 // PushHandlers to the std logger
-func PushHandlers(hs ...Handler) {
-	std.PushHandlers(hs...)
-}
+func PushHandlers(hs ...Handler) { std.PushHandlers(hs...) }
 
 // AddProcessor to the logger
-func AddProcessor(p Processor) {
-	std.AddProcessor(p)
-}
+func AddProcessor(p Processor) { std.AddProcessor(p) }
 
 // AddProcessors to the logger
-func AddProcessors(ps ...Processor) {
-	std.AddProcessors(ps...)
-}
+func AddProcessors(ps ...Processor) { std.AddProcessors(ps...) }
 
 // -------------------------- New record with log data, fields -----------------------------
 
@@ -179,29 +130,19 @@ func WithFields(fields M) *Record {
 // -------------------------- Add log messages with level -----------------------------
 
 // Print logs a message at level PrintLevel
-func Print(args ...interface{}) {
-	std.log(PrintLevel, args)
-}
+func Print(args ...interface{}) { std.log(PrintLevel, args) }
 
 // Println logs a message at level PrintLevel
-func Println(args ...interface{}) {
-	std.log(PrintLevel, args)
-}
+func Println(args ...interface{}) { std.log(PrintLevel, args) }
 
 // Printf logs a message at level PrintLevel
-func Printf(format string, args ...interface{}) {
-	std.logf(PrintLevel, format, args)
-}
+func Printf(format string, args ...interface{}) { std.logf(PrintLevel, format, args) }
 
 // Trace logs a message at level Trace
-func Trace(args ...interface{}) {
-	std.log(TraceLevel, args)
-}
+func Trace(args ...interface{}) { std.log(TraceLevel, args) }
 
 // Tracef logs a message at level Trace
-func Tracef(format string, args ...interface{}) {
-	std.logf(TraceLevel, format, args)
-}
+func Tracef(format string, args ...interface{}) { std.logf(TraceLevel, format, args) }
 
 // Info logs a message at level Info
 func Info(args ...interface{}) {
