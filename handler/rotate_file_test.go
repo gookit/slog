@@ -16,7 +16,7 @@ import (
 
 func TestNewRotateFileHandler(t *testing.T) {
 	// by size
-	logfile := "./testdata/both-rotate-bytime.log"
+	logfile := "./testdata/both-rotate-bysize.log"
 	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
 
 	h, err := handler.NewRotateFileHandler(logfile, handler.EveryMinute, handler.WithMaxSize(128))
@@ -34,7 +34,7 @@ func TestNewRotateFileHandler(t *testing.T) {
 	l.MustFlush()
 
 	// by time
-	logfile = "./testdata/both-rotate-bysize.log"
+	logfile = "./testdata/both-rotate-bytime.log"
 	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
 
 	h, err = handler.NewRotateFileHandler(logfile, handler.EverySecond)
@@ -42,7 +42,6 @@ func TestNewRotateFileHandler(t *testing.T) {
 	assert.True(t, fsutil.IsFile(logfile))
 
 	l = slog.NewWithHandlers(h)
-	l.ReportCaller = true
 
 	for i := 0; i < 3; i++ {
 		l.Info("info", "message", i)

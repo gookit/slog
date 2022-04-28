@@ -9,18 +9,18 @@ import (
 )
 
 // NewBuffered create new BufferedHandler
-func NewBuffered(cWriter io.WriteCloser, bufSize int, levels ...slog.Level) *FlushCloseHandler {
-	return NewBufferedHandler(cWriter, bufSize, levels...)
+func NewBuffered(w io.WriteCloser, bufSize int, levels ...slog.Level) *FlushCloseHandler {
+	return NewBufferedHandler(w, bufSize, levels...)
 }
 
 // NewBufferedHandler create new BufferedHandler
-func NewBufferedHandler(cWriter io.WriteCloser, bufSize int, levels ...slog.Level) *FlushCloseHandler {
+func NewBufferedHandler(w io.WriteCloser, bufSize int, levels ...slog.Level) *FlushCloseHandler {
 	if len(levels) == 0 {
 		levels = slog.AllLevels
 	}
 
 	return &FlushCloseHandler{
-		Output: bufwrite.NewBufIOWriterSize(cWriter, bufSize),
+		Output: bufwrite.NewBufIOWriterSize(w, bufSize),
 		// log levels
 		LevelFormattable: slog.NewLvsFormatter(levels),
 	}
@@ -35,7 +35,7 @@ func LineBufferedFile(logfile string, bufSize int, levels []slog.Level) (slog.Ha
 		WithBuffMode(BuffModeLine),
 	)
 
-	output, err := cfg.SyncCloseWriter()
+	output, err := cfg.CreateWriter()
 	if err != nil {
 		return nil, err
 	}
