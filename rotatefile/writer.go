@@ -142,7 +142,7 @@ func (d *Writer) Clean() (err error) {
 	// clear by time
 	if d.cfg.BackupTime > 0 {
 		// match all old rotate files. eg: /tmp/error.log.*
-		files, err := filepath.Glob(d.fileDir + ".*")
+		files, err := filepath.Glob(d.cfg.Filepath + ".*")
 		if err != nil {
 			return err
 		}
