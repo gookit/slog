@@ -5,11 +5,24 @@ import (
 	"io"
 )
 
-// BufIOWriter struct
+// BufIOWriter wrap the bufio.Writer, implements the Sync() Close() methods
 type BufIOWriter struct {
 	bufio.Writer
 	// backup the bufio.Writer.wr
 	writer io.Writer
+}
+
+// NewBufIOWriterSize instance with size
+func NewBufIOWriterSize(w io.Writer, size int) *BufIOWriter {
+	return &BufIOWriter{
+		writer: w,
+		Writer: *bufio.NewWriterSize(w, size),
+	}
+}
+
+// NewBufIOWriter instance
+func NewBufIOWriter(w io.Writer) *BufIOWriter {
+	return NewBufIOWriterSize(w, defaultBufSize)
 }
 
 // Close implements the io.Closer
@@ -28,17 +41,4 @@ func (w *BufIOWriter) Close() error {
 // Sync implements the Syncer
 func (w *BufIOWriter) Sync() error {
 	return w.Flush()
-}
-
-// NewBufIOWriterSize instance with size
-func NewBufIOWriterSize(w io.Writer, size int) *BufIOWriter {
-	return &BufIOWriter{
-		writer: w,
-		Writer: *bufio.NewWriterSize(w, size),
-	}
-}
-
-// NewBufIOWriter instance
-func NewBufIOWriter(w io.Writer) *BufIOWriter {
-	return NewBufIOWriterSize(w, defaultBufSize)
 }

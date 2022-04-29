@@ -159,3 +159,8 @@ func (b *LineWriter) Write(p []byte) (nn int, err error) {
 	nn += n
 	return nn, nil
 }
+
+// WriteString to writer
+func (b *LineWriter) WriteString(s string) (int, error) {
+	return b.Write([]byte(s))
+}
