@@ -200,6 +200,7 @@ var (
 
 	// lower level name.
 	lowerLevelNames = buildLowerLevelName()
+	emptyTime       = time.Time{}
 )
 
 // LevelName match

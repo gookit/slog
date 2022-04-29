@@ -1,22 +1,32 @@
 package handler
 
 import (
-	"bufio"
+	"io"
 
 	"github.com/gookit/slog"
+	"github.com/gookit/slog/bufwrite"
 )
+
+// FormatterWriterHandler interface
+type FormatterWriterHandler interface {
+	slog.Handler
+	// Formatter record formatter
+	Formatter() slog.Formatter
+	// Writer the output writer
+	Writer() io.Writer
+}
 
 // bufferWrapper struct
 type bufferWrapper struct {
-	buffer  *bufio.Writer
-	handler slog.FormatterWriterHandler
+	buffer  FlushWriter
+	handler FormatterWriterHandler
 }
 
 // BufferWrapper new instance
-func BufferWrapper(handler slog.FormatterWriterHandler, buffSize int) *bufferWrapper {
+func BufferWrapper(handler FormatterWriterHandler, buffSize int) *bufferWrapper {
 	return &bufferWrapper{
 		handler: handler,
-		buffer:  bufio.NewWriterSize(handler.Writer(), buffSize),
+		buffer:  bufwrite.NewBufIOWriterSize(handler.Writer(), buffSize),
 	}
 }
 

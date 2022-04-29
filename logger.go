@@ -94,7 +94,7 @@ func (l *Logger) newRecord() *Record {
 
 func (l *Logger) releaseRecord(r *Record) {
 	// reset data
-	r.Time = time.Time{}
+	r.Time = emptyTime
 	r.Data = nil
 	r.Extra = nil
 	r.Fields = nil
@@ -108,6 +108,14 @@ func (l *Logger) releaseRecord(r *Record) {
 //
 
 const flushInterval = 30 * time.Second
+
+// Config current logger
+func (l *Logger) Config(fns ...func(l *Logger)) *Logger {
+	for _, fn := range fns {
+		fn(l)
+	}
+	return l
+}
 
 // Configure current logger
 func (l *Logger) Configure(fn func(l *Logger)) *Logger {
@@ -146,9 +154,7 @@ func (l *Logger) FlushTimeout(timeout time.Duration) {
 // Sync flushes buffered logs (if any).
 //
 // alias of the Flush()
-func (l *Logger) Sync() error {
-	return Flush()
-}
+func (l *Logger) Sync() error { return Flush() }
 
 // Flush flushes all the logs and attempts to "sync" their data to disk.
 // l.mu is held.
@@ -158,9 +164,7 @@ func (l *Logger) Flush() error {
 }
 
 // MustFlush flush logs. will ignore error
-func (l *Logger) MustFlush() {
-	l.lockAndFlushAll()
-}
+func (l *Logger) MustFlush() { l.lockAndFlushAll() }
 
 // FlushAll flushes all the logs and attempts to "sync" their data to disk.
 //
@@ -244,14 +248,10 @@ func (l *Logger) Exit(code int) {
 }
 
 // SetName for logger
-func (l *Logger) SetName(name string) {
-	l.name = name
-}
+func (l *Logger) SetName(name string) { l.name = name }
 
 // Name of the logger
-func (l *Logger) Name() string {
-	return l.name
-}
+func (l *Logger) Name() string { return l.name }
 
 // DoNothingOnPanicFatal do nothing on panic or fatal level.
 // useful on testing.
@@ -267,50 +267,32 @@ func (l *Logger) DoNothingOnPanicFatal() {
 //
 
 // AddHandler to the logger
-func (l *Logger) AddHandler(h Handler) {
-	l.handlers = append(l.handlers, h)
-}
+func (l *Logger) AddHandler(h Handler) { l.handlers = append(l.handlers, h) }
 
 // AddHandlers to the logger
-func (l *Logger) AddHandlers(hs ...Handler) {
-	l.handlers = append(l.handlers, hs...)
-}
+func (l *Logger) AddHandlers(hs ...Handler) { l.handlers = append(l.handlers, hs...) }
 
 // PushHandlers to the logger
-func (l *Logger) PushHandlers(hs ...Handler) {
-	l.handlers = append(l.handlers, hs...)
-}
+func (l *Logger) PushHandlers(hs ...Handler) { l.handlers = append(l.handlers, hs...) }
 
 // PushHandler to the l. alias of AddHandler()
-func (l *Logger) PushHandler(h Handler) {
-	l.AddHandler(h)
-}
+func (l *Logger) PushHandler(h Handler) { l.AddHandler(h) }
 
 // SetHandlers for the logger
-func (l *Logger) SetHandlers(hs []Handler) {
-	l.handlers = hs
-}
+func (l *Logger) SetHandlers(hs []Handler) { l.handlers = hs }
 
 // AddProcessor to the logger
-func (l *Logger) AddProcessor(p Processor) {
-	l.processors = append(l.processors, p)
-}
+func (l *Logger) AddProcessor(p Processor) { l.processors = append(l.processors, p) }
 
 // PushProcessor to the logger
 // alias of AddProcessor()
-func (l *Logger) PushProcessor(p Processor) {
-	l.processors = append(l.processors, p)
-}
+func (l *Logger) PushProcessor(p Processor) { l.processors = append(l.processors, p) }
 
 // AddProcessors to the logger
-func (l *Logger) AddProcessors(ps ...Processor) {
-	l.processors = append(l.processors, ps...)
-}
+func (l *Logger) AddProcessors(ps ...Processor) { l.processors = append(l.processors, ps...) }
 
 // SetProcessors for the logger
-func (l *Logger) SetProcessors(ps []Processor) {
-	l.processors = ps
-}
+func (l *Logger) SetProcessors(ps []Processor) { l.processors = ps }
 
 //
 // ---------------------------------------------------------------------------
@@ -318,35 +300,51 @@ func (l *Logger) SetProcessors(ps []Processor) {
 // ---------------------------------------------------------------------------
 //
 
+// Record return a new record for log
+func (l *Logger) Record() *Record {
+	r := l.newRecord()
+
+	defer l.releaseRecord(r)
+	return r
+}
+
+// WithField new record with field
+func (l *Logger) WithField(name string, value interface{}) *Record {
+	r := l.newRecord()
+
+	defer l.releaseRecord(r)
+	return r.WithField(name, value)
+}
+
 // WithFields new record with fields
 func (l *Logger) WithFields(fields M) *Record {
 	r := l.newRecord()
-	defer l.releaseRecord(r)
 
+	defer l.releaseRecord(r)
 	return r.WithFields(fields)
 }
 
 // WithData new record with data
 func (l *Logger) WithData(data M) *Record {
 	r := l.newRecord()
-	defer l.releaseRecord(r)
 
+	defer l.releaseRecord(r)
 	return r.WithData(data)
 }
 
 // WithTime new record with time.Time
 func (l *Logger) WithTime(t time.Time) *Record {
 	r := l.newRecord()
-	defer l.releaseRecord(r)
 
+	defer l.releaseRecord(r)
 	return r.WithTime(t)
 }
 
 // WithContext new record with context.Context
 func (l *Logger) WithContext(ctx context.Context) *Record {
 	r := l.newRecord()
-	defer l.releaseRecord(r)
 
+	defer l.releaseRecord(r)
 	return r.WithContext(ctx)
 }
 

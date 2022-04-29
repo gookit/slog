@@ -45,7 +45,7 @@ func (p *Processable) AddProcessor(processor Processor) {
 	p.processors = append(p.processors, processor)
 }
 
-// ProcessRecord process records
+// ProcessRecord process record
 func (p *Processable) ProcessRecord(r *Record) {
 	// processing log record
 	for _, processor := range p.processors {

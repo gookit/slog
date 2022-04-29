@@ -2,29 +2,6 @@ package slog
 
 import "io"
 
-// FlushWriter is the interface satisfied by logging destinations.
-type FlushWriter interface {
-	Flush() error
-	// Writer the output writer
-	io.Writer
-}
-
-// FlushCloseWriter is the interface satisfied by logging destinations.
-type FlushCloseWriter interface {
-	Flush() error
-	// WriteCloser the output writer
-	io.WriteCloser
-}
-
-// FormatterWriterHandler interface
-type FormatterWriterHandler interface {
-	Handler
-	// Formatter record formatter
-	Formatter() Formatter
-	// Writer the output writer
-	Writer() io.Writer
-}
-
 //
 // Handler interface
 //

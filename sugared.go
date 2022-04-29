@@ -55,6 +55,12 @@ func NewJSONSugared(out io.Writer, level Level) *SugaredLogger {
 	return sl
 }
 
+// Config current logger
+func (sl *SugaredLogger) Config(fn func(sl *SugaredLogger)) *SugaredLogger {
+	fn(sl)
+	return sl
+}
+
 // Configure current logger
 func (sl *SugaredLogger) Configure(fn func(sl *SugaredLogger)) *SugaredLogger {
 	fn(sl)

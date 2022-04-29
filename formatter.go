@@ -13,7 +13,7 @@ type Formatter interface {
 // FormatterFunc wrapper definition
 type FormatterFunc func(r *Record) error
 
-// Format a record
+// Format a log record
 func (fn FormatterFunc) Format(r *Record) error {
 	return fn(r)
 }

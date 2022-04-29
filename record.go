@@ -40,13 +40,13 @@ type Record struct {
 	Caller *runtime.Frame
 	// CallerFlag value. default is equals to Logger.CallerFlag
 	CallerFlag uint8
-	// Formatted []byte
 
-	// stacks []byte
 	// cache the r.Time.Nanosecond() / 1000
 	microSecond int
+	// stacks []byte
+	// formatted []byte
 	// field caches mapping for optimize performance. TODO use map[string][]byte ?
-	strMp map[string]string
+	// strMp map[string]string
 }
 
 func newRecord(logger *Logger) *Record {
@@ -96,7 +96,7 @@ func (r *Record) WithData(data M) *Record {
 	return nr
 }
 
-// WithField with an new field to record
+// WithField with a new field to record
 func (r *Record) WithField(name string, val interface{}) *Record {
 	return r.WithFields(M{name: val})
 }
@@ -382,7 +382,7 @@ func (r *Record) Panicf(format string, args ...interface{}) {
 // helper methods
 // ---------------------------------------------------------------------------
 
-// NewBuffer get or create an Buffer
+// NewBuffer get or create a Buffer
 // func (r *Record) NewBuffer() *bytes.Buffer {
 // 	if r.Buffer == nil {
 // 		return &bytes.Buffer{}
@@ -391,14 +391,10 @@ func (r *Record) Panicf(format string, args ...interface{}) {
 // }
 
 // LevelName get
-func (r *Record) LevelName() string {
-	return r.levelName
-}
+func (r *Record) LevelName() string { return r.levelName }
 
 // MicroSecond of the record
-func (r *Record) MicroSecond() int {
-	return r.microSecond
-}
+func (r *Record) MicroSecond() int { return r.microSecond }
 
 // GoString of the record
 func (r *Record) GoString() string {
