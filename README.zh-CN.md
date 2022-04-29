@@ -29,11 +29,23 @@
   - `writer` 输出日志到指定的 `io.Writer`
   - `simple_file` 输出日志到指定文件，无缓冲直接写入文件
   - `file` 输出日志到指定文件，默认启用 `buffer` 缓冲写入
-  - `rotate_file` 输出日志到指定文件，并且同时支持按时间、按大小分割文件,默认启用 `buffer` 缓冲写入
+  - `rotate_file` 输出日志到指定文件，并且同时支持按时间、按大小分割文件，默认启用 `buffer` 缓冲写入
+
+**扩展工具包**
+
+`bufwrite` 包:
+
+- `bufwrite.BufIOWriter` 通过包装go的 `bufio.Writer` 额外实现了 `Sync(), Close()` 方法，方便使用
+- `bufwrite.LineWriter` 参考go的 `bufio.Writer` 实现, 可以支持按行刷出缓冲，对于写日志文件更有用
+
+`rotatefile` 包:
+
+- `rotatefile.Writer` 实现对日志文件按大小和自动时间进行自动切割，同时也支持自动清理日志文件
+  - `RotateHandler` 即是通过使用它对日志文件进行切割处理
 
 > NEW: `v0.3.0` 废弃原来实现的纷乱的各种handler,统一抽象为
 > `FlushCloseHandler` `SyncCloseHandler` `WriteCloserHandler` `IOWriterHandler` 
-> 几个支持不同类型writer的处理器. 构建自定义 Handler 更加简单,内置的handlers也基本上由它们组成.
+> 几个支持不同类型writer的处理器。让构建自定义 Handler 更加简单，内置的handlers也基本上由它们组成。
 
 ## [English](README.md)
 
@@ -51,7 +63,7 @@ go get github.com/gookit/slog
 
 ## 快速开始
 
-`slog` 使用非常简单，无需任何配置即可使用.
+`slog` 使用非常简单，无需任何配置即可使用。
 
 ```go
 package main
@@ -365,9 +377,20 @@ l.AddHander(&MyHandler{})
 
 输出日志到文件:
 
-- `NewFileHandler(logfile string, fns ...ConfigFn) (h *SyncCloseHandler, err error)`
-- `JSONFileHandler(logfile string, fns ...ConfigFn) (*SyncCloseHandler, error)` 
+- `NewFileHandler(logfile string, fns ...ConfigFn) (h *SyncCloseHandler, err error)` 输出日志到指定文件，默认不带缓冲
+- `JSONFileHandler(logfile string, fns ...ConfigFn) (*SyncCloseHandler, error)` 输出日志到指定文件且格式为JSON，默认不带缓冲
 - `NewBuffFileHandler(logfile string, buffSize int, fns ...ConfigFn) (*SyncCloseHandler, error)`
+
+> TIP: `NewFileHandler` `JSONFileHandler` 也可以通过传入 fns `handler.WithBuffSize(buffSize)` 启用写入缓冲
+
+输出日志到文件并自动切割:
+
+- `NewSizeRotateFile(logfile string, maxSize int, fns ...ConfigFn) (*SyncCloseHandler, error)` 根据文件大小进行自动切割
+- `NewTimeRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error)` 根据时间进行自动切割
+- `NewRotateFileHandler(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error)` 同时支持配置根据大小和时间进行切割
+  - 默认设置文件大小是 `20M`，默认自动分割时间是 `EveryHour` 1小时。
+
+> TIP: 通过传入 `fns ...ConfigFn` 可以设置更多选项，比如 日志文件保留时间, 日志写入缓冲大小等。 详细设置请看 `handler.Config` 结构体
 
 ### 输出日志到文件
 

@@ -5,12 +5,9 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/gookit/slog)](https://goreportcard.com/report/github.com/gookit/slog)
 [![Unit-Tests](https://github.com/gookit/slog/workflows/Unit-Tests/badge.svg)](https://github.com/gookit/slog/actions)
 [![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/gookit/slog)](https://github.com/gookit/slog)
+[![Coverage Status](https://coveralls.io/repos/github/gookit/slog/badge.svg?branch=master)](https://coveralls.io/github/gookit/slog?branch=master)
 
-📑 Lightweight, extensible, configurable logging library written in Go
-
-## [中文说明](README.zh-CN.md)
-
-中文说明请阅读 [README.zh-CN](README.zh-CN.md)
+📑 Lightweight, extensible, configurable logging library written in Golang.
 
 ## Features
 
@@ -31,6 +28,10 @@
   - `rotate_file` output logs to file, and supports rotating files by time and size. By default, `buffer` is enabled.
   - `email` output logs by send email.
   - `syslog` output logs by send system syslog.
+
+## [中文说明](README.zh-CN.md)
+
+中文说明请阅读 [README.zh-CN](README.zh-CN.md)
 
 ## GoDoc
 
