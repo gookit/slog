@@ -37,7 +37,7 @@ func NewEmailHandler(from EmailOption, toAddresses []string) *EmailHandler {
 	return h
 }
 
-// Handle an log record
+// Handle a log record
 func (h *EmailHandler) Handle(r *slog.Record) error {
 	msgBytes, err := h.FormatRecord(r)
 
