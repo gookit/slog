@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/slog"
 )
 
@@ -60,7 +59,7 @@ func NewSimpleFile(filepath string) (*SyncCloseHandler, error) {
 //	slog.PushHandler(h)
 //	slog.Info("log message")
 func NewSimpleFileHandler(filePath string) (*SyncCloseHandler, error) {
-	file, err := fsutil.QuickOpenFile(filePath)
+	file, err := QuickOpenFile(filePath)
 	if err != nil {
 		return nil, err
 	}

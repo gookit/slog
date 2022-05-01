@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/smtp"
+	"strconv"
 
 	"github.com/gookit/slog"
 )
@@ -9,7 +10,7 @@ import (
 // EmailOption struct
 type EmailOption struct {
 	SmtpHost string `json:"smtp_host"` // eg "smtp.gmail.com"
-	SmtpPort string `json:"smtp_port"` // eg "587"
+	SmtpPort int    `json:"smtp_port"` // eg 587
 	FromAddr string `json:"from_addr"` // eg "yourEmail@gmail.com"
 	Password string `json:"password"`
 }
@@ -20,7 +21,7 @@ type EmailHandler struct {
 	slog.LevelWithFormatter
 	// From the sender email information
 	From EmailOption
-	// ToAddresses list
+	// ToAddresses email list
 	ToAddresses []string
 }
 
@@ -39,11 +40,11 @@ func NewEmailHandler(from EmailOption, toAddresses []string) *EmailHandler {
 
 // Handle a log record
 func (h *EmailHandler) Handle(r *slog.Record) error {
-	msgBytes, err := h.FormatRecord(r)
+	msgBytes, err := h.Format(r)
 
 	var auth = smtp.PlainAuth("", h.From.FromAddr, h.From.Password, h.From.SmtpHost)
 
-	addr := h.From.SmtpHost + ":" + h.From.SmtpPort
+	addr := h.From.SmtpHost + ":" + strconv.Itoa(h.From.SmtpPort)
 	err = smtp.SendMail(addr, auth, h.From.FromAddr, h.ToAddresses, msgBytes)
 
 	return err

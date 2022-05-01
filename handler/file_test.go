@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const testFile = "./testdata/app.log"
 const testSubFile = "./testdata/subdir/app.log"
 
 func TestNewFileHandler(t *testing.T) {
@@ -41,7 +40,7 @@ func TestNewFileHandler(t *testing.T) {
 }
 
 func TestNewFileHandler_basic(t *testing.T) {
-	testFile := "testdata/file_basic.log"
+	testFile := "testdata/file-basic.log"
 	assert.NoError(t, fsutil.DeleteIfFileExist(testFile))
 
 	h, err := handler.NewFileHandler(testFile)
@@ -53,8 +52,36 @@ func TestNewFileHandler_basic(t *testing.T) {
 	err = h.Handle(r)
 	assert.NoError(t, err)
 
+	assert.NoError(t, h.Close())
+}
+
+func TestJSONFileHandler(t *testing.T) {
+	testFile := "testdata/file-json.log"
+	assert.NoError(t, fsutil.DeleteIfFileExist(testFile))
+
+	h, err := handler.JSONFileHandler(testFile)
+	assert.NoError(t, err)
+
+	r := newLogRecord("test json file handler")
+	err = h.Handle(r)
+	assert.NoError(t, err)
+
 	err = h.Close()
 	assert.NoError(t, err)
+
+	bts := fsutil.MustReadFile(testFile)
+	str := string(bts)
+
+	assert.Contains(t, str, `"level":"INFO"`)
+	assert.Contains(t, str, `"message":"test json file handler"`)
+}
+
+func TestMustSimpleFile(t *testing.T) {
+	logfile := "./testdata/must-simple-file.log"
+	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
+
+	h := handler.MustSimpleFile(logfile)
+	assert.True(t, h.IsHandling(slog.InfoLevel))
 }
 
 func TestNewSimpleFileHandler(t *testing.T) {

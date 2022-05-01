@@ -8,6 +8,7 @@ import (
 
 // SimpleHandler definition
 type SimpleHandler struct {
+	NopFlushClose
 	slog.LevelFormattable
 	Output io.Writer
 }
@@ -36,16 +37,6 @@ func NewSimpleHandler(out io.Writer, level slog.Level) *SimpleHandler {
 		// init log levels
 		LevelFormattable: slog.NewLvFormatter(level),
 	}
-}
-
-// Close the handler
-func (h *SimpleHandler) Close() error {
-	return nil
-}
-
-// Flush the handler
-func (h *SimpleHandler) Flush() error {
-	return nil
 }
 
 // Handle log record

@@ -20,9 +20,6 @@ func NewSyncCloser(out SyncCloseWriter, levels []slog.Level) *SyncCloseHandler {
 // NewSyncCloseHandler create new SyncCloseHandler
 //
 // Usage:
-// 	buf := new(bytes.Buffer)
-// 	h := handler.NewSyncCloseHandler(&buf, slog.AllLevels)
-//
 //	f, err := os.OpenFile("my.log", ...)
 // 	h := handler.NewSyncCloseHandler(f, slog.AllLevels)
 func NewSyncCloseHandler(out SyncCloseWriter, levels []slog.Level) *SyncCloseHandler {
@@ -63,34 +60,4 @@ func (h *SyncCloseHandler) Handle(record *slog.Record) error {
 
 	_, err = h.Output.Write(bts)
 	return err
-}
-
-// SyncCloseWrapper definition
-type SyncCloseWrapper struct {
-	Output SyncCloseWriter
-}
-
-// NewSyncCloseWrapper instance
-func NewSyncCloseWrapper(out SyncCloseWriter) SyncCloseWrapper {
-	return SyncCloseWrapper{
-		Output: out,
-	}
-}
-
-// Close the handler
-func (w *SyncCloseWrapper) Close() error {
-	if err := w.Flush(); err != nil {
-		return err
-	}
-	return w.Output.Close()
-}
-
-// Flush the handler
-func (w *SyncCloseWrapper) Flush() error {
-	return w.Output.Sync()
-}
-
-// Write the handler
-func (w *SyncCloseWrapper) Write(p []byte) (int, error) {
-	return w.Output.Write(p)
 }

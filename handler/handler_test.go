@@ -1,6 +1,7 @@
 package handler_test
 
 import (
+	"bytes"
 	"io/ioutil"
 	"testing"
 
@@ -17,6 +18,48 @@ var (
 		"skill": "go,php,java",
 	}
 )
+
+func TestConfig_CreateWriter(t *testing.T) {
+	cfg := handler.NewEmptyConfig()
+
+	w, err := cfg.CreateWriter()
+	assert.Nil(t, w)
+	assert.Error(t, err)
+
+	h, err := cfg.CreateHandler()
+	assert.Nil(t, h)
+	assert.Error(t, err)
+
+	logfile := "./testdata/file-by-config.log"
+	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
+
+	cfg.With(
+		handler.WithBuffMode(handler.BuffModeBite),
+		handler.WithLogLevels(slog.NormalLevels),
+		handler.WithLogfile(logfile),
+	)
+
+	w, err = cfg.CreateWriter()
+	assert.NoError(t, err)
+
+	_, err = w.Write([]byte("hello, config"))
+	assert.NoError(t, err)
+
+	bts := fsutil.MustReadFile(logfile)
+	str := string(bts)
+
+	assert.Equal(t, str, "hello, config")
+	assert.NoError(t, w.Sync())
+	assert.NoError(t, w.Close())
+}
+
+func TestConfig_RotateWriter(t *testing.T) {
+	cfg := handler.NewEmptyConfig()
+
+	w, err := cfg.RotateWriter()
+	assert.Nil(t, w)
+	assert.Error(t, err)
+}
 
 func TestConsoleHandlerWithColor(t *testing.T) {
 	l := slog.NewWithHandlers(handler.NewConsoleHandler(slog.AllLevels))
@@ -95,6 +138,33 @@ func TestBufferWrapper(t *testing.T) {
 	assert.Contains(t, str, "[INFO]")
 
 	err = l.FlushAll()
+	assert.NoError(t, err)
+}
+
+func TestNewEmailHandler(t *testing.T) {
+	from := handler.EmailOption{
+		SmtpHost: "smtp.gmail.com",
+		SmtpPort: 587,
+		FromAddr: "someone@gmail.com",
+	}
+
+	h := handler.NewEmailHandler(from, []string{
+		"another@gmail.com",
+	})
+
+	assert.Equal(t, slog.InfoLevel, h.Level)
+}
+
+func TestNewSimpleHandler(t *testing.T) {
+	buf := new(bytes.Buffer)
+
+	h := handler.NewSimple(buf, slog.InfoLevel)
+	r := newLogRecord("test simple handler")
+
+	err := h.Handle(r)
+	assert.NoError(t, err)
+
+	err = h.Close()
 	assert.NoError(t, err)
 }
 
