@@ -40,7 +40,7 @@
 
 `rotatefile` 包:
 
-- `rotatefile.Writer` 实现对日志文件按大小和自动时间进行自动切割，同时也支持自动清理日志文件
+- `rotatefile.Writer` 实现对日志文件按大小和指定时间进行自动切割，同时也支持自动清理日志文件
   - `RotateHandler` 即是通过使用它对日志文件进行切割处理
 
 > NEW: `v0.3.0` 废弃原来实现的纷乱的各种handler,统一抽象为
@@ -333,8 +333,8 @@ func main() {
 
 ### 创建自定义 Handler
 
-你只需要实现 `slog.Handler` 接口即可创建自定义 `Handler`。你可以通过
-slog内置 `handler.LevelsWithFormatter` `handler.LevelWithFormatter`等片段快速的组装自己的 Handler。
+你只需要实现 `slog.Handler` 接口即可创建自定义 `Handler`。你可以通过 slog内置的
+`handler.LevelsWithFormatter` `handler.LevelWithFormatter`等片段快速的组装自己的 Handler。
 
 示例:
 
@@ -369,32 +369,37 @@ l.AddHander(&MyHandler{})
 
 [./handler](handler) 包已经内置了常用的日志 Handler，基本上可以满足绝大部分场景。
 
-- `NewConsoleHandler(levels []slog.Level)` 输出日志到控制台
-  - 默认的logger即是使用的它
-- `NewEmailHandler(from EmailOption, toAddresses []string)` 发送日志到email邮箱
-- `NewSysLogHandler(priority syslog.Priority, tag string) (*SysLogHandler, error)` 发送日志到系统的syslog
-- `NewSimpleHandler(out io.Writer, level slog.Level) *SimpleHandler` 一个简单的handler实现，输出日志到给定的 `io.Writer`
+```go
+NewConsoleHandler(levels []slog.Level) // 输出日志到控制台
+NewEmailHandler(from EmailOption, toAddresses []string) // 发送日志到email邮箱
+NewSysLogHandler(priority syslog.Priority, tag string) (*SysLogHandler, error) // 发送日志到系统的syslog
+NewSimpleHandler(out io.Writer, level slog.Level) *SimpleHandler // 一个简单的handler实现，输出日志到给定的 io.Writer
+```
 
 输出日志到文件:
 
-- `NewFileHandler(logfile string, fns ...ConfigFn) (h *SyncCloseHandler, err error)` 输出日志到指定文件，默认不带缓冲
-- `JSONFileHandler(logfile string, fns ...ConfigFn) (*SyncCloseHandler, error)` 输出日志到指定文件且格式为JSON，默认不带缓冲
-- `NewBuffFileHandler(logfile string, buffSize int, fns ...ConfigFn) (*SyncCloseHandler, error)`
+```go
+NewFileHandler(logfile string, fns ...ConfigFn) (h *SyncCloseHandler, err error)  // 输出日志到指定文件，默认不带缓冲
+JSONFileHandler(logfile string, fns ...ConfigFn) (*SyncCloseHandler, error)  // 输出日志到指定文件且格式为JSON，默认不带缓冲
+NewBuffFileHandler(logfile string, buffSize int, fns ...ConfigFn) (*SyncCloseHandler, error)  // 带缓冲的输出日志到指定文件
+```
 
 > TIP: `NewFileHandler` `JSONFileHandler` 也可以通过传入 fns `handler.WithBuffSize(buffSize)` 启用写入缓冲
 
 输出日志到文件并自动切割:
 
-- `NewSizeRotateFile(logfile string, maxSize int, fns ...ConfigFn) (*SyncCloseHandler, error)` 根据文件大小进行自动切割
-- `NewTimeRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error)` 根据时间进行自动切割
-- `NewRotateFileHandler(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error)` 同时支持配置根据大小和时间进行切割
-  - 默认设置文件大小是 `20M`，默认自动分割时间是 `EveryHour` 1小时。
+```go
+NewSizeRotateFile(logfile string, maxSize int, fns ...ConfigFn) (*SyncCloseHandler, error) // 根据文件大小进行自动切割
+NewTimeRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error) // 根据时间进行自动切割
+// 同时支持配置根据大小和时间进行切割, 默认设置文件大小是 20M，默认自动分割时间是 1小时(EveryHour)。
+NewRotateFileHandler(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error)
+```
 
 > TIP: 通过传入 `fns ...ConfigFn` 可以设置更多选项，比如 日志文件保留时间, 日志写入缓冲大小等。 详细设置请看 `handler.Config` 结构体
 
 ### 输出日志到文件
 
-`FileHandler` 输出日志到指定文件，默认启用 `buffer` 缓冲写入(默认的缓冲大小: `9 * 1024`)
+`FileHandler` 输出日志到指定文件，默认不启用 `buffer` 缓冲写入。 也可以通过传入参数启用缓冲。
 
 ```go
 package mypkg
@@ -422,7 +427,11 @@ func main() {
 }
 ```
 
-### 使用配置快速创建Handler实例
+> 提示: 如果启用了写入缓冲 `buffer`，一定要在程序结束时调用 `logger.Flush()` 刷出缓冲区的内容到文件。
+
+### 根据配置快速创建Handler实例
+
+
 
 ## 测试以及性能
 

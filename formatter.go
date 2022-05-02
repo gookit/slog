@@ -11,10 +11,10 @@ type Formatter interface {
 }
 
 // FormatterFunc wrapper definition
-type FormatterFunc func(r *Record) error
+type FormatterFunc func(r *Record) ([]byte, error)
 
 // Format a log record
-func (fn FormatterFunc) Format(r *Record) error {
+func (fn FormatterFunc) Format(r *Record) ([]byte, error) {
 	return fn(r)
 }
 
@@ -44,7 +44,7 @@ func (f *Formattable) SetFormatter(formatter Formatter) {
 	f.formatter = formatter
 }
 
-// FormatRecord to bytes
-func (f *Formattable) FormatRecord(record *Record) ([]byte, error) {
+// Format log record to bytes
+func (f *Formattable) Format(record *Record) ([]byte, error) {
 	return f.Formatter().Format(record)
 }

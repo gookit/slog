@@ -40,6 +40,8 @@ type Record struct {
 	Caller *runtime.Frame
 	// CallerFlag value. default is equals to Logger.CallerFlag
 	CallerFlag uint8
+	// CallerSkip value. default is equals to Logger.CallerSkip
+	CallerSkip int
 
 	// cache the r.Time.Nanosecond() / 1000
 	microSecond int
@@ -53,6 +55,9 @@ func newRecord(logger *Logger) *Record {
 	return &Record{
 		logger:  logger,
 		Channel: DefaultChannelName,
+		// with some options
+		CallerFlag: logger.CallerFlag,
+		CallerSkip: logger.CallerSkip,
 		// init map data field
 		// Data:   make(M, 2),
 		// Extra:  make(M, 0),
@@ -132,15 +137,17 @@ func (r *Record) Copy() *Record {
 	}
 
 	return &Record{
-		logger:    r.logger,
-		Channel:   r.Channel,
-		Time:      r.Time,
-		Level:     r.Level,
-		levelName: r.levelName,
-		Message:   r.Message,
-		Data:      dataCopy,
-		Extra:     extraCopy,
-		Fields:    fieldsCopy,
+		logger:     r.logger,
+		Channel:    r.Channel,
+		Time:       r.Time,
+		Level:      r.Level,
+		levelName:  r.levelName,
+		CallerFlag: r.CallerFlag,
+		CallerSkip: r.CallerSkip,
+		Message:    r.Message,
+		Data:       dataCopy,
+		Extra:      extraCopy,
+		Fields:     fieldsCopy,
 	}
 }
 

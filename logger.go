@@ -28,6 +28,9 @@ type Logger struct {
 	handlers   []Handler
 	processors []Processor
 
+	// reusable empty record
+	recordPool sync.Pool
+
 	//
 	// logger options
 	//
@@ -41,13 +44,11 @@ type Logger struct {
 	// TimeClock custom time clock, timezone
 	TimeClock ClockFn
 
-	// reusable empty record
-	recordPool sync.Pool
-
-	// handlers on exit, panic.
+	// handlers on exit.
 	exitHandlers []func()
-	ExitFunc     func(code int)
-	PanicFunc    func(v interface{})
+	// custom exit, panic handle.
+	ExitFunc  func(code int)
+	PanicFunc func(v interface{})
 }
 
 // New create a new logger
@@ -77,7 +78,7 @@ func NewWithName(name string) *Logger {
 		exitHandlers: []func(){},
 		// options
 		ReportCaller: true,
-		CallerSkip:   6,
+		CallerSkip:   5,
 		TimeClock:    DefaultClockFn,
 	}
 
@@ -98,6 +99,7 @@ func (l *Logger) releaseRecord(r *Record) {
 	r.Data = nil
 	r.Extra = nil
 	r.Fields = nil
+	r.CallerSkip = l.CallerSkip
 	l.recordPool.Put(r)
 }
 
@@ -356,6 +358,7 @@ func (l *Logger) WithContext(ctx context.Context) *Record {
 
 func (l *Logger) log(level Level, args []interface{}) {
 	r := l.newRecord()
+	r.CallerSkip++
 	r.log(level, args)
 	l.releaseRecord(r)
 }
@@ -363,6 +366,7 @@ func (l *Logger) log(level Level, args []interface{}) {
 // Logf a format message with level
 func (l *Logger) logf(level Level, format string, args []interface{}) {
 	r := l.newRecord()
+	r.CallerSkip++
 	r.logf(level, format, args)
 	l.releaseRecord(r)
 }

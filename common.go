@@ -200,7 +200,8 @@ var (
 
 	// lower level name.
 	lowerLevelNames = buildLowerLevelName()
-	emptyTime       = time.Time{}
+	// empty time for reset record.
+	emptyTime = time.Time{}
 )
 
 // LevelName match

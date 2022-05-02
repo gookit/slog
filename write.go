@@ -32,7 +32,7 @@ func (r *Record) logBytes(level Level) {
 
 	// log caller. will alloc 3 times
 	if r.logger.ReportCaller {
-		caller, ok := getCaller(r.logger.CallerSkip)
+		caller, ok := getCaller(r.CallerSkip)
 		if ok {
 			r.Caller = &caller
 		}
@@ -56,10 +56,6 @@ func (r *Record) Init(lowerLevelName bool) {
 	// init log time
 	if r.Time.IsZero() {
 		r.Time = r.logger.TimeClock.Now()
-	}
-
-	if r.logger != nil {
-		r.CallerFlag = r.logger.CallerFlag
 	}
 
 	r.microSecond = r.Time.Nanosecond() / 1000
