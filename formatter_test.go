@@ -10,11 +10,32 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func newTestRecord() *slog.Record {
+func TestFormattable_Format(t *testing.T) {
+	r := newTestRecord("TEST_LOG_MESSAGE format")
+	f := &slog.Formattable{}
+
+	bts, err := f.Format(r)
+	assert.NoError(t, err)
+
+	str := string(bts)
+	assert.Contains(t, str, "TEST_LOG_MESSAGE format")
+
+	fn := slog.FormatterFunc(func(r *slog.Record) ([]byte, error) {
+		return []byte(r.Message), nil
+	})
+
+	bts, err = fn.Format(r)
+	assert.NoError(t, err)
+
+	str = string(bts)
+	assert.Contains(t, str, "TEST_LOG_MESSAGE format")
+}
+
+func newTestRecord(msg string) *slog.Record {
 	r := &slog.Record{
 		Channel: slog.DefaultChannelName,
 		Level:   slog.InfoLevel,
-		Message: "TEST_LOG_MESSAGE",
+		Message: msg,
 		Time:    slog.DefaultClockFn.Now(),
 		Data: map[string]interface{}{
 			"data_key0": "value",
@@ -24,6 +45,7 @@ func newTestRecord() *slog.Record {
 			"source":     "linux",
 			"extra_key0": "hello",
 		},
+		// Caller: stdutil.GetCallerInfo(),
 	}
 
 	r.Init(true)
@@ -44,7 +66,7 @@ func TestNewTextFormatter(t *testing.T) {
 }
 
 func TestTextFormatter_Format(t *testing.T) {
-	r := newTestRecord()
+	r := newTestRecord("TEST_LOG_MESSAGE")
 	f := slog.NewTextFormatter()
 
 	bs, err := f.Format(r)
@@ -85,8 +107,8 @@ func TestJSONFormatter(t *testing.T) {
 	})
 
 	h.SetFormatter(f)
-	l.AddHandler(h)
 
+	l.AddHandler(h)
 	l.WithFields(fields).
 		SetData(slog.M{"key1": "val1"}).
 		SetExtra(slog.M{"ext1": "val1"}).

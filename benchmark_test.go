@@ -50,7 +50,7 @@ func BenchmarkGookitSlogPositive(b *testing.B) {
 }
 
 func BenchmarkTextFormatter_Format(b *testing.B) {
-	r := newTestRecord()
+	r := newTestRecord("TEST_LOG_MESSAGE")
 	f := slog.NewTextFormatter()
 	// 1284 ns/op  456 B/op          11 allocs/op
 	// On use DefaultTemplate

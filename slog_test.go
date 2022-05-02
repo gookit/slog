@@ -69,7 +69,7 @@ func TestTextFormatWithColor(t *testing.T) {
 	defer slog.Reset()
 
 	slog.Configure(func(l *slog.SugaredLogger) {
-		l.Level = slog.PanicLevel
+		l.Level = slog.TraceLevel
 		l.DoNothingOnPanicFatal()
 	})
 
