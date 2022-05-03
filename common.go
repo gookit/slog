@@ -138,6 +138,7 @@ var (
 	FieldKeyCaller = "caller"
 
 	FieldKeyLevel = "level"
+	// FieldKeyError Define the key when adding errors using WithError.
 	FieldKeyError = "error"
 	FieldKeyExtra = "extra"
 
@@ -146,9 +147,6 @@ var (
 )
 
 var (
-	// ErrorKey Define the key when adding errors using WithError.
-	ErrorKey = "error"
-
 	// DefaultChannelName for log record
 	DefaultChannelName = "application"
 	DefaultTimeFormat  = "2006/01/02T15:04:05"

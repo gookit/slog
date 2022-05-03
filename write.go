@@ -58,7 +58,7 @@ func (r *Record) Init(lowerLevelName bool) {
 		r.Time = r.logger.TimeClock.Now()
 	}
 
-	r.microSecond = r.Time.Nanosecond() / 1000
+	// r.microSecond = r.Time.Nanosecond() / 1000
 }
 
 //

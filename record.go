@@ -23,16 +23,11 @@ type Record struct {
 	// Ctx context.Context
 	Ctx context.Context
 
-	// Buffer Can use Buffer on formatter
-	// Buffer *bytes.Buffer
-
 	// Fields custom fields data.
 	// Contains all the fields set by the user.
 	Fields M
-
 	// Data log context data
 	Data M
-
 	// Extra log extra data
 	Extra M
 
@@ -43,8 +38,11 @@ type Record struct {
 	// CallerSkip value. default is equals to Logger.CallerSkip
 	CallerSkip int
 
+	// Buffer Can use Buffer on formatter
+	// Buffer *bytes.Buffer
+
 	// cache the r.Time.Nanosecond() / 1000
-	microSecond int
+	// microSecond int
 	// stacks []byte
 	// formatted []byte
 	// field caches mapping for optimize performance. TODO use map[string][]byte ?
@@ -87,7 +85,7 @@ func (r *Record) WithContext(ctx context.Context) *Record {
 
 // WithError on record
 func (r *Record) WithError(err error) *Record {
-	return r.WithFields(M{ErrorKey: err})
+	return r.WithFields(M{FieldKeyError: err})
 }
 
 // WithData on record
@@ -320,6 +318,16 @@ func (r *Record) Errorf(format string, args ...interface{}) {
 	r.logf(ErrorLevel, format, args)
 }
 
+// Warn logs a message at level Warn
+func (r *Record) Warn(args ...interface{}) {
+	r.log(WarnLevel, args)
+}
+
+// Warnf logs a message at level Warn
+func (r *Record) Warnf(format string, args ...interface{}) {
+	r.logf(ErrorLevel, format, args)
+}
+
 // Notice logs a message at level Notice
 func (r *Record) Notice(args ...interface{}) {
 	r.log(NoticeLevel, args)
@@ -401,7 +409,7 @@ func (r *Record) Panicf(format string, args ...interface{}) {
 func (r *Record) LevelName() string { return r.levelName }
 
 // MicroSecond of the record
-func (r *Record) MicroSecond() int { return r.microSecond }
+// func (r *Record) MicroSecond() int { return r.microSecond }
 
 // GoString of the record
 func (r *Record) GoString() string {
