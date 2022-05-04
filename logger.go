@@ -16,7 +16,7 @@ type SLogger interface {
 	Logf(level Level, format string, v ...interface{})
 }
 
-// Logger definition.
+// Logger log dispatcher definition.
 //
 // The logger implements the `github.com/gookit/gsr.Logger`
 type Logger struct {

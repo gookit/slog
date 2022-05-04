@@ -27,21 +27,10 @@
 - 已经内置了常用的日志处理器
   - `console` 输出日志到控制台，支持色彩输出
   - `writer` 输出日志到指定的 `io.Writer`
-  - `simple_file` 输出日志到指定文件，无缓冲直接写入文件
-  - `file` 输出日志到指定文件，默认启用 `buffer` 缓冲写入
+  - `file` 输出日志到指定文件，可选启用 `buffer` 缓冲写入
+  - `simple` 输出日志到指定文件，无缓冲直接写入文件
   - `rotate_file` 输出日志到指定文件，并且同时支持按时间、按大小分割文件，默认启用 `buffer` 缓冲写入
-
-**扩展工具包**
-
-`bufwrite` 包:
-
-- `bufwrite.BufIOWriter` 通过包装go的 `bufio.Writer` 额外实现了 `Sync(), Close()` 方法，方便使用
-- `bufwrite.LineWriter` 参考go的 `bufio.Writer` 实现, 可以支持按行刷出缓冲，对于写日志文件更有用
-
-`rotatefile` 包:
-
-- `rotatefile.Writer` 实现对日志文件按大小和指定时间进行自动切割，同时也支持自动清理日志文件
-  - `RotateHandler` 即是通过使用它对日志文件进行切割处理
+  - 更多内置实现请查看 ./handler 文件夹
 
 > NEW: `v0.3.0` 废弃原来实现的纷乱的各种handler,统一抽象为
 > `FlushCloseHandler` `SyncCloseHandler` `WriteCloserHandler` `IOWriterHandler` 
@@ -49,7 +38,7 @@
 
 ## [English](README.md)
 
-English instructions please read [README](README.md)
+English instructions please see [./README](README.md)
 
 ## GoDoc
 
@@ -83,10 +72,10 @@ func main() {
 **输出预览:**
 
 ```text
-[2020/07/16 12:19:33] [application] [INFO] info log message  
-[2020/07/16 12:19:33] [application] [WARNING] warning log message  
-[2020/07/16 12:19:33] [application] [INFO] info log message  
-[2020/07/16 12:19:33] [application] [DEBUG] debug message  
+[2020/07/16 12:19:33] [application] [INFO] [main.go:7] info log message  
+[2020/07/16 12:19:33] [application] [WARNING] [main.go:8] warning log message  
+[2020/07/16 12:19:33] [application] [INFO] [main.go:9] info log message  
+[2020/07/16 12:19:33] [application] [DEBUG] [main.go:10] debug message  
 ```
 
 ### 启用控制台颜色
@@ -124,7 +113,7 @@ func main() {
 
 上面是更改了默认logger的 `Formatter` 设置。
 
-你也可以创建自己的logger，并追加 `ConsoleHandler` 来支持打印日志到控制台：
+> 你也可以创建自己的logger，并追加 `ConsoleHandler` 来支持打印日志到控制台：
 
 ```go
 h := handler.NewConsoleHandler(slog.AllLevels)
@@ -231,6 +220,16 @@ func (fn ProcessorFunc) Process(record *Record) {
 
 > 你可以使用它在日志 `Record` 到达 `Handler` 处理之前，对Record进行额外的操作，比如：新增字段，添加扩展信息等
 
+添加 processor 到 logger:
+
+```go
+slog.AddProcessor(mypkg.AddHostname())
+
+// or
+l := slog.New()
+l.AddProcessor(mypkg.AddHostname())
+```
+
 这里使用内置的processor `slog.AddHostname` 作为示例，它可以在每条日志记录上添加新字段 `hostname`。
 
 ```go
@@ -238,7 +237,7 @@ slog.AddProcessor(slog.AddHostname())
 slog.Info("message")
 ```
 
-输出效果,包含新增字段 `"hostname":"InhereMac"`：
+输出效果，包含新增字段 `"hostname":"InhereMac"`：
 
 ```json
 {"channel":"application","level":"INFO","datetime":"2020/07/17 12:01:35","hostname":"InhereMac","data":{},"extra":{},"message":"message"}
@@ -287,13 +286,39 @@ func (fn FormatterFunc) Format(r *Record) ([]byte, error) {
 }
 ```
 
+**JSON格式化Formatter**
+
+```go
+type JSONFormatter struct {
+	// Fields exported log fields.
+	Fields []string
+	// Aliases for output fields. you can change export field name.
+	// item: `"field" : "output name"`
+	// eg: {"message": "msg"} export field will display "msg"
+	Aliases StringMap
+	// PrettyPrint will indent all json logs
+	PrettyPrint bool
+	// TimeFormat the time format layout. default is time.RFC3339
+	TimeFormat string
+}
+```
+
+**Text格式化formatter**
+
+默认模板:
+
+```go
+const DefaultTemplate = "[{{datetime}}] [{{channel}}] [{{level}}] [{{caller}}] {{message}} {{data}} {{extra}}\n"
+const NamedTemplate = "{{datetime}} channel={{channel}} level={{level}} [file={{caller}}] message={{message}} data={{data}}\n"
+```
+
 ## 自定义日志
 
 自定义 Processor 和 自定义 Formatter 都比较简单，实现一个对应方法即可。
 
-### 创建自定义 Logger实例
+### 创建自定义Logger实例
 
-`slog.Info` 等方法，使用的默认logger，并且默认输出日志到控制台。 
+`slog.Info, slog.Warn` 等方法，使用的默认logger，并且默认输出日志到控制台。 
 
 你可以创建一个全新的 `slog.Logger` 实例：
 
@@ -370,18 +395,18 @@ l.AddHander(&MyHandler{})
 [./handler](handler) 包已经内置了常用的日志 Handler，基本上可以满足绝大部分场景。
 
 ```go
-NewConsoleHandler(levels []slog.Level) // 输出日志到控制台
-NewEmailHandler(from EmailOption, toAddresses []string) // 发送日志到email邮箱
-NewSysLogHandler(priority syslog.Priority, tag string) (*SysLogHandler, error) // 发送日志到系统的syslog
-NewSimpleHandler(out io.Writer, level slog.Level) *SimpleHandler // 一个简单的handler实现，输出日志到给定的 io.Writer
+func NewConsoleHandler(levels []slog.Level) *ConsoleHandler // 输出日志到控制台
+func NewEmailHandler(from EmailOption, toAddresses []string) *EmailHandler // 发送日志到email邮箱
+func NewSysLogHandler(priority syslog.Priority, tag string) (*SysLogHandler, error) // 发送日志到系统的syslog
+func NewSimpleHandler(out io.Writer, level slog.Level) *SimpleHandler // 一个简单的handler实现，输出日志到给定的 io.Writer
 ```
 
 输出日志到文件:
 
 ```go
-NewFileHandler(logfile string, fns ...ConfigFn) (h *SyncCloseHandler, err error)  // 输出日志到指定文件，默认不带缓冲
-JSONFileHandler(logfile string, fns ...ConfigFn) (*SyncCloseHandler, error)  // 输出日志到指定文件且格式为JSON，默认不带缓冲
-NewBuffFileHandler(logfile string, buffSize int, fns ...ConfigFn) (*SyncCloseHandler, error)  // 带缓冲的输出日志到指定文件
+func NewFileHandler(logfile string, fns ...ConfigFn) (h *SyncCloseHandler, err error)  // 输出日志到指定文件，默认不带缓冲
+func JSONFileHandler(logfile string, fns ...ConfigFn) (*SyncCloseHandler, error)  // 输出日志到指定文件且格式为JSON，默认不带缓冲
+func NewBuffFileHandler(logfile string, buffSize int, fns ...ConfigFn) (*SyncCloseHandler, error)  // 带缓冲的输出日志到指定文件
 ```
 
 > TIP: `NewFileHandler` `JSONFileHandler` 也可以通过传入 fns `handler.WithBuffSize(buffSize)` 启用写入缓冲
@@ -389,17 +414,17 @@ NewBuffFileHandler(logfile string, buffSize int, fns ...ConfigFn) (*SyncCloseHan
 输出日志到文件并自动切割:
 
 ```go
-NewSizeRotateFile(logfile string, maxSize int, fns ...ConfigFn) (*SyncCloseHandler, error) // 根据文件大小进行自动切割
-NewTimeRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error) // 根据时间进行自动切割
+func NewSizeRotateFile(logfile string, maxSize int, fns ...ConfigFn) (*SyncCloseHandler, error) // 根据文件大小进行自动切割
+func NewTimeRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error) // 根据时间进行自动切割
 // 同时支持配置根据大小和时间进行切割, 默认设置文件大小是 20M，默认自动分割时间是 1小时(EveryHour)。
-NewRotateFileHandler(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error)
+func NewRotateFileHandler(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error)
 ```
 
 > TIP: 通过传入 `fns ...ConfigFn` 可以设置更多选项，比如 日志文件保留时间, 日志写入缓冲大小等。 详细设置请看 `handler.Config` 结构体
 
 ### 输出日志到文件
 
-`FileHandler` 输出日志到指定文件，默认不启用 `buffer` 缓冲写入。 也可以通过传入参数启用缓冲。
+输出日志到指定文件，默认不启用 `buffer` 缓冲写入。 也可以通过传入参数启用缓冲。
 
 ```go
 package mypkg
@@ -429,9 +454,85 @@ func main() {
 
 > 提示: 如果启用了写入缓冲 `buffer`，一定要在程序结束时调用 `logger.Flush()` 刷出缓冲区的内容到文件。
 
+### 带自动切割的日志处理器
+
+`slog/handler` 也内置了输出日志到指定文件，并且同时支持按时间、按大小分割文件，默认启用 `buffer` 缓冲写入
+
+```go
+func Example_rotateFileHandler() {
+	h1 := handler.MustRotateFile("/tmp/error.log", handler.EveryHour, handler.WithLogLevels(slog.DangerLevels))
+	h2 := handler.MustRotateFile("/tmp/info.log", handler.EveryHour, handler.WithLogLevels(slog.NormalLevels))
+
+	slog.PushHandler(h1)
+	slog.PushHandler(h2)
+
+	// add logs
+	slog.Info("info message")
+	slog.Error("error message")
+}
+```
+
+按时间切割文件示例:
+
+```text
+time-rotate-file.log
+time-rotate-file.log.20201229_155753
+time-rotate-file.log.20201229_155754
+```
+
+按大小进行切割的文件名示例, 格式 `filename.log.yMD_000N`. 例如:
+
+```text
+size-rotate-file.log
+size-rotate-file.log.122915_00001
+size-rotate-file.log.122915_00002
+```
+
 ### 根据配置快速创建Handler实例
 
+```go
+	testFile := "testdata/error.log"
 
+	h := handler.NewEmptyConfig().
+		With(
+			handler.WithLogfile(testFile),
+			handler.WithBuffSize(1024*8),
+			handler.WithLogLevels(slog.DangerLevels),
+			handler.WithBuffMode(handler.BuffModeBite),
+		).
+		CreateHandler()
+
+	l := slog.NewWithHandlers(h)
+```
+
+### 使用Builder快速创建Handler实例
+
+```go
+	testFile := "testdata/info.log"
+
+	h := handler.NewBuilder().
+		With(
+			handler.WithLogfile(testFile),
+			handler.WithBuffSize(1024*8),
+			handler.WithLogLevels(slog.NormalLevels),
+			handler.WithBuffMode(handler.BuffModeBite),
+		).
+		Build()
+	
+	l := slog.NewWithHandlers(h)
+```
+
+## 扩展工具包
+
+`bufwrite` 包:
+
+- `bufwrite.BufIOWriter` 通过包装go的 `bufio.Writer` 额外实现了 `Sync(), Close()` 方法，方便使用
+- `bufwrite.LineWriter` 参考go的 `bufio.Writer` 实现, 可以支持按行刷出缓冲，对于写日志文件更有用
+
+`rotatefile` 包:
+
+- `rotatefile.Writer` 实现对日志文件按大小和指定时间进行自动切割，同时也支持自动清理日志文件
+  - `handler/rotate_file` 即是通过使用它对日志文件进行切割处理
 
 ## 测试以及性能
 

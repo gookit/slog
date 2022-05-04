@@ -2,6 +2,7 @@ package handler_test
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"testing"
 
@@ -155,17 +156,69 @@ func TestNewEmailHandler(t *testing.T) {
 	assert.Equal(t, slog.InfoLevel, h.Level)
 }
 
+func TestLevelWithFormatter(t *testing.T) {
+	lf := handler.LevelWithFormatter{Level: slog.InfoLevel}
+
+	assert.True(t, lf.IsHandling(slog.ErrorLevel))
+	assert.True(t, lf.IsHandling(slog.InfoLevel))
+	assert.False(t, lf.IsHandling(slog.DebugLevel))
+}
+
+func TestLevelsWithFormatter(t *testing.T) {
+	lsf := handler.LevelsWithFormatter{Levels: slog.NormalLevels}
+
+	assert.False(t, lsf.IsHandling(slog.ErrorLevel))
+	assert.True(t, lsf.IsHandling(slog.InfoLevel))
+	assert.True(t, lsf.IsHandling(slog.DebugLevel))
+}
+
 func TestNewSimpleHandler(t *testing.T) {
 	buf := new(bytes.Buffer)
 
 	h := handler.NewSimple(buf, slog.InfoLevel)
 	r := newLogRecord("test simple handler")
+	assert.NoError(t, h.Handle(r))
 
-	err := h.Handle(r)
-	assert.NoError(t, err)
+	s := buf.String()
+	buf.Reset()
+	fmt.Print(s)
+	assert.Contains(t, s, "test simple handler")
 
-	err = h.Close()
-	assert.NoError(t, err)
+	assert.NoError(t, h.Flush())
+	assert.NoError(t, h.Close())
+
+	h = handler.NewHandler(buf, slog.InfoLevel)
+	r = newLogRecord("test simple handler2")
+	assert.NoError(t, h.Handle(r))
+
+	s = buf.String()
+	buf.Reset()
+	fmt.Print(s)
+	assert.Contains(t, s, "test simple handler2")
+
+	assert.NoError(t, h.Flush())
+	assert.NoError(t, h.Close())
+}
+
+func TestNopFlushClose_Flush(t *testing.T) {
+	nfc := handler.NopFlushClose{}
+
+	assert.NoError(t, nfc.Flush())
+	assert.NoError(t, nfc.Close())
+}
+
+func TestLockWrapper_Lock(t *testing.T) {
+	lw := &handler.LockWrapper{}
+	assert.False(t, lw.LockEnabled())
+
+	lw.EnableLock(true)
+	assert.True(t, lw.LockEnabled())
+
+	a := 1
+	lw.Lock()
+	a++
+	lw.Unlock()
+	assert.Equal(t, 2, a)
 }
 
 func logAllLevel(log slog.SLogger, msg string) {

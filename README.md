@@ -12,22 +12,25 @@
 ## Features
 
 - Simple, directly available without configuration
-- Support common log level processing. eg: `trace` `debug` `info` `notice` `warn` `error` `fatal` `panic`
-- Supports adding multiple `Handler` log processing at the same time, outputting logs to different places
+- Support common log level processing.
+  - eg: `trace` `debug` `info` `notice` `warn` `error` `fatal` `panic`
 - Support any extension of `Handler` `Formatter` as needed
-- Support to custom log messages `Handler`
+- Supports adding multiple `Handler` log processing at the same time, outputting logs to different places
 - Support to custom log message `Formatter`
   - Built-in `json` `text` two log record formatting `Formatter`
-- Has built-in common log write processing program
+- Support to custom build log messages `Handler`
+  - The built-in `handler.Config` `handler.Builder` can easily and quickly build the desired log handler
+- Has built-in common log write handler program
   - `console` output logs to the console, supports color output
-  - `stream` output logs to the specified `io.Writer`
-  - `simple_file` output logs to file, no buffer Write directly to file
-  - `file` output logs to file. By default, `buffer` is enabled.
-  - `size_rotate_file` output logs to file, and supports rotating files by size. By default, `buffer` is enabled.
-  - `time_rotate_file` output logs to file, and supports rotating files by time. By default, `buffer` is enabled.
-  - `rotate_file` output logs to file, and supports rotating files by time and size. By default, `buffer` is enabled.
-  - `email` output logs by send email.
-  - `syslog` output logs by send system syslog.
+  - `writer` output logs to the specified `io.Writer`
+  - `file` output log to the specified file, optionally enable `buffer` to buffer writes
+  - `simple` output log to the specified file, write directly to the file without buffering
+  - `rotate_file` outputs logs to the specified file, and supports splitting files by time and size at the same time, and `buffer` buffered writing is enabled by default
+  - See ./handler folder for more built-in implementations
+
+> NEW: `v0.3.0` discards the various handlers that were originally implemented, and the unified abstraction is
+> `FlushCloseHandler` `SyncCloseHandler` `WriteCloserHandler` `IOWriterHandler`
+> Several processors that support different types of writers. Makes it easier to build custom handlers, built-in handlers are basically composed of them.
 
 ## [中文说明](README.zh-CN.md)
 
@@ -35,7 +38,7 @@
 
 ## GoDoc
 
-- [godoc for github](https://pkg.go.dev/github.com/gookit/slog?tab=doc)
+- [Godoc for github](https://pkg.go.dev/github.com/gookit/slog?tab=doc)
 
 ## Install
 
@@ -43,11 +46,9 @@
 go get github.com/gookit/slog
 ```
 
-## Usage
+## Quick Start
 
 `slog` is very simple to use and can be used without any configuration
-
-## Quick Start
 
 ```go
 package main
@@ -104,19 +105,35 @@ func main() {
 
 ![](_example/images/console-color-log.png)
 
-- Change output format
+### 更改日志输出样式
 
-Change the default logger output format.
+Above is the `Formatter` setting that changed the default logger.
+
+> You can also create your own logger and append `ConsoleHandler` to support printing logs to the console:
 
 ```go
-slog.GetFormatter().(*slog.TextFormatter).Template = slog.NamedTemplate
+h := handler.NewConsoleHandler(slog.AllLevels)
+l := slog.NewWithHandlers()
+
+l.Trace("this is a simple log message")
+l.Debug("this is a simple log message")
 ```
 
-**Output:**
+Change the default logger log output style:
+
+```go
+h.GetFormatter().(*slog.TextFormatter).Template = slog.NamedTemplate
+```
+
+**输出预览:**
 
 ![](_example/images/console-color-log1.png)
 
+> Note: `slog.TextFormatter` uses a template string to format the output log, so the new field output needs to adjust the template at the same time.
+
 ### Use JSON Format
+
+`slog` also has a built-in `Formatter` for JSON format. If not specified, the default is to use `TextFormatter` to format log records.
 
 ```go
 package main
@@ -155,205 +172,152 @@ func main() {
 {"IP":"127.0.0.1","category":"service","channel":"application","datetime":"2020/07/16 13:23:33","extra":{},"level":"DEBUG","message":"debug message"}
 ```
 
-## Logs to file
+## Introduction
 
-- `FileHandler` output logs to file. By default, `buffer` is enabled.
-  - default buffer size is `256 * 1024`
+- `Logger` - log scheduler. One logger can register multiple `Handler`, `Processor`
+- `Record` - log records, each log is a `Record` instance.
+- `Processor` - enables extended processing of log records. It is called before the log `Record` is processed by the `Handler`.
+  - You can use it to perform additional operations on `Record`, such as: adding fields, adding extended information, etc.
+- `Handler` - log handler, each log will be processed by `Handler.Handle()`.
+  - Here you can send logs to console, file, remote server, etc.
+- `Formatter` - logging data formatting process.
+  - Usually set in `Handler`, it can be used to format log records, convert records into text, JSON, etc., `Handler` then writes the formatted data to the specified place.
+  - `Formatter` is not required. You can do without it and handle logging directly in `Handler.Handle()`.
+
+**Simple structure of log scheduler**：
+
+```text
+          Processors
+Logger --{
+          Handlers --{ With Formatter
+```
+
+> Note: Be sure to remember to add `Handler`, `Processor` to the logger instance and log records will be processed by `Handler`.
+
+### Processor
+
+`Processor` interface:
 
 ```go
-package mypkg
+// Processor interface definition
+type Processor interface {
+	// Process record
+	Process(record *Record)
+}
 
-import (
-	"github.com/gookit/slog"
-	"github.com/gookit/slog/handler"
-)
+// ProcessorFunc definition
+type ProcessorFunc func(record *Record)
 
-func myfunc() {
-	defer slog.Flush()
-
-	h1 := handler.MustFileHandler("/tmp/error.log", true)
-	h1.Levels = slog.Levels{slog.PanicLevel, slog.ErrorLevel, slog.WarnLevel}
-
-	h2 := handler.MustFileHandler("/tmp/info.log", true)
-	h2.Levels = slog.Levels{slog.InfoLevel, slog.NoticeLevel, slog.DebugLevel, slog.TraceLevel}
-
-	slog.PushHandler(h1)
-	slog.PushHandler(h2)
-
-	// add logs
-	slog.Info("info message text")
-	slog.Error("error message text")
+// Process record
+func (fn ProcessorFunc) Process(record *Record) {
+	fn(record)
 }
 ```
 
-----------
+> You can use it to perform additional operations on the Record before the log `Record` reaches the `Handler` for processing, such as: adding fields, adding extended information, etc.
 
-## How to use handler
-
-### Create handler
+Add processor to logger:
 
 ```go
-h1, err := handler.NewSimpleFile("info.log")
+slog.AddProcessor(mypkg.AddHostname())
 
-h2, err := handler.NewFileHandler("error.log")
-
-h3, err := handler.NewFileHandler("error.log")
+// or
+l := slog.New()
+l.AddProcessor(mypkg.AddHostname())
 ```
 
-### Push handler to logger
+The built-in processor `slog.AddHostname` is used here as an example, which can add a new field `hostname` on each log record.
 
 ```go
-	// append to logger
-	l := slog.PushHandler(h)
-
-	// logging messages
-	slog.Info("info message")
-	slog.Warn("warn message")
+slog.AddProcessor(slog.AddHostname())
+slog.Info("message")
 ```
 
-### New logger with handlers
+Output, including new fields `"hostname":"InhereMac"`：
 
-```go
-	// for new logger
-	l := slog.NewWithHandlers(h1, h2)
-
-	// logging messages
-	l.Info("info message")
-	l.Warn("warn message")
+```json
+{"channel":"application","level":"INFO","datetime":"2020/07/17 12:01:35","hostname":"InhereMac","data":{},"extra":{},"message":"message"}
 ```
 
+### Handler
 
-## Built-in Handlers
+`Handler` interface:
 
-### BufferedHandler
-
-`BufferedHandler` - can wrapper an `io.WriteCloser` as an `slog.Handler`
+> You can customize any `Handler` you want, just implement the `slog.Handler` interface.
 
 ```go
-package mypkg
-import (
-	"github.com/gookit/slog"
-	"github.com/gookit/slog/handler"
-	"github.com/stretchr/testify/assert"
-)
-
-func myfunc() {
-	fpath := "./testdata/buffered-os-file.log"
-
-	file, err := handler.QuickOpenFile(fpath)
-	assert.NoError(t, err)
-
-	bh := handler.NewBuffered(file, 2048)
-
-	// new logger
-	l := slog.NewWithHandlers(bh)
-
-	// logging messages
-	l.Info("buffered info message")
-	l.Warn("buffered warn message")
+// Handler interface definition
+type Handler interface {
+	io.Closer
+	Flush() error
+	// IsHandling Checks whether the given record will be handled by this handler.
+	IsHandling(level Level) bool
+	// Handle a log record.
+	// all records may be passed to this method, and the handler should discard
+	// those that it does not want to handle.
+	Handle(*Record) error
 }
 ```
 
-### ConsoleHandler
+### Formatter
 
-`ConsoleHandler` - output logs to the console terminal. support color by [gookit/color](https://github.com/gookit/color).
-
-Create:
+`Formatter` interface:
 
 ```go
-func NewConsoleHandler(levels []slog.Level) *ConsoleHandler
+// Formatter interface
+type Formatter interface {
+	Format(record *Record) ([]byte, error)
+}
 ```
 
-### EmailHandler
-
-`NewEmailHandler` - output logs to email.
-
-Create:
+Function wrapper type：
 
 ```go
-h := handler.NewEmailHandler(from EmailOption, toAddresses []string)
+// FormatterFunc wrapper definition
+type FormatterFunc func(r *Record) ([]byte, error)
+
+// Format a log record
+func (fn FormatterFunc) Format(r *Record) ([]byte, error) {
+	return fn(r)
+}
 ```
 
-### RotateFileHandler
-
-`RotateFileHandler` - output log messages to file.
-
-Create:
+**JSON formatter**
 
 ```go
-func NewRotateFile(filepath string) (*RotateFileHandler, error)
-func NewRotateFileHandler(filepath string) (*RotateFileHandler, error)
+type JSONFormatter struct {
+	// Fields exported log fields.
+	Fields []string
+	// Aliases for output fields. you can change export field name.
+	// item: `"field" : "output name"`
+	// eg: {"message": "msg"} export field will display "msg"
+	Aliases StringMap
+	// PrettyPrint will indent all json logs
+	PrettyPrint bool
+	// TimeFormat the time format layout. default is time.RFC3339
+	TimeFormat string
+}
 ```
 
-### TimeRotateFileHandler
+**Text formatter**
 
-`TimeRotateFileHandler` - output log messages to file.
-
-Create:
+Default templates:
 
 ```go
-func NewTimeRotateFile(filepath string) (*TimeRotateFileHandler, error)
-func NewTimeRotateFileHandler(filepath string) (*TimeRotateFileHandler, error)
+const DefaultTemplate = "[{{datetime}}] [{{channel}}] [{{level}}] [{{caller}}] {{message}} {{data}} {{extra}}\n"
+const NamedTemplate = "{{datetime}} channel={{channel}} level={{level}} [file={{caller}}] message={{message}} data={{data}}\n"
 ```
 
-The rotating files format support:
+## Custom logger
 
-```go
-const (
-	EveryDay rotateTime = iota
-	EveryHour
-	Every30Minutes
-	Every15Minutes
-	EveryMinute
-	EverySecond // only use for tests
-)
-```
+Custom `Processor` and `Formatter` are relatively simple, just implement a corresponding method.
 
-file examples:
+### Create new logger
+`slog.Info, slog.Warn` and other methods use the default logger and output logs to the console by default.
 
-```text
-time-rotate-file.log
-time-rotate-file.log.20201229_155753
-time-rotate-file.log.20201229_155754
-```
+You can create a brand new instance of `slog.Logger`:
 
-### SizeRotateFileHandler
-
-`SizeRotateFileHandler` - output log messages to file.
-
-Create:
-
-```go
-func NewSizeRotateFile(filepath string) (*SizeRotateFileHandler, error)
-func NewSizeRotateFileHandler(filepath string) (*SizeRotateFileHandler, error)
-```
-
-The rotating files format is `filename.log.yMD_0000N`. such as:
-
-```text
-size-rotate-file.log
-size-rotate-file.log.122915_00001
-size-rotate-file.log.122915_00002
-```
-
-### SimpleFileHandler
-
-`SimpleFileHandler` - direct write log messages to a file. _Not recommended for production environment_
-
-Create:
-
-```go
-func NewSimpleFile(filepath string) (*SimpleFileHandler, error)
-func NewSimpleFileHandler(filepath string) (*SimpleFileHandler, error)
-```
-
-## Custom Logger
-
-### Create New Logger
-
-You can create a new instance of `slog.Logger`:
-
-- Method 1：
+**Method 1**：
 
 ```go
 l := slog.New()
@@ -362,7 +326,7 @@ h1 := handler.NewConsoleHandler(slog.AllLevels)
 l.AddHandlers(h1)
 ```
 
-- Method 2：
+**Method 2**：
 
 ```go
 l := slog.NewWithName("myLogger")
@@ -371,7 +335,7 @@ h1 := handler.NewConsoleHandler(slog.AllLevels)
 l.AddHandlers(h1)
 ```
 
-- Method 3：
+**Method 3**：
 
 ```go
 package main
@@ -387,43 +351,76 @@ func main() {
 }
 ```
 
-### Create New Handler
+### Create custom Handler
 
-you only need implement the `slog.Handler` interface:
+You only need to implement the `slog.Handler` interface to create a custom `Handler`.
+
+You can quickly assemble your own Handler through the built-in `handler.LevelsWithFormatter` `handler.LevelWithFormatter` and other fragments of slog.
+
+Examples:
+
+> Use `handler.LevelsWithFormatter`, only need to implement `Close, Flush, Handle` methods
 
 ```go
-package mypkg
-
-import (
-	"github.com/gookit/slog"
-	"github.com/gookit/slog/handler"
-)
-
 type MyHandler struct {
 	handler.LevelsWithFormatter
+    Output io.Writer
 }
 
 func (h *MyHandler) Handle(r *slog.Record) error {
 	// you can write log message to file or send to remote.
 }
+
+func (h *MyHandler) Flush() error {}
+func (h *MyHandler) Close() error {}
 ```
 
-add handler to default logger:
+Add `Handler` to the logger to use:
 
 ```go
+// add to default logger
 slog.AddHander(&MyHandler{})
-```
 
-or add to custom logger:
-
-```go
+// or, add to custom logger:
 l := slog.New()
 l.AddHander(&MyHandler{})
 ```
 
-### Create New Processor
+## Use the built-in handlers
 
-you only need implement the `slog.Processor` interface:
+[./handler](handler) package has built-in common log handlers, which can basically meet most scenarios.
+
+```go
+func NewConsoleHandler(levels []slog.Level) *ConsoleHandler // output logs to console, allow render color.
+func NewEmailHandler(from EmailOption, toAddresses []string) *EmailHandler // send logs to email
+func NewSysLogHandler(priority syslog.Priority, tag string) (*SysLogHandler, error) // send logs to syslog
+func NewSimpleHandler(out io.Writer, level slog.Level) *SimpleHandler // A simple handler implementation that outputs logs to a given io.Writer
+```
+
+output log to file:
+
+```go
+func NewFileHandler(logfile string, fns ...ConfigFn) (h *SyncCloseHandler, err error)  // Output log to the specified file, without buffering by default
+func JSONFileHandler(logfile string, fns ...ConfigFn) (*SyncCloseHandler, error)  // Output logs to the specified file in JSON format, without buffering by default
+func NewBuffFileHandler(logfile string, buffSize int, fns ...ConfigFn) (*SyncCloseHandler, error)  // Buffered output log to specified file
+```
+
+> TIP: `NewFileHandler` `JSONFileHandler` can also enable write buffering by passing in fns `handler.WithBuffSize(buffSize)`
+
+Output log to file and rotate automatically:
+
+```go
+func NewSizeRotateFile(logfile string, maxSize int, fns ...ConfigFn) (*SyncCloseHandler, error) // 根据文件大小进行自动切割
+func NewTimeRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error) // 根据时间进行自动切割
+// 同时支持配置根据大小和时间进行切割, 默认设置文件大小是 20M，默认自动分割时间是 1小时(EveryHour)。
+func NewRotateFileHandler(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error)
+```
+
+> TIP: By passing in `fns ...ConfigFn`, more options can be set, such as log file retention time, log write buffer size, etc. For detailed settings, see the `handler.Config` structure
+
+### Logs to file
+
+Output log to the specified file, `buffer` buffered writing is not enabled by default. Buffering can also be enabled by passing in a parameter.
 
 ```go
 package mypkg
@@ -433,195 +430,106 @@ import (
 	"github.com/gookit/slog/handler"
 )
 
-// AddHostname to record
-func AddHostname() slog.Processor {
-	hostname, _ := os.Hostname()
+func main() {
+	defer slog.MustFlush()
 
-	return slog.ProcessorFunc(func(record *slog.Record) {
-		record.AddField("hostname", hostname)
-	})
+	// DangerLevels 包含： slog.PanicLevel, slog.ErrorLevel, slog.WarnLevel
+	h1 := handler.MustFileHandler("/tmp/error.log", handler.WithLogLevels(slog.DangerLevels))
+
+	// NormalLevels 包含： slog.InfoLevel, slog.NoticeLevel, slog.DebugLevel, slog.TraceLevel
+	h2 := handler.MustFileHandler("/tmp/info.log", handler.WithLogLevels(slog.NormalLevels))
+
+	slog.PushHandler(h1)
+	slog.PushHandler(h2)
+
+	// add logs
+	slog.Info("info message text")
+	slog.Error("error message text")
 }
 ```
 
-add the processor:
+> Tip: If write buffering `buffer` is enabled, be sure to call `logger.Flush()` at the end of the program to flush the contents of the buffer to the file.
+
+### Log to file with automatic rotating
+
+`slog/handler` also has a built-in output log to a specified file, and supports splitting files by time and size at the same time.
+By default, `buffer` buffered writing is enabled
 
 ```go
-slog.AddProcessor(mypkg.AddHostname())
-```
+func Example_rotateFileHandler() {
+	h1 := handler.MustRotateFile("/tmp/error.log", handler.EveryHour, handler.WithLogLevels(slog.DangerLevels))
+	h2 := handler.MustRotateFile("/tmp/info.log", handler.EveryHour, handler.WithLogLevels(slog.NormalLevels))
 
-or:
+	slog.PushHandler(h1)
+	slog.PushHandler(h2)
 
-```go
-l := slog.New()
-l.AddProcessor(mypkg.AddHostname())
-```
-
-### Create New Formatter
-
-you only need implement the `slog.Formatter` interface:
-
-```go
-package mypkg
-
-import (
-	"github.com/gookit/slog"
-)
-
-type MyFormatter struct {
-}
-
-func (f *Formatter) Format(r *slog.Record) error {
-	// format Record to text/JSON or other format.
+	// add logs
+	slog.Info("info message")
+	slog.Error("error message")
 }
 ```
 
-add the formatter:
-
-```go
-slog.SetFormatter(&mypkg.MyFormatter{})
-```
-
-OR:
-
-```go
-l := slog.New()
-h := &MyHandler{}
-h.SetFormatter(&mypkg.MyFormatter{})
-
-l.AddHander(h)
-```
-
-----------
-
-## Introduction
-
-slog handle workflow(like monolog):
+Example of file name sliced by time:
 
 ```text
-         Processors
-Logger -{
-         Handlers -{ With Formatters
+time-rotate-file.log
+time-rotate-file.log.20201229_155753
+time-rotate-file.log.20201229_155754
 ```
 
-### Processor
+Example of a filename cut by size, in the format `filename.log.HIS_000N`. For example:
 
-`Processor` - Logging `Record` processor.
+```text
+size-rotate-file.log
+size-rotate-file.log.122915_00001
+size-rotate-file.log.122915_00002
+```
 
-You can use it to perform additional operations on the record before the log record reaches the Handler for processing, such as adding fields, adding extended information, etc.
-
-`Processor` definition:
+### Quickly create a Handler instance based on config
 
 ```go
-// Processor interface definition
-type Processor interface {
-	// Process record
-	Process(record *Record)
-}
+	testFile := "testdata/error.log"
+
+	h := handler.NewEmptyConfig().
+		With(
+			handler.WithLogfile(testFile),
+			handler.WithBuffSize(1024*8),
+			handler.WithLogLevels(slog.DangerLevels),
+			handler.WithBuffMode(handler.BuffModeBite),
+		).
+		CreateHandler()
+
+	l := slog.NewWithHandlers(h)
 ```
 
-`Processor` func wrapper definition:
+### Use Builder to quickly create Handler instances
 
 ```go
-// ProcessorFunc wrapper definition
-type ProcessorFunc func(record *Record)
+	testFile := "testdata/info.log"
 
-// Process record
-func (fn ProcessorFunc) Process(record *Record) {
-	fn(record)
-}
+	h := handler.NewBuilder().
+		With(
+			handler.WithLogfile(testFile),
+			handler.WithBuffSize(1024*8),
+			handler.WithLogLevels(slog.NormalLevels),
+			handler.WithBuffMode(handler.BuffModeBite),
+		).
+		Build()
+	
+	l := slog.NewWithHandlers(h)
 ```
 
-Here we use the built-in processor `slog.AddHostname` as an example, it can add a new field `hostname` to each log record.
+## Extension packages
 
-```go
-slog.AddProcessor(slog.AddHostname())
+Package `bufwrite`:
 
-slog.Info("message")
-```
+- `bufwrite.BufIOWriter` additionally implements `Sync(), Close()` methods by wrapping go's `bufio.Writer`, which is convenient to use
+- `bufwrite.LineWriter` refer to the implementation of `bufio.Writer` in go, which can support flushing the buffer by line, which is more useful for writing log files
 
-**Output:**
+Package `rotatefile`:
 
-```json
-{"channel":"application","level":"INFO","datetime":"2020/07/17 12:01:35","hostname":"InhereMac","data":{},"extra":{},"message":"message"}
-```
-
-### Handler
-
-`Handler` - Log processor, each log will be processed by `Handler.Handle()`, where you can send the log to the console, file, or remote server.
-
-> You can customize any `Handler` you want, you only need to implement the `slog.Handler` interface.
-
-```go
-// Handler interface definition
-type Handler interface {
-	// Close handler
-	io.Closer
-	// Flush logs to disk
-	Flush() error
-	// IsHandling Checks whether the given record will be handled by this handler.
-	IsHandling(level Level) bool
-	// Handle a log record.
-	// all records may be passed to this method, and the handler should discard
-	// those that it does not want to handle.
-	Handle(*Record) error
-}
-```
-
-> Note: Remember to add the `Handler` to the logger instance before the log records will be processed by the `Handler`.
-
-### Formatter
-
-`Formatter` - Log data formatting.
-
-It is usually set in `Handler`, which can be used to format log records, convert records into text, JSON, etc., `Handler` then writes the formatted data to the specified place.
-
-`Formatter` definition:
-
-```go
-// Formatter interface
-type Formatter interface {
-	Format(record *Record) ([]byte, error)
-}
-```
-
-`Formatter` function wrapper:
-
-```go
-// FormatterFunc wrapper definition
-type FormatterFunc func(r *Record) ([]byte, error)
-
-// Format an record
-func (fn FormatterFunc) Format(r *Record) ([]byte, error) {
-	return fn(r)
-}
-```
-
-**JSON Formatter**
-
-```go
-type JSONFormatter struct {
-	// Fields exported log fields.
-	Fields []string
-	// Aliases for output fields. you can change export field name.
-	// item: `"field" : "output name"`
-	// eg: {"message": "msg"} export field will display "msg"
-	Aliases StringMap
-
-	// PrettyPrint will indent all json logs
-	PrettyPrint bool
-	// TimeFormat the time format layout. default is time.RFC3339
-	TimeFormat string
-}
-```
-
-**Text Formatter**
-
-default templates:
-
-```go
-const DefaultTemplate = "[{{datetime}}] [{{channel}}] [{{level}}] [{{caller}}] {{message}} {{data}} {{extra}}\n"
-const NamedTemplate = "{{datetime}} channel={{channel}} level={{level}} [file={{caller}}] message={{message}} data={{data}}\n"
-```
+- `rotatefile.Writer` implements automatic cutting of log files according to size and specified time, and also supports automatic cleaning of log files
+  - `handler/rotate_file` is to use it to cut the log file
 
 ## Testing and benchmark
 

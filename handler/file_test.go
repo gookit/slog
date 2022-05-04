@@ -39,6 +39,26 @@ func TestNewFileHandler(t *testing.T) {
 	// assert.NoError(t, os.Remove(testFile))
 }
 
+func TestMustFileHandler(t *testing.T) {
+	testFile := "testdata/file-must.log"
+	assert.NoError(t, fsutil.DeleteIfFileExist(testFile))
+
+	h := handler.MustFileHandler(testFile)
+	assert.NotEmpty(t, h.Writer())
+
+	r := newLogRecord("test file must handler")
+
+	err := h.Handle(r)
+	assert.NoError(t, err)
+	assert.NoError(t, h.Close())
+
+	bts := fsutil.MustReadFile(testFile)
+	str := string(bts)
+
+	assert.Contains(t, str, `INFO`)
+	assert.Contains(t, str, `test file must handler`)
+}
+
 func TestNewFileHandler_basic(t *testing.T) {
 	testFile := "testdata/file-basic.log"
 	assert.NoError(t, fsutil.DeleteIfFileExist(testFile))
@@ -51,8 +71,34 @@ func TestNewFileHandler_basic(t *testing.T) {
 
 	err = h.Handle(r)
 	assert.NoError(t, err)
-
 	assert.NoError(t, h.Close())
+
+	bts := fsutil.MustReadFile(testFile)
+	str := string(bts)
+
+	assert.Contains(t, str, `INFO`)
+	assert.Contains(t, str, `test file handler`)
+}
+
+func TestNewBuffFileHandler(t *testing.T) {
+	testFile := "testdata/file-buff.log"
+	assert.NoError(t, fsutil.DeleteIfFileExist(testFile))
+
+	h, err := handler.NewBuffFileHandler(testFile, 56)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, h.Writer())
+
+	r := newLogRecord("test file buff handler")
+
+	err = h.Handle(r)
+	assert.NoError(t, err)
+	assert.NoError(t, h.Close())
+
+	bts := fsutil.MustReadFile(testFile)
+	str := string(bts)
+
+	assert.Contains(t, str, `INFO`)
+	assert.Contains(t, str, `test file buff handler`)
 }
 
 func TestJSONFileHandler(t *testing.T) {

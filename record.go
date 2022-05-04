@@ -425,7 +425,9 @@ func (r *Record) GoString() string {
 }
 
 func (r *Record) timestamp() string {
-	// return strconv.FormatInt(r.Time.Unix(), 10) + "." + strconv.Itoa(r.Time.Nanosecond()/1000)
-	s := strconv.FormatInt(r.Time.UnixMicro(), 10)
-	return s[:10] + "." + s[10:]
+	return strconv.FormatInt(r.Time.Unix(), 10) + "." + strconv.Itoa(r.Time.Nanosecond()/1000)
+
+	// require go 1.16+
+	// s := strconv.FormatInt(r.Time.UnixMicro(), 10)
+	// return s[:10] + "." + s[10:]
 }
