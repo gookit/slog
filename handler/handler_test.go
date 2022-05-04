@@ -70,6 +70,7 @@ func TestConsoleHandlerWithColor(t *testing.T) {
 	})
 
 	logAllLevel(l, "this is a simple log message")
+	// logfAllLevel()
 }
 
 func TestConsoleHandlerNoColor(t *testing.T) {
@@ -209,7 +210,7 @@ func TestNopFlushClose_Flush(t *testing.T) {
 
 func TestLockWrapper_Lock(t *testing.T) {
 	lw := &handler.LockWrapper{}
-	assert.False(t, lw.LockEnabled())
+	assert.True(t, lw.LockEnabled())
 
 	lw.EnableLock(true)
 	assert.True(t, lw.LockEnabled())

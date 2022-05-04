@@ -9,6 +9,10 @@
 
 📑 Lightweight, extensible, configurable logging library written in Golang.
 
+**Output in console:**
+
+![console-log-all-level](_example/images/console-log-all-level.png)
+
 ## Features
 
 - Simple, directly available without configuration
