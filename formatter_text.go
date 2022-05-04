@@ -1,7 +1,6 @@
 package slog
 
 import (
-	"strconv"
 	"strings"
 
 	"github.com/gookit/color"
@@ -109,9 +108,7 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 		case field == FieldKeyDatetime:
 			buf.WriteString(r.Time.Format(f.TimeFormat))
 		case field == FieldKeyTimestamp:
-			buf.WriteString(strconv.FormatInt(r.Time.Unix(), 10))
-			buf.WriteByte('.')
-			buf.WriteString(strconv.Itoa(r.Time.Nanosecond() / 1000))
+			buf.WriteString(r.timestamp())
 		case field == FieldKeyCaller && r.Caller != nil:
 			buf.WriteString(formatCaller(r.Caller, r.CallerFlag))
 		case field == FieldKeyLevel:

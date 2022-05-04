@@ -55,6 +55,9 @@ func TestTextFormatNoColor(t *testing.T) {
 
 	printLogs("print log message")
 	printfLogs("print log with %s", "params")
+
+	assert.NoError(t, slog.Std().FlushAll())
+	assert.NoError(t, slog.Std().Close())
 }
 
 type logTest struct {
@@ -191,15 +194,6 @@ func TestAddProcessor(t *testing.T) {
 	assert.Contains(t, str, "Debugf message")
 }
 
-func TestLevelName(t *testing.T) {
-	for level, wantName := range slog.LevelNames {
-		realName := slog.LevelName(level)
-		assert.Equal(t, wantName, realName)
-	}
-
-	assert.Equal(t, "UNKNOWN", slog.LevelName(20))
-}
-
 func TestName2Level(t *testing.T) {
 	for wantLevel, name := range slog.LevelNames {
 		level, err := slog.Name2Level(name)
@@ -302,4 +296,21 @@ func TestLogger_ExitHandlerWithError(t *testing.T) {
 	l.Exit(23)
 	str := testutil.RestoreStderr()
 	assert.Equal(t, "slog: run exit handler error: test error\n", str)
+}
+
+func TestLogger_PrependExitHandler(t *testing.T) {
+	l := slog.NewWithConfig(func(l *slog.Logger) {
+		l.ExitFunc = doNothing
+	})
+
+	assert.Len(t, l.ExitHandlers(), 0)
+
+	l.PrependExitHandler(func() {
+		panic("test error2")
+	})
+
+	testutil.RewriteStderr()
+	l.Exit(23)
+	str := testutil.RestoreStderr()
+	assert.Equal(t, "slog: run exit handler error: test error2\n", str)
 }

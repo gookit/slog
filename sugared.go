@@ -22,7 +22,7 @@ type SugaredLogger struct {
 
 // NewStdLogger instance
 func NewStdLogger() *SugaredLogger {
-	return NewSugaredLogger(os.Stdout, DebugLevel).Configure(func(sl *SugaredLogger) {
+	return NewSugaredLogger(os.Stdout, DebugLevel).Config(func(sl *SugaredLogger) {
 		sl.SetName("stdLogger")
 		sl.CallerSkip += 1
 		sl.ReportCaller = true
@@ -91,12 +91,17 @@ func (sl *SugaredLogger) Handle(record *Record) error {
 // Close all log handlers
 func (sl *SugaredLogger) Close() error {
 	sl.Logger.VisitAll(func(handler Handler) error {
+		// TIP: must exclude self
 		if _, ok := handler.(*SugaredLogger); !ok {
-			_ = handler.Close()
+			err := handler.Close()
+			if err != nil {
+				sl.err = err
+			}
 		}
 		return nil
 	})
-	return nil
+
+	return sl.err
 }
 
 // Flush all logs. alias of the FlushAll()

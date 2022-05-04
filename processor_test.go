@@ -45,3 +45,14 @@ func TestLogger_AddProcessor(t *testing.T) {
 	assert.Contains(t, str, `"requestId":`)
 	fmt.Println(str)
 }
+
+func TestProcessable_AddProcessor(t *testing.T) {
+	ps := &slog.Processable{}
+	ps.AddProcessor(slog.MemoryUsage)
+
+	r := newLogRecord("error message")
+	ps.ProcessRecord(r)
+
+	assert.NotEmpty(t, r.Extra)
+	assert.Contains(t, r.Extra, "memoryUsage")
+}

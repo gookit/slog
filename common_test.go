@@ -9,6 +9,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	testData1 = slog.M{"key0": "val0", "age": 23}
+	testData2 = slog.M{"key0": "val0", "age": 23, "sub": slog.M{
+		"subKey0": 345,
+	}}
+)
+
 func TestDefine_basic(t *testing.T) {
 	assert.NotEmpty(t, slog.NoTimeFields)
 	assert.NotEmpty(t, slog.FieldKeyDate)
@@ -40,6 +47,21 @@ func TestLevel_Name(t *testing.T) {
 	assert.Equal(t, "INFO", slog.InfoLevel.Name())
 	assert.Equal(t, "INFO", slog.InfoLevel.String())
 	assert.Equal(t, "info", slog.InfoLevel.LowerName())
+	assert.Equal(t, "unknown", slog.Level(330).LowerName())
+}
+
+func TestLevelByName(t *testing.T) {
+	assert.Equal(t, slog.InfoLevel, slog.LevelByName("info"))
+	assert.Equal(t, slog.InfoLevel, slog.LevelByName("invalid"))
+}
+
+func TestLevelName(t *testing.T) {
+	for level, wantName := range slog.LevelNames {
+		realName := slog.LevelName(level)
+		assert.Equal(t, wantName, realName)
+	}
+
+	assert.Equal(t, "UNKNOWN", slog.LevelName(20))
 }
 
 func TestLevel_ShouldHandling(t *testing.T) {
@@ -55,4 +77,12 @@ func TestLevels_Contains(t *testing.T) {
 	assert.False(t, slog.DangerLevels.Contains(slog.InfoLevel))
 	assert.True(t, slog.NormalLevels.Contains(slog.InfoLevel))
 	assert.False(t, slog.NormalLevels.Contains(slog.PanicLevel))
+}
+
+func TestNewLvFormatter(t *testing.T) {
+	lf := slog.NewLvFormatter(slog.InfoLevel)
+
+	assert.True(t, lf.IsHandling(slog.ErrorLevel))
+	assert.True(t, lf.IsHandling(slog.InfoLevel))
+	assert.False(t, lf.IsHandling(slog.DebugLevel))
 }

@@ -82,6 +82,32 @@ func TestLogger_Log(t *testing.T) {
 	l.WithTime(timex.NowHourStart()).Panicln("a panic message")
 }
 
+func TestLogger_panicLevel(t *testing.T) {
+	w := new(bytes.Buffer)
+	l := slog.NewWithHandlers(handler.NewIOWriter(w, slog.AllLevels))
+
+	// assert.PanicsWithValue(t, "slog: panic message", func() {
+	assert.Panics(t, func() {
+		l.Panicln("panicln message")
+	})
+	assert.Contains(t, w.String(), "[PANIC]")
+	assert.Contains(t, w.String(), "panicln message")
+
+	w.Reset()
+	assert.Panics(t, func() {
+		l.Panicf("panicf message")
+	})
+	assert.Contains(t, w.String(), "panicf message")
+
+	w.Reset()
+	assert.Panics(t, func() {
+		l.Panic("panic message")
+	})
+	assert.Contains(t, w.String(), "panic message")
+
+	assert.NoError(t, l.FlushAll())
+}
+
 func TestLogger_log_allLevel(t *testing.T) {
 	l := slog.NewWithConfig(func(l *slog.Logger) {
 		l.ReportCaller = true
@@ -104,14 +130,16 @@ func TestLogger_logf_allLevel(t *testing.T) {
 }
 
 func printAllLevelLogs(l gsr.Logger, args ...interface{}) {
-	l.Print(args...)
-	l.Println(args...)
 	l.Debug(args...)
 	l.Info(args...)
 	l.Warn(args...)
 	l.Error(args...)
+	l.Print(args...)
+	l.Println(args...)
 	l.Fatal(args...)
+	l.Fatalln(args...)
 	l.Panic(args...)
+	l.Panicln(args...)
 
 	sl, ok := l.(*slog.Logger)
 	if ok {
@@ -135,4 +163,22 @@ func printfAllLevelLogs(l gsr.Logger, tpl string, args ...interface{}) {
 		sl.Noticef(tpl, args...)
 		sl.Tracef(tpl, args...)
 	}
+}
+
+type buffer struct {
+	bytes.Buffer
+}
+
+func newBuffer() *buffer {
+	return &buffer{}
+}
+
+func (w *buffer) Close() error {
+	return nil
+}
+
+func (w *buffer) StringReset() string {
+	s := w.Buffer.String()
+	w.Reset()
+	return s
 }

@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	defaultMaxCallerDepth  int = 25
+	defaultMaxCallerDepth  int = 15
 	defaultKnownSlogFrames int = 4
 )
 
@@ -57,9 +57,8 @@ func formatCaller(rf *runtime.Frame, flag uint8) (cs string) {
 		return rf.Function
 	case CallerFlagPkg:
 		i := strings.LastIndex(rf.Function, "/")
+		i += strings.IndexByte(rf.Function[i+1:], '.')
 		return rf.Function[:i+1]
-	case CallerFlagFpLine:
-		return rf.File + ":" + strconv.Itoa(rf.Line)
 	case CallerFlagFnlFcn:
 		ss := strings.Split(rf.Function, ".")
 		return path.Base(rf.File) + ":" + strconv.Itoa(rf.Line) + "," + ss[len(ss)-1]
@@ -68,10 +67,9 @@ func formatCaller(rf *runtime.Frame, flag uint8) (cs string) {
 	case CallerFlagFcName:
 		ss := strings.Split(rf.Function, ".")
 		return ss[len(ss)-1]
+	default: // CallerFlagFpLine
+		return rf.File + ":" + strconv.Itoa(rf.Line)
 	}
-
-	// default use CallerFlagFpLine
-	return rf.File + ":" + strconv.Itoa(rf.Line)
 }
 
 // it like Println, will add spaces for each argument
@@ -82,7 +80,6 @@ func formatArgsWithSpaces(vs []interface{}) string {
 	}
 
 	if ln == 1 {
-		// msg := stdutil.ToString(vs[0])
 		// return strutil.ToBytes(msg) // perf: Reduce one memory allocation
 		return stdutil.ToString(vs[0]) // perf: Reduce one memory allocation
 	}
@@ -111,16 +108,21 @@ func formatArgsWithSpaces(vs []interface{}) string {
 
 // EncodeToString data to string
 func EncodeToString(v interface{}) string {
-	if _, ok := v.(map[string]interface{}); ok {
-		return mapToString(v.(map[string]interface{}))
+	if mp, ok := v.(map[string]interface{}); ok {
+		return mapToString(mp)
 	}
 
 	return stdutil.ToString(v)
 }
 
 func mapToString(mp map[string]interface{}) string {
-	var buf []byte
+	ln := len(mp)
+	if ln == 0 {
+		return "{}"
+	}
+
 	// TODO use bytebufferpool
+	buf := make([]byte, 0, ln*8)
 	buf = append(buf, '{')
 
 	for k, val := range mp {
@@ -129,11 +131,11 @@ func mapToString(mp map[string]interface{}) string {
 
 		str, _ := strutil.AnyToString(val, false)
 		buf = append(buf, str...)
-		buf = append(buf, ',')
+		buf = append(buf, ',', ' ')
 	}
 
-	// remove last ','
-	buf = append(buf[:len(buf)-1], '}')
+	// remove last ', '
+	buf = append(buf[:len(buf)-2], '}')
 	return strutil.Byte2str(buf)
 }
 

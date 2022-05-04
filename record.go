@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"runtime"
+	"strconv"
 	"time"
 )
 
@@ -215,7 +216,6 @@ func (r *Record) SetExtraValue(k string, v interface{}) {
 	if r.Extra == nil {
 		r.Extra = make(M, 8)
 	}
-
 	r.Extra[k] = v
 }
 
@@ -255,9 +255,17 @@ func (r *Record) SetFields(fields M) *Record {
 }
 
 // Object data on record TODO optimize performance
-// func (r *Record) Object(obj fmt.Stringer) *Record {
+// func (r *Record) Obj(obj fmt.Stringer) *Record {
 // 	r.Data = ctx
 // 	return r
+// }
+
+// func (r *Record) Str(message string) {
+// 	r.logBytes(level, []byte(message))
+// }
+
+// func (r *Record) Int(val int) {
+// 	r.logBytes(level, []byte(message))
 // }
 
 //
@@ -413,9 +421,11 @@ func (r *Record) LevelName() string { return r.levelName }
 
 // GoString of the record
 func (r *Record) GoString() string {
-	return fmt.Sprintf("slog: %s", r.Message)
+	return "slog: " + r.Message
 }
 
-// func (r *Record) logString(level Level, message string) {
-// 	r.logBytes(level, []byte(message))
-// }
+func (r *Record) timestamp() string {
+	// return strconv.FormatInt(r.Time.Unix(), 10) + "." + strconv.Itoa(r.Time.Nanosecond()/1000)
+	s := strconv.FormatInt(r.Time.UnixMicro(), 10)
+	return s[:10] + "." + s[10:]
+}

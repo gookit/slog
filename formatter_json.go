@@ -64,6 +64,12 @@ func (f *JSONFormatter) Configure(fn func(*JSONFormatter)) *JSONFormatter {
 	return f
 }
 
+// AddField for export
+func (f *JSONFormatter) AddField(name string) *JSONFormatter {
+	f.Fields = append(f.Fields, name)
+	return f
+}
+
 // Format an log record
 func (f *JSONFormatter) Format(r *Record) ([]byte, error) {
 	logData := make(M, len(f.Fields))
@@ -78,9 +84,8 @@ func (f *JSONFormatter) Format(r *Record) ([]byte, error) {
 		case field == FieldKeyDatetime:
 			logData[outName] = r.Time.Format(f.TimeFormat)
 		case field == FieldKeyTimestamp:
-			logData[outName] = r.MicroSecond()
+			logData[outName] = r.timestamp()
 		case field == FieldKeyCaller && r.Caller != nil:
-			// "logger_test.go:48,TestLogger_ReportCaller"
 			logData[outName] = formatCaller(r.Caller, r.CallerFlag)
 		case field == FieldKeyLevel:
 			logData[outName] = r.LevelName()

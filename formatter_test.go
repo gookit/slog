@@ -11,8 +11,9 @@ import (
 )
 
 func TestFormattable_Format(t *testing.T) {
-	r := newTestRecord("TEST_LOG_MESSAGE format")
+	r := newLogRecord("TEST_LOG_MESSAGE format")
 	f := &slog.Formattable{}
+	assert.Equal(t, "slog: TEST_LOG_MESSAGE format", r.GoString())
 
 	bts, err := f.Format(r)
 	assert.NoError(t, err)
@@ -31,7 +32,7 @@ func TestFormattable_Format(t *testing.T) {
 	assert.Contains(t, str, "TEST_LOG_MESSAGE format")
 }
 
-func newTestRecord(msg string) *slog.Record {
+func newLogRecord(msg string) *slog.Record {
 	r := &slog.Record{
 		Channel: slog.DefaultChannelName,
 		Level:   slog.InfoLevel,
@@ -66,7 +67,7 @@ func TestNewTextFormatter(t *testing.T) {
 }
 
 func TestTextFormatter_Format(t *testing.T) {
-	r := newTestRecord("TEST_LOG_MESSAGE")
+	r := newLogRecord("TEST_LOG_MESSAGE")
 	f := slog.NewTextFormatter()
 
 	bs, err := f.Format(r)
@@ -83,6 +84,8 @@ func TestJSONFormatter(t *testing.T) {
 	l := slog.New()
 
 	f := slog.NewJSONFormatter()
+	f.AddField(slog.FieldKeyTimestamp)
+
 	h := handler.NewConsoleHandler(slog.AllLevels)
 	h.SetFormatter(f)
 
