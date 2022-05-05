@@ -395,18 +395,25 @@ l.AddHander(&MyHandler{})
 [./handler](handler) package has built-in common log handlers, which can basically meet most scenarios.
 
 ```go
-func NewConsoleHandler(levels []slog.Level) *ConsoleHandler // output logs to console, allow render color.
-func NewEmailHandler(from EmailOption, toAddresses []string) *EmailHandler // send logs to email
-func NewSysLogHandler(priority syslog.Priority, tag string) (*SysLogHandler, error) // send logs to syslog
-func NewSimpleHandler(out io.Writer, level slog.Level) *SimpleHandler // A simple handler implementation that outputs logs to a given io.Writer
+// Output logs to console, allow render color.
+func NewConsoleHandler(levels []slog.Level) *ConsoleHandler
+// Send logs to email
+func NewEmailHandler(from EmailOption, toAddresses []string) *EmailHandler
+// Send logs to syslog
+func NewSysLogHandler(priority syslog.Priority, tag string) (*SysLogHandler, error)
+// A simple handler implementation that outputs logs to a given io.Writer
+func NewSimpleHandler(out io.Writer, level slog.Level) *SimpleHandler
 ```
 
 **Output log to file**:
 
 ```go
-func NewFileHandler(logfile string, fns ...ConfigFn) (h *SyncCloseHandler, err error)  // Output log to the specified file, without buffering by default
-func JSONFileHandler(logfile string, fns ...ConfigFn) (*SyncCloseHandler, error)  // Output logs to the specified file in JSON format, without buffering by default
-func NewBuffFileHandler(logfile string, buffSize int, fns ...ConfigFn) (*SyncCloseHandler, error)  // Buffered output log to specified file
+// Output log to the specified file, without buffering by default
+func NewFileHandler(logfile string, fns ...ConfigFn) (h *SyncCloseHandler, err error)
+// Output logs to the specified file in JSON format, without buffering by default
+func JSONFileHandler(logfile string, fns ...ConfigFn) (*SyncCloseHandler, error)
+// Buffered output log to specified file
+func NewBuffFileHandler(logfile string, buffSize int, fns ...ConfigFn) (*SyncCloseHandler, error)
 ```
 
 > TIP: `NewFileHandler` `JSONFileHandler` can also enable write buffering by passing in fns `handler.WithBuffSize(buffSize)`
@@ -414,8 +421,10 @@ func NewBuffFileHandler(logfile string, buffSize int, fns ...ConfigFn) (*SyncClo
 **Output log to file and rotate automatically**:
 
 ```go
-func NewSizeRotateFile(logfile string, maxSize int, fns ...ConfigFn) (*SyncCloseHandler, error) // Automatic rotating according to file size
-func NewTimeRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error) // Automatic rotating according to time
+// Automatic rotating according to file size
+func NewSizeRotateFile(logfile string, maxSize int, fns ...ConfigFn) (*SyncCloseHandler, error)
+// Automatic rotating according to time
+func NewTimeRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error)
 // It supports configuration to rotate according to size and time. 
 // The default setting file size is 20M, and the default automatic splitting time is 1 hour (EveryHour).
 func NewRotateFileHandler(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error)

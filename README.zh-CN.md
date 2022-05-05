@@ -395,27 +395,36 @@ l.AddHander(&MyHandler{})
 [./handler](handler) 包已经内置了常用的日志 Handler，基本上可以满足绝大部分场景。
 
 ```go
-func NewConsoleHandler(levels []slog.Level) *ConsoleHandler // 输出日志到控制台
-func NewEmailHandler(from EmailOption, toAddresses []string) *EmailHandler // 发送日志到email邮箱
-func NewSysLogHandler(priority syslog.Priority, tag string) (*SysLogHandler, error) // 发送日志到系统的syslog
-func NewSimpleHandler(out io.Writer, level slog.Level) *SimpleHandler // 一个简单的handler实现，输出日志到给定的 io.Writer
+// 输出日志到控制台
+func NewConsoleHandler(levels []slog.Level) *ConsoleHandler
+// 发送日志到email邮箱
+func NewEmailHandler(from EmailOption, toAddresses []string) *EmailHandler
+// 发送日志到系统的syslog
+func NewSysLogHandler(priority syslog.Priority, tag string) (*SysLogHandler, error)
+// 一个简单的handler实现，输出日志到给定的 io.Writer
+func NewSimpleHandler(out io.Writer, level slog.Level) *SimpleHandler
 ```
 
-输出日志到文件:
+**输出日志到文件**:
 
 ```go
-func NewFileHandler(logfile string, fns ...ConfigFn) (h *SyncCloseHandler, err error)  // 输出日志到指定文件，默认不带缓冲
-func JSONFileHandler(logfile string, fns ...ConfigFn) (*SyncCloseHandler, error)  // 输出日志到指定文件且格式为JSON，默认不带缓冲
-func NewBuffFileHandler(logfile string, buffSize int, fns ...ConfigFn) (*SyncCloseHandler, error)  // 带缓冲的输出日志到指定文件
+// 输出日志到指定文件，默认不带缓冲
+func NewFileHandler(logfile string, fns ...ConfigFn) (h *SyncCloseHandler, err error)
+// 输出日志到指定文件且格式为JSON，默认不带缓冲
+func JSONFileHandler(logfile string, fns ...ConfigFn) (*SyncCloseHandler, error)
+// 带缓冲的输出日志到指定文件
+func NewBuffFileHandler(logfile string, buffSize int, fns ...ConfigFn) (*SyncCloseHandler, error)
 ```
 
 > TIP: `NewFileHandler` `JSONFileHandler` 也可以通过传入 fns `handler.WithBuffSize(buffSize)` 启用写入缓冲
 
-输出日志到文件并自动切割:
+**输出日志到文件并自动切割**:
 
 ```go
-func NewSizeRotateFile(logfile string, maxSize int, fns ...ConfigFn) (*SyncCloseHandler, error) // 根据文件大小进行自动切割
-func NewTimeRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error) // 根据时间进行自动切割
+// 根据文件大小进行自动切割
+func NewSizeRotateFile(logfile string, maxSize int, fns ...ConfigFn) (*SyncCloseHandler, error)
+// 根据时间进行自动切割
+func NewTimeRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error)
 // 同时支持配置根据大小和时间进行切割, 默认设置文件大小是 20M，默认自动分割时间是 1小时(EveryHour)。
 func NewRotateFileHandler(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error)
 ```
