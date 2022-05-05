@@ -109,7 +109,7 @@ func main() {
 
 ![](_example/images/console-color-log.png)
 
-### 更改日志输出样式
+### Change log output style
 
 Above is the `Formatter` setting that changed the default logger.
 
@@ -129,7 +129,7 @@ Change the default logger log output style:
 h.GetFormatter().(*slog.TextFormatter).Template = slog.NamedTemplate
 ```
 
-**输出预览:**
+**Output:**
 
 ![](_example/images/console-color-log1.png)
 
@@ -178,7 +178,7 @@ func main() {
 
 ## Introduction
 
-- `Logger` - log scheduler. One logger can register multiple `Handler`, `Processor`
+- `Logger` - log dispatcher. One logger can register multiple `Handler`, `Processor`
 - `Record` - log records, each log is a `Record` instance.
 - `Processor` - enables extended processing of log records. It is called before the log `Record` is processed by the `Handler`.
   - You can use it to perform additional operations on `Record`, such as: adding fields, adding extended information, etc.
@@ -223,11 +223,11 @@ func (fn ProcessorFunc) Process(record *Record) {
 Add processor to logger:
 
 ```go
-slog.AddProcessor(mypkg.AddHostname())
+slog.AddProcessor(slog.AddHostname())
 
 // or
 l := slog.New()
-l.AddProcessor(mypkg.AddHostname())
+l.AddProcessor(slog.AddHostname())
 ```
 
 The built-in processor `slog.AddHostname` is used here as an example, which can add a new field `hostname` on each log record.
@@ -401,7 +401,7 @@ func NewSysLogHandler(priority syslog.Priority, tag string) (*SysLogHandler, err
 func NewSimpleHandler(out io.Writer, level slog.Level) *SimpleHandler // A simple handler implementation that outputs logs to a given io.Writer
 ```
 
-output log to file:
+**Output log to file**:
 
 ```go
 func NewFileHandler(logfile string, fns ...ConfigFn) (h *SyncCloseHandler, err error)  // Output log to the specified file, without buffering by default
@@ -411,12 +411,13 @@ func NewBuffFileHandler(logfile string, buffSize int, fns ...ConfigFn) (*SyncClo
 
 > TIP: `NewFileHandler` `JSONFileHandler` can also enable write buffering by passing in fns `handler.WithBuffSize(buffSize)`
 
-Output log to file and rotate automatically:
+**Output log to file and rotate automatically**:
 
 ```go
-func NewSizeRotateFile(logfile string, maxSize int, fns ...ConfigFn) (*SyncCloseHandler, error) // 根据文件大小进行自动切割
-func NewTimeRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error) // 根据时间进行自动切割
-// 同时支持配置根据大小和时间进行切割, 默认设置文件大小是 20M，默认自动分割时间是 1小时(EveryHour)。
+func NewSizeRotateFile(logfile string, maxSize int, fns ...ConfigFn) (*SyncCloseHandler, error) // Automatic rotating according to file size
+func NewTimeRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error) // Automatic rotating according to time
+// It supports configuration to rotate according to size and time. 
+// The default setting file size is 20M, and the default automatic splitting time is 1 hour (EveryHour).
 func NewRotateFileHandler(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error)
 ```
 
