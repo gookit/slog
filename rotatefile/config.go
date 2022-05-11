@@ -27,6 +27,7 @@ const (
 // 	- "error.log.20201223_1523"
 type RotateTime int
 
+// built in rotate time consts
 const (
 	EveryDay    RotateTime = timex.OneDaySec
 	EveryHour   RotateTime = timex.OneHourSec
@@ -195,6 +196,7 @@ func (c *Config) Create() (*Writer, error) {
 }
 
 const (
+	// OneMByte size
 	OneMByte uint64 = 1024 * 1024
 
 	// DefaultMaxSize of a log file. default is 20M.
@@ -219,6 +221,7 @@ var (
 		return filepath + fmt.Sprintf(".%s_%04d", suffix, rotateNum)
 	}
 
+	// DefaultTimeClockFn for create time
 	DefaultTimeClockFn = ClockFn(func() time.Time {
 		return time.Now()
 	})

@@ -40,14 +40,17 @@ func (h *MultiFileHandler) IsHandling(level slog.Level) bool {
 	return false
 }
 
+// Close handle
 func (h *MultiFileHandler) Close() error {
 	panic("implement me")
 }
 
+// Flush handle
 func (h *MultiFileHandler) Flush() error {
 	panic("implement me")
 }
 
+// Handle log record
 func (h *MultiFileHandler) Handle(_ *slog.Record) error {
 	panic("implement me")
 }

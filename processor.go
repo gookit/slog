@@ -78,10 +78,10 @@ func AddUniqueID(fieldName string) Processor {
 		}
 
 		hs.Write(rb)
-		randomId := hex.EncodeToString(hs.Sum(nil))
+		randomID := hex.EncodeToString(hs.Sum(nil))
 		hs.Reset()
 
-		record.AddField(fieldName, randomId)
+		record.AddField(fieldName, randomID)
 	})
 }
 

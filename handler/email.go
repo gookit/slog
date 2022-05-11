@@ -9,8 +9,8 @@ import (
 
 // EmailOption struct
 type EmailOption struct {
-	SmtpHost string `json:"smtp_host"` // eg "smtp.gmail.com"
-	SmtpPort int    `json:"smtp_port"` // eg 587
+	SMTPHost string `json:"smtp_host"` // eg "smtp.gmail.com"
+	SMTPPort int    `json:"smtp_port"` // eg 587
 	FromAddr string `json:"from_addr"` // eg "yourEmail@gmail.com"
 	Password string `json:"password"`
 }
@@ -42,9 +42,9 @@ func NewEmailHandler(from EmailOption, toAddresses []string) *EmailHandler {
 func (h *EmailHandler) Handle(r *slog.Record) error {
 	msgBytes, err := h.Format(r)
 
-	var auth = smtp.PlainAuth("", h.From.FromAddr, h.From.Password, h.From.SmtpHost)
+	var auth = smtp.PlainAuth("", h.From.FromAddr, h.From.Password, h.From.SMTPHost)
 
-	addr := h.From.SmtpHost + ":" + strconv.Itoa(h.From.SmtpPort)
+	addr := h.From.SMTPHost + ":" + strconv.Itoa(h.From.SMTPPort)
 	err = smtp.SendMail(addr, auth, h.From.FromAddr, h.ToAddresses, msgBytes)
 
 	return err

@@ -7,8 +7,11 @@ import (
 	"github.com/valyala/bytebufferpool"
 )
 
-const DefaultTemplate = "[{{datetime}}] [{{channel}}] [{{level}}] [{{caller}}] {{message}} {{data}} {{extra}}\n"
-const NamedTemplate = "{{datetime}} channel={{channel}} level={{level}} [file={{caller}}] message={{message}} data={{data}}\n"
+// there are built in text log template
+const (
+	DefaultTemplate = "[{{datetime}}] [{{channel}}] [{{level}}] [{{caller}}] {{message}} {{data}} {{extra}}\n"
+	NamedTemplate   = "{{datetime}} channel={{channel}} level={{level}} [file={{caller}}] message={{message}} data={{data}}\n"
+)
 
 // ColorTheme for format log to console
 var ColorTheme = map[Level]color.Color{

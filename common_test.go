@@ -11,9 +11,9 @@ import (
 
 var (
 	testData1 = slog.M{"key0": "val0", "age": 23}
-	testData2 = slog.M{"key0": "val0", "age": 23, "sub": slog.M{
-		"subKey0": 345,
-	}}
+	// testData2 = slog.M{"key0": "val0", "age": 23, "sub": slog.M{
+	// 	"subKey0": 345,
+	// }}
 )
 
 func TestDefine_basic(t *testing.T) {

@@ -10,6 +10,7 @@ import (
 	"github.com/gookit/slog/rotatefile"
 )
 
+// the buff mode consts
 const (
 	BuffModeLine = "line"
 	BuffModeBite = "bite"
@@ -187,9 +188,9 @@ func WithMaxSize(maxSize int) ConfigFn {
 }
 
 // WithUseJSON setting
-func WithUseJSON(useJson bool) ConfigFn {
+func WithUseJSON(useJSON bool) ConfigFn {
 	return func(c *Config) {
-		c.UseJSON = useJson
+		c.UseJSON = useJSON
 	}
 }
 

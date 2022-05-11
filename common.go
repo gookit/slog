@@ -124,10 +124,14 @@ const (
 var (
 	// FieldKeyData define the key name for Record.Data
 	FieldKeyData = "data"
+	// FieldKeyTime key name
 	FieldKeyTime = "time"
+	// FieldKeyDate key name
 	FieldKeyDate = "date"
 
-	FieldKeyDatetime  = "datetime"
+	// FieldKeyDatetime key name
+	FieldKeyDatetime = "datetime"
+	// FieldKeyTimestamp key name
 	FieldKeyTimestamp = "timestamp"
 
 	// FieldKeyCaller the field key name for report caller.
@@ -137,28 +141,36 @@ var (
 	// NOTICE: you must set `Logger.ReportCaller=true` for reporting caller
 	FieldKeyCaller = "caller"
 
+	// FieldKeyLevel name
 	FieldKeyLevel = "level"
 	// FieldKeyError Define the key when adding errors using WithError.
 	FieldKeyError = "error"
+	// FieldKeyExtra key name
 	FieldKeyExtra = "extra"
 
+	// FieldKeyChannel name
 	FieldKeyChannel = "channel"
+	// FieldKeyMessage name
 	FieldKeyMessage = "message"
 )
 
 var (
 	// DefaultChannelName for log record
 	DefaultChannelName = "application"
-	DefaultTimeFormat  = "2006/01/02T15:04:05"
+	// DefaultTimeFormat define
+	DefaultTimeFormat = "2006/01/02T15:04:05"
 	// TimeFormatRFC3339  = time.RFC3339
 
-	// DoNothingOnExit handler. use for testing.
-	DoNothingOnExit  = func(code int) {}
+	// DoNothingOnExit handle func. use for testing.
+	DoNothingOnExit = func(code int) {}
+	// DoNothingOnPanic handle func. use for testing.
 	DoNothingOnPanic = func(v interface{}) {}
 
+	// DefaultPanicFn handle func
 	DefaultPanicFn = func(v interface{}) {
 		panic(v)
 	}
+	// DefaultClockFn create func
 	DefaultClockFn = ClockFn(func() time.Time {
 		return time.Now()
 	})
@@ -182,6 +194,7 @@ var (
 
 	// DangerLevels define the commonly danger log levels
 	DangerLevels = Levels{PanicLevel, FatalLevel, ErrorLevel, WarnLevel}
+	// NormalLevels define the commonly normal log levels
 	NormalLevels = Levels{InfoLevel, NoticeLevel, DebugLevel, TraceLevel}
 
 	// LevelNames all level mapping name

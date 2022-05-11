@@ -22,8 +22,8 @@ type bufferWrapper struct {
 	handler FormatterWriterHandler
 }
 
-// BufferWrapper new instance
-func BufferWrapper(handler FormatterWriterHandler, buffSize int) *bufferWrapper {
+// BufferWrapper new instance.
+func BufferWrapper(handler FormatterWriterHandler, buffSize int) slog.Handler {
 	return &bufferWrapper{
 		handler: handler,
 		buffer:  bufwrite.NewBufIOWriterSize(handler.Writer(), buffSize),

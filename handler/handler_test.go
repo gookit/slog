@@ -145,8 +145,8 @@ func TestBufferWrapper(t *testing.T) {
 
 func TestNewEmailHandler(t *testing.T) {
 	from := handler.EmailOption{
-		SmtpHost: "smtp.gmail.com",
-		SmtpPort: 587,
+		SMTPHost: "smtp.gmail.com",
+		SMTPPort: 587,
 		FromAddr: "someone@gmail.com",
 	}
 
