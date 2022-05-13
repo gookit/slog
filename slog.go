@@ -211,6 +211,13 @@ func Fatalf(format string, args ...interface{}) {
 	std.logf(FatalLevel, format, args)
 }
 
+// FatalErr logs a message at level Fatal on err is not nil
+func FatalErr(err error) {
+	if err != nil {
+		std.log(FatalLevel, []interface{}{err})
+	}
+}
+
 // Panic logs a message at level Panic
 func Panic(args ...interface{}) {
 	std.log(PanicLevel, args)
@@ -219,4 +226,11 @@ func Panic(args ...interface{}) {
 // Panicf logs a message at level Panic
 func Panicf(format string, args ...interface{}) {
 	std.logf(PanicLevel, format, args)
+}
+
+// PanicErr logs a message at level Panic on err is not nil
+func PanicErr(err error) {
+	if err != nil {
+		std.log(PanicLevel, []interface{}{err})
+	}
 }

@@ -77,16 +77,17 @@ func TestTextFormatWithColor(t *testing.T) {
 	})
 
 	printLogs("this is a simple log message")
-	slog.Std().Trace("this is a simple log message")
+	fmt.Println()
 
-	lt := &logTest{
-		slog.Std(),
-	}
+	slog.Std().Trace("this is a simple log message")
+	lt := &logTest{slog.Std()}
 	lt.testPrint()
 
+	fmt.Println()
 	slog.GetFormatter().(*slog.TextFormatter).SetTemplate(slog.NamedTemplate)
 	printfLogs("print log with %s", "params")
 
+	fmt.Println()
 	tpl := "[{{datetime}}] [{{channel}}] [{{level}}] [{{func}}] {{message}} {{data}} {{extra}}\n"
 	slog.GetFormatter().(*slog.TextFormatter).SetTemplate(tpl)
 	printfLogs("print log with %s", "params")
@@ -107,9 +108,11 @@ func printLogs(msg string) {
 	slog.Warn(msg)
 	slog.Error(msg)
 	slog.Fatal(msg)
+	slog.FatalErr(errorx.Rawf("Fatal Err: %s", msg))
 	slog.Panic(msg)
+	slog.PanicErr(errorx.Rawf("Panic Err: %s", msg))
 	slog.ErrorT(errors.New(msg))
-	slog.ErrorT(errorx.New(msg))
+	slog.ErrorT(errorx.Newf("Traced Err: %s", msg))
 }
 
 func printfLogs(msg string, args ...interface{}) {
