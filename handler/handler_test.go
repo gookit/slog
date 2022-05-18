@@ -228,12 +228,6 @@ func logAllLevel(log slog.SLogger, msg string) {
 	}
 }
 
-func logfAllLevel(log slog.SLogger, tpl string, args ...interface{}) {
-	for _, level := range slog.AllLevels {
-		log.Logf(level, tpl, args...)
-	}
-}
-
 func newLogRecord(msg string) *slog.Record {
 	r := &slog.Record{
 		Channel: "handler_test",

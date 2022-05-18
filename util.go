@@ -13,10 +13,10 @@ import (
 	"github.com/valyala/bytebufferpool"
 )
 
-const (
-	defaultMaxCallerDepth  int = 15
-	defaultKnownSlogFrames int = 4
-)
+// const (
+// 	defaultMaxCallerDepth  int = 15
+// 	defaultKnownSlogFrames int = 4
+// )
 
 // var (
 // argFmtPool bytebufferpool.Pool

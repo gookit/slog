@@ -36,7 +36,7 @@ func (h *GroupedHandler) IsHandling(level slog.Level) bool {
 func (h *GroupedHandler) Handle(record *slog.Record) (err error) {
 	for _, handler := range h.handlers {
 		err = handler.Handle(record)
-		if h.IgnoreErr == false && err != nil {
+		if !h.IgnoreErr && err != nil {
 			return err
 		}
 	}
@@ -47,7 +47,7 @@ func (h *GroupedHandler) Handle(record *slog.Record) (err error) {
 func (h *GroupedHandler) Close() error {
 	for _, handler := range h.handlers {
 		err := handler.Close()
-		if h.IgnoreErr == false && err != nil {
+		if !h.IgnoreErr && err != nil {
 			return err
 		}
 	}
@@ -58,7 +58,7 @@ func (h *GroupedHandler) Close() error {
 func (h *GroupedHandler) Flush() error {
 	for _, handler := range h.handlers {
 		err := handler.Flush()
-		if h.IgnoreErr == false && err != nil {
+		if !h.IgnoreErr && err != nil {
 			return err
 		}
 	}

@@ -112,7 +112,7 @@ type LockWrapper struct {
 
 // Lock it
 func (lw *LockWrapper) Lock() {
-	if false == lw.disable {
+	if !lw.disable {
 		lw.Mutex.Lock()
 	}
 }
@@ -126,12 +126,12 @@ func (lw *LockWrapper) Unlock() {
 
 // EnableLock enable lock
 func (lw *LockWrapper) EnableLock(enable bool) {
-	lw.disable = false == enable
+	lw.disable = !enable
 }
 
 // LockEnabled status
 func (lw *LockWrapper) LockEnabled() bool {
-	return lw.disable == false
+	return !lw.disable
 }
 
 // QuickOpenFile like os.OpenFile

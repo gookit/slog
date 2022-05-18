@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const testSubFile = "./testdata/subdir/app.log"
+// const testSubFile = "./testdata/subdir/app.log"
 
 func TestNewFileHandler(t *testing.T) {
 	testFile := "testdata/file.log"
