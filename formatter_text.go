@@ -54,9 +54,7 @@ func NewTextFormatter(template ...string) *TextFormatter {
 		fmtTpl = DefaultTemplate
 	}
 
-	return &TextFormatter{
-		template: fmtTpl,
-		fields:   parseTemplateToFields(fmtTpl),
+	f := &TextFormatter{
 		// default options
 		TimeFormat: DefaultTimeFormat,
 		ColorTheme: ColorTheme,
@@ -66,10 +64,18 @@ func NewTextFormatter(template ...string) *TextFormatter {
 		// },
 		EncodeFunc: EncodeToString,
 	}
+	f.SetTemplate(fmtTpl)
+
+	return f
 }
 
 // SetTemplate set the log format template and update field-map
 func (f *TextFormatter) SetTemplate(fmtTpl string) {
+	// ensure last char is newline.
+	if fmtTpl[len(fmtTpl)-1] != '\n' {
+		fmtTpl += "\n"
+	}
+
 	f.template = fmtTpl
 	f.fields = parseTemplateToFields(fmtTpl)
 }
