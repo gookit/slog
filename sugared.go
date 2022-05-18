@@ -24,7 +24,7 @@ type SugaredLogger struct {
 func NewStdLogger() *SugaredLogger {
 	return NewSugaredLogger(os.Stdout, DebugLevel).Config(func(sl *SugaredLogger) {
 		sl.SetName("stdLogger")
-		sl.CallerSkip++
+		// sl.CallerSkip += 1
 		sl.ReportCaller = true
 		// auto enable console color
 		sl.Formatter.(*TextFormatter).EnableColor = color.SupportColor()

@@ -61,7 +61,7 @@ func BenchmarkTextFormatter_Format(b *testing.B) {
 	// 271.3 ns/op  200 B/op           2 allocs/op
 	// f.SetTemplate("{{datetime}}")
 	// f.SetTemplate("{{message}}")
-	dump.P(f.Template)
+	dump.P(f.Template())
 
 	b.ReportAllocs()
 	b.ResetTimer()

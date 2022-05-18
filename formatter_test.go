@@ -72,7 +72,7 @@ func TestTextFormatter_Format(t *testing.T) {
 
 	bs, err := f.Format(r)
 	logTxt := string(bs)
-	dump.Println(f.Template, logTxt)
+	dump.Println(f.Template(), logTxt)
 
 	assert.NoError(t, err)
 	assert.NotEmpty(t, logTxt)
