@@ -126,7 +126,7 @@ l.Debug("this is a simple log message")
 更改默认的logger日志输出样式:
 
 ```go
-h.GetFormatter().(*slog.TextFormatter).Template = slog.NamedTemplate
+h.GetFormatter().(*slog.TextFormatter).SetTemplate(slog.NamedTemplate)
 ```
 
 **输出预览:**

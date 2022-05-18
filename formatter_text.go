@@ -1,8 +1,6 @@
 package slog
 
 import (
-	"strings"
-
 	"github.com/gookit/color"
 	"github.com/valyala/bytebufferpool"
 )
@@ -27,9 +25,9 @@ var ColorTheme = map[Level]color.Color{
 
 // TextFormatter definition
 type TextFormatter struct {
-	// Template text template for render output log messages
-	Template string
-	// fields list, parsed from Template string.
+	// template text template for render output log messages
+	template string
+	// fields list, parsed from template string.
 	// NOTICE: fields contains no-field items.
 	// eg: ["level", "}}"}
 	fields []string
@@ -57,7 +55,7 @@ func NewTextFormatter(template ...string) *TextFormatter {
 	}
 
 	return &TextFormatter{
-		Template: fmtTpl,
+		template: fmtTpl,
 		fields:   parseTemplateToFields(fmtTpl),
 		// default options
 		TimeFormat: DefaultTimeFormat,
@@ -72,8 +70,13 @@ func NewTextFormatter(template ...string) *TextFormatter {
 
 // SetTemplate set the log format template and update field-map
 func (f *TextFormatter) SetTemplate(fmtTpl string) {
-	f.Template = fmtTpl
+	f.template = fmtTpl
 	f.fields = parseTemplateToFields(fmtTpl)
+}
+
+// Template get
+func (f *TextFormatter) Template() string {
+	return f.template
 }
 
 // Fields get export field list
@@ -96,10 +99,10 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 	defer bytebufferpool.Put(buf)
 
 	for _, field := range f.fields {
-		// is not field name.
+		// is not field name. eg: "}}] "
 		if field[0] < 'a' || field[0] > 'z' {
-			// remove "}}"
-			if len(field) > 2 && strings.HasPrefix(field, "}}") {
+			// remove left "}}"
+			if len(field) > 1 && field[0:2] == "}}" {
 				buf.WriteString(field[2:])
 			} else {
 				buf.WriteString(field)

@@ -126,7 +126,7 @@ l.Debug("this is a simple log message")
 Change the default logger log output style:
 
 ```go
-h.GetFormatter().(*slog.TextFormatter).Template = slog.NamedTemplate
+h.GetFormatter().(*slog.TextFormatter).SetTemplate(slog.NamedTemplate)
 ```
 
 **Output:**
