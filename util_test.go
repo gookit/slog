@@ -38,6 +38,6 @@ func TestInner_parseTemplateToFields(t *testing.T) {
 	testTemplate := "[{{datetime}}] [{{level}}] {{message}} {{data}} {{extra}}"
 	ss = parseTemplateToFields(testTemplate)
 	str = revertTemplateString(ss)
-	assert.Equal(t, DefaultTemplate, str)
+	assert.Equal(t, testTemplate, str)
 	// dump.P(ss, str)
 }

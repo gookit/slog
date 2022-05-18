@@ -44,11 +44,12 @@ func TestIssues_31(t *testing.T) {
 
 // https://github.com/gookit/slog/issues/52
 func TestIssues_52(t *testing.T) {
-	defer slog.Reset()
-	testTemplate := "[{{datetime}}] [{{level}}] {{message}} {{data}} {{extra}}\n"
+	testTemplate := "[{{datetime}}] [{{level}}] {{message}} {{data}} {{extra}}"
+	slog.SetLogLevel(slog.ErrorLevel)
 	slog.GetFormatter().(*slog.TextFormatter).SetTemplate(testTemplate)
 
-	slog.Error("Error")
+	slog.Error("Error message")
+	slog.Reset()
 
-	// r := newLogRecord("Error message")
+	// dump.P(slog.GetFormatter())
 }
