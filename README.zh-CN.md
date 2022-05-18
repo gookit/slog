@@ -312,6 +312,15 @@ const DefaultTemplate = "[{{datetime}}] [{{channel}}] [{{level}}] [{{caller}}] {
 const NamedTemplate = "{{datetime}} channel={{channel}} level={{level}} [file={{caller}}] message={{message}} data={{data}}\n"
 ```
 
+更改模板:
+
+```go
+myTemplate := "[{{datetime}}] [{{level}}] {{message}}"
+
+f := slog.NewTextFormatter()
+f.SetTemplate(myTemplate)
+```
+
 ## 自定义日志
 
 自定义 Processor 和 自定义 Formatter 都比较简单，实现一个对应方法即可。

@@ -33,4 +33,4 @@ rules:
     contains: [feature]
   - name: Update
     start_withs: [update, 'up:']
-    contains: [' update']
+    contains: []

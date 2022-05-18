@@ -312,6 +312,15 @@ const DefaultTemplate = "[{{datetime}}] [{{channel}}] [{{level}}] [{{caller}}] {
 const NamedTemplate = "{{datetime}} channel={{channel}} level={{level}} [file={{caller}}] message={{message}} data={{data}}\n"
 ```
 
+Change template:
+
+```go
+myTemplate := "[{{datetime}}] [{{level}}] {{message}}"
+
+f := slog.NewTextFormatter()
+f.SetTemplate(myTemplate)
+```
+
 ## Custom logger
 
 Custom `Processor` and `Formatter` are relatively simple, just implement a corresponding method.
