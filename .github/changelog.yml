@@ -3,7 +3,7 @@ title: '## Change Log'
 style: gh-release
 # group names
 names: [Refactor, Fixed, Feature, Update, Other]
-repo_url: https://github.com/{{repoPath}}
+repo_url: https://github.com/gookit/slog
 
 filters:
   # message length should >= 12
