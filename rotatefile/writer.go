@@ -205,17 +205,17 @@ func (d *Writer) Write(p []byte) (n int, err error) {
 
 // Rotate the file by config.
 func (d *Writer) Rotate() (err error) {
-	// do rotate file by time
-	if d.checkInterval > 0 {
-		err = d.rotatingByTime()
+	// do rotate file by size
+	if d.cfg.MaxSize > 0 && d.written >= d.cfg.MaxSize {
+		err = d.rotatingBySize()
 		if err != nil {
 			return
 		}
 	}
 
-	// do rotate file by size
-	if d.cfg.MaxSize > 0 && d.written >= d.cfg.MaxSize {
-		err = d.rotatingBySize()
+	// do rotate file by time
+	if d.checkInterval > 0 && d.written > 0 {
+		err = d.rotatingByTime()
 	}
 	return
 }
@@ -228,9 +228,9 @@ func (d *Writer) rotatingByTime() error {
 
 	// rename current to new file.
 	// eg: /tmp/error.log => /tmp/error.log.20220423_1600
-	newFilepath := d.cfg.Filepath + "." + now.Format(d.suffixFormat)
+	bakFilepath := d.cfg.Filepath + "." + now.Format(d.suffixFormat)
 
-	err := d.rotatingFile(newFilepath)
+	err := d.rotatingFile(bakFilepath)
 
 	// storage next rotating time
 	d.nextRotatingAt = now.Unix() + d.checkInterval
@@ -242,26 +242,26 @@ func (d *Writer) rotatingBySize() error {
 	d.rotateNum++
 
 	// eg: /tmp/error.log => /tmp/error.log.163021_1
-	newFilepath := d.cfg.RenameFunc(d.cfg.Filepath, d.rotateNum)
+	bakFilepath := d.cfg.RenameFunc(d.cfg.Filepath, d.rotateNum)
 
-	return d.rotatingFile(newFilepath)
+	return d.rotatingFile(bakFilepath)
 }
 
 // rotateFile closes the syncBuffer's file and starts a new one.
-func (d *Writer) rotatingFile(newFilepath string) error {
+func (d *Writer) rotatingFile(bakFilepath string) error {
 	// close the current file
 	if err := d.Close(); err != nil {
 		return err
 	}
 
 	// rename current to new file.
-	err := os.Rename(d.cfg.Filepath, newFilepath)
+	err := os.Rename(d.cfg.Filepath, bakFilepath)
 	if err != nil {
 		return err
 	}
 
 	// record old files for clean.
-	d.oldFiles = append(d.oldFiles, newFilepath)
+	d.oldFiles = append(d.oldFiles, bakFilepath)
 
 	// reopen file
 	if err = d.openFile(); err != nil {

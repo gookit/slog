@@ -1,6 +1,7 @@
 package rotatefile_test
 
 import (
+	"log"
 	"testing"
 
 	"github.com/gookit/goutil/dump"
@@ -41,4 +42,15 @@ func TestNewWriter(t *testing.T) {
 
 	assert.NoError(t, w.Flush())
 	assert.NoError(t, w.Close())
+}
+
+func ExampleNewWriter_on_other_logger() {
+	logFile := "testdata/another_logger.log"
+	writer, err := rotatefile.NewConfig(logFile).Create()
+	if err != nil {
+		panic(err)
+	}
+
+	log.SetOutput(writer)
+	log.Println("log message")
 }
