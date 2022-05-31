@@ -554,6 +554,33 @@ Package `rotatefile`:
 - `rotatefile.Writer` implements automatic cutting of log files according to size and specified time, and also supports automatic cleaning of log files
   - `handler/rotate_file` is to use it to cut the log file
 
+### Use rotatefile on other log package
+
+Of course, the rotatefile.Writer can be use on other log package, such as: `log`, `glog` and more.
+
+Examples, use rotatefile on golang `log`:
+
+```go
+package main
+
+import (
+  "log"
+
+  "github.com/gookit/slog/rotatefile"
+)
+
+func main() {
+	logFile := "testdata/another_logger.log"
+	writer, err := rotatefile.NewConfig(logFile).Create()
+	if err != nil {
+		panic(err) 
+	}
+
+	log.SetOutput(writer)
+	log.Println("log message")
+}
+```
+
 ## Testing and benchmark
 
 ### Unit tests

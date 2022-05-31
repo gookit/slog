@@ -552,6 +552,33 @@ size-rotate-file.log.122915_00002
 - `rotatefile.Writer` 实现对日志文件按大小和指定时间进行自动切割，同时也支持自动清理日志文件
   - `handler/rotate_file` 即是通过使用它对日志文件进行切割处理
 
+### 在其他日志包上使用rotatefile
+
+当然，`rotatefile.Writer` 也可以用在其他日志包上，例如：`log`、`glog` 等等。
+
+例如，在 golang `log` 上使用 rotatefile:
+
+```go
+package main
+
+import (
+  "log"
+
+  "github.com/gookit/slog/rotatefile"
+)
+
+func main() {
+	logFile := "testdata/another_logger.log"
+	writer, err := rotatefile.NewConfig(logFile).Create()
+	if err != nil {
+		panic(err) 
+	}
+
+	log.SetOutput(writer)
+	log.Println("log message")
+}
+```
+
 ## 测试以及性能
 
 ### 单元测试

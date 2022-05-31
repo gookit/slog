@@ -12,7 +12,9 @@ import (
 type Record struct {
 	logger *Logger
 
-	Time  time.Time
+	// Time for record log
+	Time time.Time
+	// Level log level for record
 	Level Level
 	// level name cache from Level
 	levelName string
@@ -253,6 +255,13 @@ func (r *Record) SetFields(fields M) *Record {
 	r.Fields = fields
 	return r
 }
+
+//
+// ---------------------------------------------------------------------------
+// Add log message with builder
+// TODO r.MsgBuilder(InfoLevel).Str().Int().Float().Done()
+// ---------------------------------------------------------------------------
+//
 
 // Object data on record TODO optimize performance
 // func (r *Record) Obj(obj fmt.Stringer) *Record {

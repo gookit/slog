@@ -9,6 +9,7 @@ require (
 	github.com/gookit/gsr v0.0.7
 	github.com/stretchr/testify v1.7.1
 	github.com/valyala/bytebufferpool v1.0.0
+	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
 )
 
 // for develop
