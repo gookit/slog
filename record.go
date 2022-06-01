@@ -370,7 +370,7 @@ func (r *Record) Print(args ...interface{}) {
 	r.log(PrintLevel, args)
 }
 
-// Println logs a message at level Print
+// Println logs a message at level Print, will not append \n. alias of Print
 func (r *Record) Println(args ...interface{}) {
 	r.log(PrintLevel, args)
 }
@@ -385,7 +385,7 @@ func (r *Record) Fatal(args ...interface{}) {
 	r.log(FatalLevel, args)
 }
 
-// Fatalln logs a message at level Fatal
+// Fatalln logs a message at level Fatal, will not append \n.
 func (r *Record) Fatalln(args ...interface{}) {
 	r.log(FatalLevel, args)
 }
@@ -400,7 +400,7 @@ func (r *Record) Panic(args ...interface{}) {
 	r.log(PanicLevel, args)
 }
 
-// Panicln logs a message at level Panic
+// Panicln logs a message at level Panic, will not append \n.
 func (r *Record) Panicln(args ...interface{}) {
 	r.log(PanicLevel, args)
 }

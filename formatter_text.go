@@ -72,9 +72,9 @@ func NewTextFormatter(template ...string) *TextFormatter {
 // SetTemplate set the log format template and update field-map
 func (f *TextFormatter) SetTemplate(fmtTpl string) {
 	// ensure last char is newline.
-	if fmtTpl[len(fmtTpl)-1] != '\n' {
-		fmtTpl += "\n"
-	}
+	// if fmtTpl[len(fmtTpl)-1] != '\n' {
+	// 	fmtTpl += "\n"
+	// }
 
 	f.template = fmtTpl
 	f.fields = parseTemplateToFields(fmtTpl)
