@@ -31,6 +31,11 @@
   - `simple` 输出日志到指定文件，无缓冲直接写入文件
   - `rotate_file` 输出日志到指定文件，并且同时支持按时间、按大小分割文件，默认启用 `buffer` 缓冲写入
   - 更多内置实现请查看 ./handler 文件夹
+- 输出日志到指定文件
+  - 支持按时间、按大小分割文件
+  - 支持配置通过gzip压缩日志文件
+  - 支持清理旧日志文件 配置: `BackupNum` `BackupTime`
+
 
 > NEW: `v0.3.0` 废弃原来实现的纷乱的各种handler,统一抽象为
 > `FlushCloseHandler` `SyncCloseHandler` `WriteCloserHandler` `IOWriterHandler` 
@@ -507,6 +512,33 @@ size-rotate-file.log.122915_00002
 ```
 
 ### 根据配置快速创建Handler实例
+
+```go
+// Config struct
+type Config struct {
+	// Logfile for write logs
+	Logfile string `json:"logfile" yaml:"logfile"`
+	// Levels for log record
+	Levels []slog.Level `json:"levels" yaml:"levels"`
+	// UseJSON for format logs
+	UseJSON bool `json:"use_json" yaml:"use_json"`
+	// BuffMode type name. allow: line, bite
+	BuffMode string `json:"buff_mode" yaml:"buff_mode"`
+	// BuffSize for enable buffer. set 0 to disable buffer
+	BuffSize int `json:"buff_size" yaml:"buff_size"`
+	// RotateTime for rotate file
+	RotateTime rotatefile.RotateTime `json:"rotate_time" yaml:"rotate_time"`
+	// MaxSize on rotate file by size.
+	MaxSize uint64 `json:"max_size" yaml:"max_size"`
+	// Compress determines if the rotated log files should be compressed using gzip.
+	// The default is not to perform compression.
+	Compress bool `json:"compress" yaml:"compress"`
+	// RenameFunc build filename for rotate file
+	RenameFunc func(filepath string, rotateNum uint) string
+}
+```
+
+**Examples**:
 
 ```go
 	testFile := "testdata/error.log"

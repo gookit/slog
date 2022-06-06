@@ -31,6 +31,10 @@
   - `simple` output log to the specified file, write directly to the file without buffering
   - `rotate_file` outputs logs to the specified file, and supports splitting files by time and size at the same time, and `buffer` buffered writing is enabled by default
   - See ./handler folder for more built-in implementations
+- Output logs to file
+  - Support splitting files by time and size at the same time
+  - Support configuration to compress log files via gzip
+  - Support clean old log files by `BackupNum` `BackupTime`
 
 > NEW: `v0.3.0` discards the various handlers that were originally implemented, and the unified abstraction is
 > `FlushCloseHandler` `SyncCloseHandler` `WriteCloserHandler` `IOWriterHandler`
@@ -509,6 +513,33 @@ size-rotate-file.log.122915_00002
 ```
 
 ### Quickly create a Handler instance based on config
+
+```go
+// Config struct
+type Config struct {
+	// Logfile for write logs
+	Logfile string `json:"logfile" yaml:"logfile"`
+	// Levels for log record
+	Levels []slog.Level `json:"levels" yaml:"levels"`
+	// UseJSON for format logs
+	UseJSON bool `json:"use_json" yaml:"use_json"`
+	// BuffMode type name. allow: line, bite
+	BuffMode string `json:"buff_mode" yaml:"buff_mode"`
+	// BuffSize for enable buffer. set 0 to disable buffer
+	BuffSize int `json:"buff_size" yaml:"buff_size"`
+	// RotateTime for rotate file
+	RotateTime rotatefile.RotateTime `json:"rotate_time" yaml:"rotate_time"`
+	// MaxSize on rotate file by size.
+	MaxSize uint64 `json:"max_size" yaml:"max_size"`
+	// Compress determines if the rotated log files should be compressed using gzip.
+	// The default is not to perform compression.
+	Compress bool `json:"compress" yaml:"compress"`
+	// RenameFunc build filename for rotate file
+	RenameFunc func(filepath string, rotateNum uint) string
+}
+```
+
+**Examples**:
 
 ```go
 	testFile := "testdata/error.log"

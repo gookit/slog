@@ -2,18 +2,34 @@ package rotatefile
 
 import (
 	"os"
-	"path/filepath"
-	"sync"
 	"time"
 )
 
-// RotateFiles multi files by time. TODO
+// CConfig struct for clean
+type CConfig struct {
+	// BackupNum max number for keep old files.
+	// 0 is not limit, default is 20.
+	BackupNum uint `json:"backup_num" yaml:"backup_num"`
+
+	// BackupTime max time for keep old files.
+	// 0 is not limit, default is a week.
+	//
+	// unit is hours
+	BackupTime uint `json:"backup_time" yaml:"backup_time"`
+
+	// Compress determines if the rotated log files should be compressed
+	// using gzip. The default is not to perform compression.
+	Compress bool `json:"compress" yaml:"compress"`
+
+	// TimeClock for rotate
+	TimeClock Clocker
+}
+
+// FilesClear multi files by time. TODO
 // use for rotate and clear other program produce log files
-//
-// refer file-rotatelogs
-type RotateFiles struct {
-	mu  sync.Mutex
-	cfg *Config
+type FilesClear struct {
+	// mu  sync.Mutex
+	cfg *CConfig
 
 	namePattern  string
 	filepathDirs []string
@@ -21,13 +37,15 @@ type RotateFiles struct {
 	filePatterns []string
 	// file max backup time. equals Config.BackupTime * time.Hour
 	backupDur time.Duration
-	//
+	// skip error
 	skipError bool
 }
 
-// Rotate do rotate handle
-func (r *RotateFiles) Rotate() error {
-	return nil
+// NewCleanFiles instance
+func NewCleanFiles(cfg *CConfig) *FilesClear {
+	return &FilesClear{
+		cfg: cfg,
+	}
 }
 
 //
@@ -37,7 +55,7 @@ func (r *RotateFiles) Rotate() error {
 //
 
 // async clean old files by config
-func (r *RotateFiles) asyncCleanBackups() {
+func (r *FilesClear) asyncCleanBackups() {
 	if r.cfg.BackupNum == 0 && r.cfg.BackupTime == 0 {
 		return
 	}
@@ -45,13 +63,13 @@ func (r *RotateFiles) asyncCleanBackups() {
 	go func() {
 		err := r.Clean()
 		if err != nil {
-			printlnStderr("rotatefile: clean backup files error:", err)
+			printErrln("files-clear: clean backup files error:", err)
 		}
 	}()
 }
 
 // Clean old files by config
-func (r *RotateFiles) Clean() (err error) {
+func (r *FilesClear) Clean() (err error) {
 	// clear by time, can also clean by number
 	if r.cfg.BackupTime > 0 {
 		cutTime := r.cfg.TimeClock.Now().Add(-r.backupDur)
@@ -98,7 +116,7 @@ func (r *RotateFiles) Clean() (err error) {
 	return
 }
 
-func (r *RotateFiles) cleanByBackupNum(filePattern string, bckNum int) (err error) {
+func (r *FilesClear) cleanByBackupNum(filePattern string, bckNum int) (err error) {
 	keepNum := 0
 	err = globWithFunc(filePattern, func(oldFile string) error {
 		stat, err := os.Stat(oldFile)
@@ -121,7 +139,7 @@ func (r *RotateFiles) cleanByBackupNum(filePattern string, bckNum int) (err erro
 	return
 }
 
-func (r *RotateFiles) cleanByBackupTime(filePattern string, cutTime time.Time) (err error) {
+func (r *FilesClear) cleanByBackupTime(filePattern string, cutTime time.Time) (err error) {
 	oldFiles := make([]string, 0, 8)
 
 	// match all old rotate files. eg: /tmp/error.log.*
@@ -155,20 +173,5 @@ func (r *RotateFiles) cleanByBackupTime(filePattern string, cutTime time.Time) (
 		}
 	}
 
-	return
-}
-
-func globWithFunc(pattern string, fn func(filePath string) error) (err error) {
-	files, err := filepath.Glob(pattern)
-	if err != nil {
-		return err
-	}
-
-	for _, filePath := range files {
-		err = fn(filePath)
-		if err != nil {
-			break
-		}
-	}
 	return
 }

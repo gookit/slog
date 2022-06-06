@@ -19,6 +19,17 @@ func TestNewDefaultConfig(t *testing.T) {
 	assert.Equal(t, rotatefile.DefaultMaxSize, c.MaxSize)
 }
 
+func TestNewConfig(t *testing.T) {
+	cfg := rotatefile.NewConfig("testdata/test.log")
+
+	assert.Equal(t, rotatefile.DefaultBackNum, cfg.BackupNum)
+	assert.Equal(t, rotatefile.DefaultBackTime, cfg.BackupTime)
+	assert.Equal(t, rotatefile.EveryHour, cfg.RotateTime)
+	assert.Equal(t, rotatefile.DefaultMaxSize, cfg.MaxSize)
+
+	dump.P(cfg)
+}
+
 func TestRotateTime_String(t *testing.T) {
 	assert.Equal(t, "Every 1 Day", rotatefile.EveryDay.String())
 	assert.Equal(t, "Every 1 Hours", rotatefile.EveryHour.String())

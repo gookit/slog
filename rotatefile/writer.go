@@ -4,6 +4,8 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -19,8 +21,8 @@ type Writer struct {
 	cfg  *Config
 	file *os.File
 	// file dir path for the Config.Filepath
-	fileDir  string
-	oldFiles []string
+	fileDir string
+	// oldFiles []string
 	// file max backup time. equals Config.BackupTime * time.Hour
 	backupDur time.Duration
 
@@ -54,9 +56,9 @@ func (d *Writer) init() error {
 	d.fileDir = path.Dir(d.cfg.Filepath)
 	d.backupDur = d.cfg.backupDuration()
 
-	if d.cfg.BackupNum > 0 {
-		d.oldFiles = make([]string, 0, int(float32(d.cfg.BackupNum)*1.6))
-	}
+	// if d.cfg.BackupNum > 0 {
+	// 	d.oldFiles = make([]string, 0, int(float32(d.cfg.BackupNum)*1.6))
+	// }
 
 	// open the log file
 	err := d.openFile()
@@ -103,74 +105,6 @@ func (d *Writer) Close() error {
 
 //
 // ---------------------------------------------------------------------------
-// clean backup files
-// ---------------------------------------------------------------------------
-//
-
-// async clean old files by config
-func (d *Writer) asyncCleanBackups() {
-	if d.cfg.BackupNum == 0 && d.cfg.BackupTime == 0 {
-		return
-	}
-
-	go func() {
-		err := d.Clean()
-		if err != nil {
-			printlnStderr("rotatefile: clean backup files error:", err)
-		}
-	}()
-}
-
-// Clean old files by config
-func (d *Writer) Clean() (err error) {
-	maxNum := int(d.cfg.BackupNum)
-	if maxNum > 0 && len(d.oldFiles) > maxNum {
-		var idx int
-		for idx = 0; len(d.oldFiles) > maxNum; idx++ {
-			err = os.Remove(d.oldFiles[idx])
-			if err != nil {
-				break
-			}
-		}
-
-		d.oldFiles = d.oldFiles[idx+1:]
-		if err != nil {
-			return err
-		}
-	}
-
-	// clear by time
-	if d.cfg.BackupTime > 0 {
-		// match all old rotate files. eg: /tmp/error.log.*
-		files, err := filepath.Glob(d.cfg.Filepath + ".*")
-		if err != nil {
-			return err
-		}
-
-		cutTime := d.cfg.TimeClock.Now().Add(-d.backupDur)
-		for _, oldFile := range files {
-			stat, err := os.Stat(oldFile)
-			if err != nil {
-				return err
-			}
-
-			if stat.ModTime().After(cutTime) {
-				continue
-			}
-
-			// remove expired files
-			err = os.Remove(oldFile)
-			if err != nil {
-				break
-			}
-		}
-	}
-
-	return
-}
-
-//
-// ---------------------------------------------------------------------------
 // write and rotate file
 // ---------------------------------------------------------------------------
 //
@@ -196,15 +130,17 @@ func (d *Writer) Write(p []byte) (n int, err error) {
 	d.written += uint64(n)
 
 	// rotate file
-	err = d.Rotate()
-
-	// clean backup files
-	d.asyncCleanBackups()
+	err = d.doRotate()
 	return
 }
 
 // Rotate the file by config.
 func (d *Writer) Rotate() (err error) {
+	return d.doRotate()
+}
+
+// Rotate the file by config.
+func (d *Writer) doRotate() (err error) {
 	// do rotate file by size
 	if d.cfg.MaxSize > 0 && d.written >= d.cfg.MaxSize {
 		err = d.rotatingBySize()
@@ -217,6 +153,9 @@ func (d *Writer) Rotate() (err error) {
 	if d.checkInterval > 0 && d.written > 0 {
 		err = d.rotatingByTime()
 	}
+
+	// clean backup files
+	d.asyncCleanBackups()
 	return
 }
 
@@ -261,9 +200,9 @@ func (d *Writer) rotatingFile(bakFilepath string) error {
 	}
 
 	// record old files for clean.
-	d.oldFiles = append(d.oldFiles, bakFilepath)
+	// d.oldFiles = append(d.oldFiles, bakFilepath)
 
-	// reopen file
+	// reopen log file
 	if err = d.openFile(); err != nil {
 		return err
 	}
@@ -291,4 +230,166 @@ func (d *Writer) openFile() error {
 
 	d.file = file
 	return nil
+}
+
+//
+// ---------------------------------------------------------------------------
+// clean backup files
+// ---------------------------------------------------------------------------
+//
+
+// async clean old files by config
+func (d *Writer) asyncCleanBackups() {
+	if d.cfg.BackupNum == 0 && d.cfg.BackupTime == 0 {
+		return
+	}
+
+	// TODO pref: only start once
+	go func() {
+		err := d.Clean()
+		if err != nil {
+			printErrln("rotatefile: clean backup files error:", err)
+		}
+	}()
+}
+
+// Clean old files by config
+func (d *Writer) Clean() (err error) {
+	if d.cfg.BackupNum == 0 && d.cfg.BackupTime == 0 {
+		return
+	}
+
+	// oldFiles: old xx.log.xx files, no gz file
+	var oldFiles, gzFiles []fileInfo
+	fileDir, fileName := path.Split(d.cfg.Filepath)
+
+	// find and clean old files
+	err = findFilesInDir(fileDir, func(fPath string, fi os.FileInfo) error {
+		if strings.HasSuffix(fi.Name(), compressSuffix) {
+			gzFiles = append(gzFiles, newFileInfo(fPath, fi))
+		} else {
+			oldFiles = append(oldFiles, newFileInfo(fPath, fi))
+		}
+
+		return nil
+	}, d.buildFilterFns(fileName)...)
+
+	sort.Sort(modTimeFInfos(oldFiles))
+	sort.Sort(modTimeFInfos(gzFiles))
+
+	maxNum := int(d.cfg.BackupNum)
+	if maxNum > 0 {
+		// remove old gz files
+		gzNum := len(gzFiles)
+		if gzNum > 0 {
+			var idx int
+			for idx = 0; idx < gzNum; idx++ {
+				if err = os.Remove(gzFiles[idx].filePath); err != nil {
+					break
+				}
+
+				if gzNum-idx <= maxNum+1 {
+					break
+				}
+			}
+
+			maxNum += idx + 1
+		}
+
+		// remove old log files
+		oldNum := len(oldFiles)
+		if oldNum > maxNum {
+			var idx int
+			for idx = 0; idx < oldNum-maxNum; idx++ {
+				if err = os.Remove(oldFiles[idx].filePath); err != nil {
+					break
+				}
+			}
+
+			oldFiles = oldFiles[idx:]
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	if d.cfg.Compress && len(oldFiles) > 0 {
+		err = d.compressFiles(oldFiles)
+	}
+	return
+}
+
+func (d *Writer) buildFilterFns(fileName string) []filterFunc {
+	filterFns := []filterFunc{
+		// filter by name. should match like error.log.*
+		// eg: error.log.xx, error.log.xx.gz
+		func(fPath string, fi os.FileInfo) bool {
+			ok, err := filepath.Match(fileName+".*", fi.Name())
+			if err != nil {
+				printErrln("rotatefile: match file error:", err)
+				return false // skip, not handle
+			}
+
+			return ok
+		},
+	}
+
+	// filter by mod-time, clear expired files
+	if d.cfg.BackupTime > 0 {
+		cutTime := d.cfg.TimeClock.Now().Add(-d.backupDur)
+		filterFns = append(filterFns, func(fPath string, fi os.FileInfo) bool {
+			// collect un-expired
+			if fi.ModTime().After(cutTime) {
+				return true
+			}
+
+			// remove expired files
+			err := os.Remove(fPath)
+			if err != nil {
+				printErrln("rotatefile: remove old file error:", err)
+			}
+
+			return false
+		})
+	}
+
+	return filterFns
+}
+
+func (d *Writer) compressFiles(oldFiles []fileInfo) error {
+	for _, fi := range oldFiles {
+		err := compressFile(fi.filePath, fi.filePath+compressSuffix)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+type fileInfo struct {
+	os.FileInfo
+	filePath string
+}
+
+func newFileInfo(filePath string, fi os.FileInfo) fileInfo {
+	return fileInfo{filePath: filePath, FileInfo: fi}
+}
+
+// modTimeFInfos sorts by oldest time modified in the fileInfo.
+// eg: [old_220211, old_220212, old_220213]
+type modTimeFInfos []fileInfo
+
+// Less check
+func (fis modTimeFInfos) Less(i, j int) bool {
+	return fis[j].ModTime().After(fis[i].ModTime())
+}
+
+// Swap value
+func (fis modTimeFInfos) Swap(i, j int) {
+	fis[i], fis[j] = fis[j], fis[i]
+}
+
+// Len get
+func (fis modTimeFInfos) Len() int {
+	return len(fis)
 }

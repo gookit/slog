@@ -23,18 +23,21 @@ type ConfigFn func(c *Config)
 type Config struct {
 	// Logfile for write logs
 	Logfile string `json:"logfile" yaml:"logfile"`
+	// Levels for log record
+	Levels []slog.Level `json:"levels" yaml:"levels"`
 	// UseJSON for format logs
 	UseJSON bool `json:"use_json" yaml:"use_json"`
 	// BuffMode type name. allow: line, bite
 	BuffMode string `json:"buff_mode" yaml:"buff_mode"`
 	// BuffSize for enable buffer. set 0 to disable buffer
 	BuffSize int `json:"buff_size" yaml:"buff_size"`
-	// Levels for log record
-	Levels []slog.Level `json:"levels" yaml:"levels"`
 	// RotateTime for rotate file
 	RotateTime rotatefile.RotateTime `json:"rotate_time" yaml:"rotate_time"`
 	// MaxSize on rotate file by size.
 	MaxSize uint64 `json:"max_size" yaml:"max_size"`
+	// Compress determines if the rotated log files should be compressed using gzip.
+	// The default is not to perform compression.
+	Compress bool `json:"compress" yaml:"compress"`
 	// RenameFunc build filename for rotate file
 	RenameFunc func(filepath string, rotateNum uint) string
 }
@@ -88,6 +91,7 @@ func (c *Config) CreateWriter() (output SyncCloseWriter, err error) {
 
 		// has locked on logger.write()
 		rc.CloseLock = true
+		rc.Compress = c.Compress
 		rc.RotateTime = c.RotateTime
 
 		if c.RenameFunc != nil {
@@ -170,6 +174,13 @@ func WithRotateTime(rt rotatefile.RotateTime) ConfigFn {
 func WithBuffMode(buffMode string) ConfigFn {
 	return func(c *Config) {
 		c.BuffMode = buffMode
+	}
+}
+
+// WithCompress setting
+func WithCompress(compress bool) ConfigFn {
+	return func(c *Config) {
+		c.Compress = compress
 	}
 }
 

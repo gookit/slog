@@ -143,32 +143,49 @@ type ConfigFn func(c *Config)
 type Config struct {
 	// Filepath the log file path, will be rotating
 	Filepath string `json:"filepath" yaml:"filepath"`
+
 	// MaxSize file contents max size, unit is bytes.
 	// If is equals zero, disable rotate file by size
 	//
 	// default see DefaultMaxSize
 	MaxSize uint64 `json:"max_size" yaml:"max_size"`
+
 	// RotateTime the file rotate interval time, unit is seconds.
 	// If is equals zero, disable rotate file by time
 	//
 	// default see EveryHour
 	RotateTime RotateTime `json:"rotate_time" yaml:"rotate_time"`
+
 	// CloseLock use sync lock on write contents, rotating file.
 	//
 	// default: false
 	CloseLock bool `json:"close_lock" yaml:"close_lock"`
+
 	// BackupNum max number for keep old files.
 	// 0 is not limit, default is 20.
 	BackupNum uint `json:"backup_num" yaml:"backup_num"`
+
 	// BackupTime max time for keep old files.
 	// 0 is not limit, default is a week.
 	//
 	// unit is hours
 	BackupTime uint `json:"backup_time" yaml:"backup_time"`
+
+	// Compress determines if the rotated log files should be compressed using gzip.
+	// The default is not to perform compression.
+	Compress bool `json:"compress" yaml:"compress"`
+
 	// RenameFunc you can custom-build filename for rotate file by size.
 	//
 	// default see DefaultFilenameFn
 	RenameFunc func(filePath string, rotateNum uint) string
+
+	// AfterFunc hook func. It will fire when rotating the file is done.
+	//
+	// TIP: Please do not do time-consuming operations in it.
+	// It is recommended to use the go keyword to call logic in it.
+	// AfterFunc func(bakFilePath string)
+
 	// TimeClock for rotate
 	TimeClock Clocker
 }
@@ -190,7 +207,7 @@ func (c *Config) With(fns ...ConfigFn) *Config {
 	return c
 }
 
-// Create new Writer
+// Create new Writer by config
 func (c *Config) Create() (*Writer, error) {
 	return NewWriter(c)
 }

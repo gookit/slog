@@ -9,6 +9,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestNewConfig(t *testing.T) {
+	c := handler.NewConfig(
+		handler.WithCompress(true),
+	).With(handler.WithBuffSize(129))
+
+	assert.True(t, c.Compress)
+	assert.Equal(t, 129, c.BuffSize)
+}
+
 func TestNewBuilder(t *testing.T) {
 	testFile := "testdata/builder.log"
 	assert.NoError(t, fsutil.DeleteIfFileExist(testFile))
@@ -18,6 +27,7 @@ func TestNewBuilder(t *testing.T) {
 			handler.WithLogfile(testFile),
 			handler.WithBuffSize(128),
 			handler.WithBuffMode(handler.BuffModeBite),
+			handler.WithCompress(true),
 		).
 		Build()
 	assert.NotNil(t, h)
