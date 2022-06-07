@@ -7,7 +7,7 @@ require (
 	github.com/gookit/color v1.5.0
 	github.com/gookit/goutil v0.5.2
 	github.com/gookit/gsr v0.0.7
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.7.2
 	github.com/valyala/bytebufferpool v1.0.0
 	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
 )
