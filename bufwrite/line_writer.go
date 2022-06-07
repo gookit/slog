@@ -154,6 +154,10 @@ func (b *LineWriter) Write(p []byte) (nn int, err error) {
 		return nn, nil
 	}
 
+	if b.err != nil {
+		return nn, b.err
+	}
+
 	n := copy(b.buf[b.n:], p)
 	b.n += n
 	nn += n
