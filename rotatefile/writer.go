@@ -118,7 +118,7 @@ func (d *Writer) WriteString(s string) (n int, err error) {
 // Write data to file. then check and do rotate file.
 func (d *Writer) Write(p []byte) (n int, err error) {
 	// if enable lock
-	if d.cfg.CloseLock == false {
+	if !d.cfg.CloseLock {
 		d.mu.Lock()
 		defer d.mu.Unlock()
 	}
@@ -275,39 +275,49 @@ func (d *Writer) Clean() (err error) {
 		return nil
 	}, d.buildFilterFns(fileName)...)
 
-	sort.Sort(modTimeFInfos(oldFiles))
-	sort.Sort(modTimeFInfos(gzFiles))
-
+	gzNum := len(gzFiles)
+	oldNum := len(oldFiles)
 	maxNum := int(d.cfg.BackupNum)
-	if maxNum > 0 {
+	rmNum := gzNum + oldNum - maxNum
+
+	if rmNum > 0 {
 		// remove old gz files
-		gzNum := len(gzFiles)
 		if gzNum > 0 {
-			var idx int
-			for idx = 0; idx < gzNum; idx++ {
+			sort.Sort(modTimeFInfos(gzFiles)) // sort by mod-time
+
+			for idx := 0; idx < gzNum; idx++ {
 				if err = os.Remove(gzFiles[idx].filePath); err != nil {
 					break
 				}
 
-				if gzNum-idx <= maxNum+1 {
+				rmNum--
+				if rmNum == 0 {
 					break
 				}
 			}
 
-			maxNum += idx + 1
+			if err != nil {
+				return errorx.Wrap(err, "")
+			}
 		}
 
 		// remove old log files
-		oldNum := len(oldFiles)
-		if oldNum > maxNum {
+		if rmNum > 0 && oldNum > 0 {
+			sort.Sort(modTimeFInfos(oldFiles)) // sort by mod-time
+
 			var idx int
-			for idx = 0; idx < oldNum-maxNum; idx++ {
+			for idx = 0; idx < oldNum; idx++ {
 				if err = os.Remove(oldFiles[idx].filePath); err != nil {
+					break
+				}
+
+				rmNum--
+				if rmNum == 0 {
 					break
 				}
 			}
 
-			oldFiles = oldFiles[idx:]
+			oldFiles = oldFiles[idx+1:]
 			if err != nil {
 				return err
 			}
@@ -327,7 +337,7 @@ func (d *Writer) buildFilterFns(fileName string) []filterFunc {
 		func(fPath string, fi os.FileInfo) bool {
 			ok, err := filepath.Match(fileName+".*", fi.Name())
 			if err != nil {
-				printErrln("rotatefile: match file error:", err)
+				printErrln("rotatefile: match old file error:", err)
 				return false // skip, not handle
 			}
 
@@ -347,7 +357,7 @@ func (d *Writer) buildFilterFns(fileName string) []filterFunc {
 			// remove expired files
 			err := os.Remove(fPath)
 			if err != nil {
-				printErrln("rotatefile: remove old file error:", err)
+				printErrln("rotatefile: remove expired file error:", err)
 			}
 
 			return false

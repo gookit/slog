@@ -38,7 +38,7 @@ type FilesClear struct {
 	// file max backup time. equals Config.BackupTime * time.Hour
 	backupDur time.Duration
 	// skip error
-	skipError bool
+	// TODO skipError bool
 }
 
 // NewCleanFiles instance
@@ -54,18 +54,20 @@ func NewCleanFiles(cfg *CConfig) *FilesClear {
 // ---------------------------------------------------------------------------
 //
 
-// async clean old files by config
-func (r *FilesClear) asyncCleanBackups() {
+const flushInterval = 30 * time.Second
+
+// DaemonClean daemon clean old files by config
+func (r *FilesClear) DaemonClean() {
 	if r.cfg.BackupNum == 0 && r.cfg.BackupTime == 0 {
 		return
 	}
 
-	go func() {
+	for range time.NewTicker(flushInterval).C {
 		err := r.Clean()
 		if err != nil {
-			printErrln("files-clear: clean backup files error:", err)
+			printErrln("files-clear: clean files error:", err)
 		}
-	}()
+	}
 }
 
 // Clean old files by config

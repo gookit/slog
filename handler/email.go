@@ -41,6 +41,9 @@ func NewEmailHandler(from EmailOption, toAddresses []string) *EmailHandler {
 // Handle a log record
 func (h *EmailHandler) Handle(r *slog.Record) error {
 	msgBytes, err := h.Format(r)
+	if err != nil {
+		return err
+	}
 
 	var auth = smtp.PlainAuth("", h.From.FromAddr, h.From.Password, h.From.SMTPHost)
 

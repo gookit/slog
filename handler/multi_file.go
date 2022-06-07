@@ -1,15 +1,13 @@
 package handler
 
 import (
-	"io"
-
 	"github.com/gookit/slog"
 )
 
-// MultiFileHandler definition
+// MultiFileHandler definition TODO
 type MultiFileHandler struct {
 	LockWrapper
-	writers map[string]io.Writer
+	// writers map[string]io.Writer
 	// FileDir for save log files
 	FileDir string
 	// FileLevels can use multi file for record level logs. eg:
