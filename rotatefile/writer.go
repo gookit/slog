@@ -361,7 +361,12 @@ func (d *Writer) compressFiles(oldFiles []fileInfo) error {
 	for _, fi := range oldFiles {
 		err := compressFile(fi.filePath, fi.filePath+compressSuffix)
 		if err != nil {
-			return errorx.Wrap(err, "compress file error")
+			return errorx.Wrap(err, "compress old file error")
+		}
+
+		// remove raw log file
+		if err = os.Remove(fi.filePath); err != nil {
+			return err
 		}
 	}
 	return nil

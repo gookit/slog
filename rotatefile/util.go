@@ -39,12 +39,7 @@ func compressFile(srcPath, dstPath string) error {
 		return err
 	}
 
-	if err := zw.Close(); err != nil {
-		return err
-	}
-
-	// remove raw log file
-	return os.Remove(srcPath)
+	return zw.Close()
 }
 
 func globWithFunc(pattern string, fn func(filePath string) error) (err error) {
