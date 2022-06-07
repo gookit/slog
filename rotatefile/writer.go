@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/fsutil"
 )
 
@@ -360,7 +361,7 @@ func (d *Writer) compressFiles(oldFiles []fileInfo) error {
 	for _, fi := range oldFiles {
 		err := compressFile(fi.filePath, fi.filePath+compressSuffix)
 		if err != nil {
-			return err
+			return errorx.Wrap(err, "compress file error")
 		}
 	}
 	return nil
