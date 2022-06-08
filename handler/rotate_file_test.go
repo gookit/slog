@@ -99,9 +99,8 @@ func TestNewTimeRotateFileHandler_EveryDay(t *testing.T) {
 	options := []handler.ConfigFn{
 		handler.WithBuffSize(128),
 	}
-	h, err := handler.NewTimeRotateFileHandler(logfile, handler.EveryDay, options...)
 
-	assert.NoError(t, err)
+	h := handler.MustTimeRotateFile(logfile, handler.EveryDay, options...)
 	assert.True(t, fsutil.IsFile(logfile))
 
 	l := slog.NewWithHandlers(h)

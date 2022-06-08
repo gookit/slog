@@ -48,7 +48,6 @@ func (h *EmailHandler) Handle(r *slog.Record) error {
 	var auth = smtp.PlainAuth("", h.From.FromAddr, h.From.Password, h.From.SMTPHost)
 
 	addr := h.From.SMTPHost + ":" + strconv.Itoa(h.From.SMTPPort)
-	err = smtp.SendMail(addr, auth, h.From.FromAddr, h.ToAddresses, msgBytes)
 
-	return err
+	return smtp.SendMail(addr, auth, h.From.FromAddr, h.ToAddresses, msgBytes)
 }

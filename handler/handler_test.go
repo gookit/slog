@@ -3,7 +3,6 @@ package handler_test
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"testing"
 
 	"github.com/gookit/goutil/fsutil"
@@ -83,64 +82,6 @@ func TestConsoleHandlerNoColor(t *testing.T) {
 	l.ReportCaller = true
 
 	logAllLevel(l, "this is a simple log message")
-}
-
-func TestNewBufferedHandler(t *testing.T) {
-	logfile := "./testdata/buffer-os-file.log"
-	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
-
-	file, err := handler.QuickOpenFile(logfile)
-	assert.NoError(t, err)
-	assert.True(t, fsutil.IsFile(logfile))
-
-	bh := handler.NewBuffered(file, 128)
-
-	// new logger
-	l := slog.NewWithHandlers(bh)
-	l.Info("buffered info message")
-
-	bts, err := ioutil.ReadFile(logfile)
-	assert.NoError(t, err)
-	assert.Empty(t, bts)
-
-	l.Warn("buffered warn message")
-	bts, err = ioutil.ReadFile(logfile)
-	assert.NoError(t, err)
-
-	str := string(bts)
-	assert.Contains(t, str, "[INFO]")
-
-	err = l.FlushAll()
-	assert.NoError(t, err)
-}
-
-func TestBufferWrapper(t *testing.T) {
-	logfile := "./testdata/buffer-wrap-handler.log"
-	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
-
-	h, err := handler.NewSimpleFile(logfile)
-	assert.NoError(t, err)
-	assert.True(t, fsutil.IsFile(logfile))
-
-	bw := handler.BufferWrapper(h, 128)
-
-	// new logger
-	l := slog.NewWithHandlers(bw)
-	l.Info("buffered info message")
-
-	bts, err := ioutil.ReadFile(logfile)
-	assert.NoError(t, err)
-	assert.Empty(t, bts)
-
-	l.Warn("buffered warn message")
-	bts, err = ioutil.ReadFile(logfile)
-	assert.NoError(t, err)
-
-	str := string(bts)
-	assert.Contains(t, str, "[INFO]")
-
-	err = l.FlushAll()
-	assert.NoError(t, err)
 }
 
 func TestNewEmailHandler(t *testing.T) {

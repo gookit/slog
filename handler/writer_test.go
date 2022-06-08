@@ -62,6 +62,10 @@ func (w *closedBuffer) Close() error {
 	return nil
 }
 
+func (w *closedBuffer) Flush() error {
+	return nil
+}
+
 func TestNewWriteCloser(t *testing.T) {
 	w := &closedBuffer{Buffer: bytes.Buffer{}}
 	h := handler.NewWriteCloser(w, slog.NormalLevels)
@@ -74,6 +78,20 @@ func TestNewWriteCloser(t *testing.T) {
 
 	str := w.String()
 	assert.Contains(t, str, "test writeCloser handler")
+
+	assert.NoError(t, h.Close())
+}
+
+func TestNewFlushCloser(t *testing.T) {
+	w := &closedBuffer{}
+	h := handler.NewFlushCloser(w, slog.AllLevels)
+
+	r := newLogRecord("TestNewFlushCloser")
+	assert.NoError(t, h.Handle(r))
+	assert.NoError(t, h.Flush())
+
+	str := w.String()
+	assert.Contains(t, str, "TestNewFlushCloser")
 
 	assert.NoError(t, h.Close())
 }
