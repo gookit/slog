@@ -35,6 +35,7 @@ func TestNewWriter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, fsutil.IsFile(testFile))
 
+	assert.NoError(t, w.Sync())
 	assert.NoError(t, w.Flush())
 	assert.NoError(t, w.Close())
 }

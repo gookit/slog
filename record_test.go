@@ -141,6 +141,23 @@ func TestRecord_WithTime(t *testing.T) {
 	fmt.Print(s)
 }
 
+func TestRecord_AddFields(t *testing.T) {
+	r := newLogRecord("AddFields")
+
+	r.AddFields(slog.M{"f1": "hi", "env": "prod"})
+	assert.NotEmpty(t, r.Fields)
+
+	r.AddFields(slog.M{"app": "goods"})
+	assert.NotEmpty(t, r.Fields)
+}
+
+func TestRecord_SetFields(t *testing.T) {
+	r := newLogRecord("AddFields")
+
+	r.SetFields(slog.M{"f1": "hi", "env": "prod"})
+	assert.NotEmpty(t, r.Fields)
+}
+
 func TestRecord_allLevel(t *testing.T) {
 	w := newBuffer()
 	l := slog.NewWithConfig(func(l *slog.Logger) {

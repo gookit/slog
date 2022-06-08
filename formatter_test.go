@@ -32,27 +32,6 @@ func TestFormattable_Format(t *testing.T) {
 	assert.Contains(t, str, "TEST_LOG_MESSAGE format")
 }
 
-func newLogRecord(msg string) *slog.Record {
-	r := &slog.Record{
-		Channel: slog.DefaultChannelName,
-		Level:   slog.InfoLevel,
-		Message: msg,
-		Time:    slog.DefaultClockFn.Now(),
-		Data: map[string]interface{}{
-			"data_key0": "value",
-			"username":  "inhere",
-		},
-		Extra: map[string]interface{}{
-			"source":     "linux",
-			"extra_key0": "hello",
-		},
-		// Caller: stdutil.GetCallerInfo(),
-	}
-
-	r.Init(true)
-	return r
-}
-
 func TestNewTextFormatter(t *testing.T) {
 	f := slog.NewTextFormatter()
 

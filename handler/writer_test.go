@@ -54,18 +54,6 @@ func TestNewSyncCloser(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-type closedBuffer struct {
-	bytes.Buffer
-}
-
-func (w *closedBuffer) Close() error {
-	return nil
-}
-
-func (w *closedBuffer) Flush() error {
-	return nil
-}
-
 func TestNewWriteCloser(t *testing.T) {
 	w := &closedBuffer{Buffer: bytes.Buffer{}}
 	h := handler.NewWriteCloser(w, slog.NormalLevels)

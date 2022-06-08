@@ -22,7 +22,8 @@ type SLogger interface {
 type Logger struct {
 	name string
 	// lock for write logs
-	mu  sync.Mutex
+	mu sync.Mutex
+	// log latest error
 	err error
 
 	handlers   []Handler
@@ -131,7 +132,8 @@ func (l *Logger) Configure(fn func(l *Logger)) *Logger {
 // 	go slog.FlushDaemon()
 func (l *Logger) FlushDaemon() {
 	for range time.NewTicker(flushInterval).C {
-		l.lockAndFlushAll()
+		err := l.lockAndFlushAll()
+		printlnStderr("slog: daemon flush logs error: ", err)
 	}
 }
 
@@ -140,8 +142,8 @@ func (l *Logger) FlushDaemon() {
 func (l *Logger) FlushTimeout(timeout time.Duration) {
 	done := make(chan bool, 1)
 	go func() {
-		l.lockAndFlushAll()
-		// printlnStderr( "slog: flush logs error: ", err)
+		err := l.lockAndFlushAll()
+		printlnStderr("slog: flush logs error: ", err)
 
 		done <- true
 	}()
@@ -160,49 +162,51 @@ func (l *Logger) Sync() error { return Flush() }
 
 // Flush flushes all the logs and attempts to "sync" their data to disk.
 // l.mu is held.
-func (l *Logger) Flush() error {
-	l.lockAndFlushAll()
-	return nil
-}
+func (l *Logger) Flush() error { return l.lockAndFlushAll() }
 
-// MustFlush flush logs. will ignore error
-func (l *Logger) MustFlush() { l.lockAndFlushAll() }
+// MustFlush flush logs. will panic on error
+func (l *Logger) MustFlush() {
+	err := l.lockAndFlushAll()
+	if err != nil {
+		panic(err)
+	}
+}
 
 // FlushAll flushes all the logs and attempts to "sync" their data to disk.
 //
 // alias of the Flush()
-func (l *Logger) FlushAll() error {
-	l.lockAndFlushAll()
-	return nil
+func (l *Logger) FlushAll() error { return l.lockAndFlushAll() }
+
+// lockAndFlushAll is like flushAll but locks l.mu first.
+func (l *Logger) lockAndFlushAll() error {
+	l.mu.Lock()
+	l.flushAll()
+	l.mu.Unlock()
+
+	return l.err
 }
 
+// flush all without lock
 func (l *Logger) flushAll() {
 	// Flush from fatal down, in case there's trouble flushing.
-	l.VisitAll(func(handler Handler) error {
+	_ = l.VisitAll(func(handler Handler) error {
 		err := handler.Flush()
 		if err != nil {
 			l.err = err
-			printlnStderr("slog: call handler.Flush() failed. error:", err)
+			printlnStderr("slog: call handler.Flush() error:", err)
 		}
 		return nil
 	})
 }
 
-// lockAndFlushAll is like flushAll but locks l.mu first.
-func (l *Logger) lockAndFlushAll() {
-	l.mu.Lock()
-	l.flushAll()
-	l.mu.Unlock()
-}
-
 // Close the logger
 func (l *Logger) Close() error {
-	l.VisitAll(func(handler Handler) error {
+	_ = l.VisitAll(func(handler Handler) error {
 		// Flush logs and then close
 		err := handler.Close()
 		if err != nil {
 			l.err = err
-			printlnStderr("slog: call handler.Close() failed. error:", err)
+			printlnStderr("slog: call handler.Close() error:", err)
 		}
 		return nil
 	})
@@ -211,13 +215,14 @@ func (l *Logger) Close() error {
 }
 
 // VisitAll logger handlers
-func (l *Logger) VisitAll(fn func(handler Handler) error) {
+func (l *Logger) VisitAll(fn func(handler Handler) error) error {
 	for _, handler := range l.handlers {
 		// you can return nil for ignore error
 		if err := fn(handler); err != nil {
-			return
+			return err
 		}
 	}
+	return nil
 }
 
 // Reset the logger
@@ -260,6 +265,13 @@ func (l *Logger) Name() string { return l.name }
 func (l *Logger) DoNothingOnPanicFatal() {
 	l.PanicFunc = DoNothingOnPanic
 	l.ExitFunc = DoNothingOnExit
+}
+
+// LastErr fetch, will clear after read.
+func (l *Logger) LastErr() error {
+	err := l.err
+	l.err = nil
+	return err
 }
 
 //

@@ -186,3 +186,15 @@ func newLogRecord(msg string) *slog.Record {
 	r.Init(false)
 	return r
 }
+
+type closedBuffer struct {
+	bytes.Buffer
+}
+
+func (w *closedBuffer) Close() error {
+	return nil
+}
+
+func (w *closedBuffer) Flush() error {
+	return nil
+}

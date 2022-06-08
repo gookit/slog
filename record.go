@@ -259,7 +259,7 @@ func (r *Record) SetFields(fields M) *Record {
 //
 // ---------------------------------------------------------------------------
 // Add log message with builder
-// TODO r.MsgBuilder(InfoLevel).Str().Int().Float().Done()
+// TODO r.Builder(InfoLevel).Str().Int().Float().Msg()
 // ---------------------------------------------------------------------------
 //
 

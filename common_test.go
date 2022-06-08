@@ -1,10 +1,12 @@
 package slog_test
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
 
 	"github.com/gookit/goutil/dump"
+	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/slog"
 	"github.com/stretchr/testify/assert"
 )
@@ -85,4 +87,84 @@ func TestNewLvFormatter(t *testing.T) {
 	assert.True(t, lf.IsHandling(slog.ErrorLevel))
 	assert.True(t, lf.IsHandling(slog.InfoLevel))
 	assert.False(t, lf.IsHandling(slog.DebugLevel))
+}
+
+func newLogRecord(msg string) *slog.Record {
+	r := &slog.Record{
+		Channel: slog.DefaultChannelName,
+		Level:   slog.InfoLevel,
+		Message: msg,
+		Time:    slog.DefaultClockFn.Now(),
+		Data: map[string]interface{}{
+			"data_key0": "value",
+			"username":  "inhere",
+		},
+		Extra: map[string]interface{}{
+			"source":     "linux",
+			"extra_key0": "hello",
+		},
+		// Caller: stdutil.GetCallerInfo(),
+	}
+
+	r.Init(true)
+	return r
+}
+
+type closedBuffer struct {
+	bytes.Buffer
+}
+
+func newBuffer() *closedBuffer {
+	return &closedBuffer{}
+}
+
+func (w *closedBuffer) Close() error {
+	return nil
+}
+
+func (w *closedBuffer) StringReset() string {
+	s := w.Buffer.String()
+	w.Reset()
+	return s
+}
+
+type testHandler struct {
+	errOnHandle bool
+	errOnFlush  bool
+	errOnClose  bool
+}
+
+func newTestHandler() *testHandler {
+	return &testHandler{}
+}
+
+func (h testHandler) Reset() {
+	h.errOnHandle = false
+	h.errOnFlush = false
+	h.errOnClose = false
+}
+
+func (h testHandler) IsHandling(level slog.Level) bool {
+	return true
+}
+
+func (h testHandler) Close() error {
+	if h.errOnClose {
+		return errorx.Raw("close error")
+	}
+	return nil
+}
+
+func (h testHandler) Flush() error {
+	if h.errOnFlush {
+		return errorx.Raw("flush error")
+	}
+	return nil
+}
+
+func (h testHandler) Handle(record *slog.Record) error {
+	if h.errOnHandle {
+		return errorx.Raw("handle error")
+	}
+	return nil
 }

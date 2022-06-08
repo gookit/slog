@@ -29,10 +29,11 @@
   - `writer` output logs to the specified `io.Writer`
   - `file` output log to the specified file, optionally enable `buffer` to buffer writes
   - `simple` output log to the specified file, write directly to the file without buffering
-  - `rotate_file` outputs logs to the specified file, and supports splitting files by time and size at the same time, and `buffer` buffered writing is enabled by default
+  - `rotate_file` outputs logs to the specified file, and supports splitting files by time and size, and `buffer` buffered writing is enabled by default
   - See ./handler folder for more built-in implementations
 - Output logs to file
-  - Support splitting files by time and size at the same time
+  - Support enabling buffers for log writing
+  - Support splitting log files by time and size
   - Support configuration to compress log files via gzip
   - Support clean old log files by `BackupNum` `BackupTime`
 

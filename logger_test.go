@@ -82,6 +82,37 @@ func TestLogger_Log(t *testing.T) {
 	l.WithTime(timex.NowHourStart()).Panicln("a panic message")
 }
 
+func TestLogger_panic(t *testing.T) {
+	h := newTestHandler()
+	h.errOnFlush = true
+
+	l := slog.NewWithHandlers(h)
+
+	assert.Panics(t, func() {
+		l.MustFlush()
+	})
+
+	err := l.LastErr()
+	assert.Error(t, err)
+	assert.Equal(t, "flush error", err.Error())
+}
+
+func TestLogger_error(t *testing.T) {
+	h := newTestHandler()
+	l := slog.NewWithHandlers(h)
+
+	err := l.VisitAll(func(h slog.Handler) error {
+		return errorx.Raw("visit error")
+	})
+	assert.Error(t, err)
+	assert.Equal(t, "visit error", err.Error())
+
+	h.errOnClose = true
+	err = l.Close()
+	assert.Error(t, err)
+	assert.Equal(t, "close error", err.Error())
+}
+
 func TestLogger_panicLevel(t *testing.T) {
 	w := new(bytes.Buffer)
 	l := slog.NewWithHandlers(handler.NewIOWriter(w, slog.AllLevels))
@@ -163,22 +194,4 @@ func printfAllLevelLogs(l gsr.Logger, tpl string, args ...interface{}) {
 		sl.Noticef(tpl, args...)
 		sl.Tracef(tpl, args...)
 	}
-}
-
-type buffer struct {
-	bytes.Buffer
-}
-
-func newBuffer() *buffer {
-	return &buffer{}
-}
-
-func (w *buffer) Close() error {
-	return nil
-}
-
-func (w *buffer) StringReset() string {
-	s := w.Buffer.String()
-	w.Reset()
-	return s
 }
