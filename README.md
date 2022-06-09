@@ -526,15 +526,23 @@ type Config struct {
 	UseJSON bool `json:"use_json" yaml:"use_json"`
 	// BuffMode type name. allow: line, bite
 	BuffMode string `json:"buff_mode" yaml:"buff_mode"`
-	// BuffSize for enable buffer. set 0 to disable buffer
+	// BuffSize for enable buffer, unit is bytes. set 0 to disable buffer
 	BuffSize int `json:"buff_size" yaml:"buff_size"`
-	// RotateTime for rotate file
+	// RotateTime for rotate file, unit is seconds.
 	RotateTime rotatefile.RotateTime `json:"rotate_time" yaml:"rotate_time"`
-	// MaxSize on rotate file by size.
+	// MaxSize on rotate file by size, unit is bytes.
 	MaxSize uint64 `json:"max_size" yaml:"max_size"`
 	// Compress determines if the rotated log files should be compressed using gzip.
 	// The default is not to perform compression.
 	Compress bool `json:"compress" yaml:"compress"`
+	// BackupNum max number for keep old files.
+	// 0 is not limit, default is 20.
+	BackupNum uint `json:"backup_num" yaml:"backup_num"`
+	// BackupTime max time for keep old files.
+	// 0 is not limit, default is a week.
+	//
+	// unit is hours
+	BackupTime uint `json:"backup_time" yaml:"backup_time"`
 	// RenameFunc build filename for rotate file
 	RenameFunc func(filepath string, rotateNum uint) string
 }

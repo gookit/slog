@@ -37,7 +37,6 @@
   - 支持配置通过gzip压缩日志文件
   - 支持清理旧日志文件 配置: `BackupNum` `BackupTime`
 
-
 > NEW: `v0.3.0` 废弃原来实现的纷乱的各种handler,统一抽象为
 > `FlushCloseHandler` `SyncCloseHandler` `WriteCloserHandler` `IOWriterHandler` 
 > 几个支持不同类型writer的处理器。让构建自定义 Handler 更加简单，内置的handlers也基本上由它们组成。
@@ -512,6 +511,20 @@ size-rotate-file.log.122915_00001
 size-rotate-file.log.122915_00002
 ```
 
+启用gzip压缩旧的日志文件:
+
+```go
+	h1 := handler.MustRotateFile("/tmp/error.log", handler.EveryHour, 
+		handler.WithLogLevels(slog.DangerLevels),
+		handler.WithCompress(true),
+	)
+```
+
+```text
+size-rotate-file.log.122915_00001.gz
+size-rotate-file.log.122915_00002.gz
+```
+
 ### 根据配置快速创建Handler实例
 
 ```go
@@ -523,17 +536,23 @@ type Config struct {
 	Levels []slog.Level `json:"levels" yaml:"levels"`
 	// UseJSON for format logs
 	UseJSON bool `json:"use_json" yaml:"use_json"`
-	// BuffMode type name. allow: line, bite
+	// BuffMode buffer缓冲模式. allow: line, bite
 	BuffMode string `json:"buff_mode" yaml:"buff_mode"`
-	// BuffSize for enable buffer. set 0 to disable buffer
+	// BuffSize 启用缓冲区，单位是字节。设置 0 以禁用缓冲
 	BuffSize int `json:"buff_size" yaml:"buff_size"`
-	// RotateTime for rotate file
+	// RotateTime 用于按时间切割文件，单位是秒。
 	RotateTime rotatefile.RotateTime `json:"rotate_time" yaml:"rotate_time"`
-	// MaxSize on rotate file by size.
+	// MaxSize 用于按大小旋转文件，单位是字节。
 	MaxSize uint64 `json:"max_size" yaml:"max_size"`
-	// Compress determines if the rotated log files should be compressed using gzip.
+	// Compress 确定是否应使用 gzip 压缩旋转的日志文件。
 	// The default is not to perform compression.
 	Compress bool `json:"compress" yaml:"compress"`
+	// BackupNum 保留旧文件的最大数量。
+	// 0 不限制，默认为 20。
+	BackupNum uint `json:"backup_num" yaml:"backup_num"`
+	// BackupTime 保留旧文件的最长时间。单位是小时
+	// 0 不进行清理，默认为一周。
+	BackupTime uint `json:"backup_time" yaml:"backup_time"`
 	// RenameFunc build filename for rotate file
 	RenameFunc func(filepath string, rotateNum uint) string
 }
