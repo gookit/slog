@@ -5,24 +5,43 @@ import (
 	"time"
 )
 
-// CConfig struct for clean
+// CConfig struct for clean files
 type CConfig struct {
 	// BackupNum max number for keep old files.
 	// 0 is not limit, default is 20.
 	BackupNum uint `json:"backup_num" yaml:"backup_num"`
 
-	// BackupTime max time for keep old files.
-	// 0 is not limit, default is a week.
+	// BackupTime max time for keep old files, unit is hours.
 	//
-	// unit is hours
+	// 0 is not limit, default is a week.
 	BackupTime uint `json:"backup_time" yaml:"backup_time"`
 
 	// Compress determines if the rotated log files should be compressed
 	// using gzip. The default is not to perform compression.
 	Compress bool `json:"compress" yaml:"compress"`
 
-	// TimeClock for rotate
+	// FileDirs list
+	FileDirs []string `json:"file_dirs" yaml:"file_dirs"`
+
+	// TimeClock for clean files
 	TimeClock Clocker
+
+	// skip error
+	// TODO skipError bool
+}
+
+// AddFileDir for clean
+func (c *CConfig) AddFileDir(dirs ...string) *CConfig {
+	c.FileDirs = append(c.FileDirs, dirs...)
+	return c
+}
+
+// NewCConfig instance
+func NewCConfig() *CConfig {
+	return &CConfig{
+		BackupNum:  DefaultBackNum,
+		BackupTime: DefaultBackTime,
+	}
 }
 
 // FilesClear multi files by time. TODO
@@ -35,17 +54,25 @@ type FilesClear struct {
 	filepathDirs []string
 	// full file path patterns
 	filePatterns []string
-	// file max backup time. equals Config.BackupTime * time.Hour
+	// file max backup time. equals CConfig.BackupTime * time.Hour
 	backupDur time.Duration
-	// skip error
-	// TODO skipError bool
 }
 
-// NewCleanFiles instance
-func NewCleanFiles(cfg *CConfig) *FilesClear {
+// NewFilesClear instance
+func NewFilesClear(cfg *CConfig) *FilesClear {
+	if cfg == nil {
+		cfg = NewCConfig()
+	}
+
 	return &FilesClear{
 		cfg: cfg,
 	}
+}
+
+// WithConfigFn for custom settings
+func (r *FilesClear) WithConfigFn(fn func(c *CConfig)) *FilesClear {
+	fn(r.cfg)
+	return r
 }
 
 //
@@ -54,7 +81,7 @@ func NewCleanFiles(cfg *CConfig) *FilesClear {
 // ---------------------------------------------------------------------------
 //
 
-const flushInterval = 30 * time.Second
+const flushInterval = 60 * time.Second
 
 // DaemonClean daemon clean old files by config
 func (r *FilesClear) DaemonClean() {

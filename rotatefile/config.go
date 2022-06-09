@@ -162,13 +162,13 @@ type Config struct {
 	CloseLock bool `json:"close_lock" yaml:"close_lock"`
 
 	// BackupNum max number for keep old files.
-	// 0 is not limit, default is 20.
+	//
+	// 0 is not limit, default is DefaultBackNum
 	BackupNum uint `json:"backup_num" yaml:"backup_num"`
 
-	// BackupTime max time for keep old files.
-	// 0 is not limit, default is a week.
+	// BackupTime max time for keep old files, unit is hours.
 	//
-	// unit is hours
+	// 0 is not limit, default is DefaultBackTime
 	BackupTime uint `json:"backup_time" yaml:"backup_time"`
 
 	// Compress determines if the rotated log files should be compressed using gzip.
@@ -179,12 +179,6 @@ type Config struct {
 	//
 	// default see DefaultFilenameFn
 	RenameFunc func(filePath string, rotateNum uint) string
-
-	// AfterFunc hook func. It will fire when rotating the file is done.
-	//
-	// TIP: Please do not do time-consuming operations in it.
-	// It is recommended to use the go keyword to call logic in it.
-	// AfterFunc func(bakFilePath string)
 
 	// TimeClock for rotate
 	TimeClock Clocker
@@ -208,9 +202,7 @@ func (c *Config) With(fns ...ConfigFn) *Config {
 }
 
 // Create new Writer by config
-func (c *Config) Create() (*Writer, error) {
-	return NewWriter(c)
-}
+func (c *Config) Create() (*Writer, error) { return NewWriter(c) }
 
 const (
 	// OneMByte size
@@ -248,9 +240,9 @@ var (
 func NewDefaultConfig() *Config {
 	return &Config{
 		MaxSize:    DefaultMaxSize,
+		RotateTime: EveryHour,
 		BackupNum:  DefaultBackNum,
 		BackupTime: DefaultBackTime,
-		RotateTime: EveryHour,
 		RenameFunc: DefaultFilenameFn,
 		TimeClock:  DefaultTimeClockFn,
 	}

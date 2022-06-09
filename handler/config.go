@@ -23,23 +23,64 @@ type ConfigFn func(c *Config)
 type Config struct {
 	// Logfile for write logs
 	Logfile string `json:"logfile" yaml:"logfile"`
+
 	// Levels for log record
 	Levels []slog.Level `json:"levels" yaml:"levels"`
+
 	// UseJSON for format logs
 	UseJSON bool `json:"use_json" yaml:"use_json"`
+
 	// BuffMode type name. allow: line, bite
 	BuffMode string `json:"buff_mode" yaml:"buff_mode"`
-	// BuffSize for enable buffer. set 0 to disable buffer
+
+	// BuffSize for enable buffer, unit is bytes. set 0 to disable buffer
 	BuffSize int `json:"buff_size" yaml:"buff_size"`
-	// RotateTime for rotate file
+
+	// RotateTime for rotate file, unit is seconds.
 	RotateTime rotatefile.RotateTime `json:"rotate_time" yaml:"rotate_time"`
-	// MaxSize on rotate file by size.
+
+	// MaxSize on rotate file by size, unit is bytes.
 	MaxSize uint64 `json:"max_size" yaml:"max_size"`
+
 	// Compress determines if the rotated log files should be compressed using gzip.
 	// The default is not to perform compression.
 	Compress bool `json:"compress" yaml:"compress"`
+
+	// BackupNum max number for keep old files.
+	//
+	// 0 is not limit, default is 20.
+	BackupNum uint `json:"backup_num" yaml:"backup_num"`
+
+	// BackupTime max time for keep old files, unit is hours.
+	//
+	// 0 is not limit, default is a week.
+	BackupTime uint `json:"backup_time" yaml:"backup_time"`
+
 	// RenameFunc build filename for rotate file
 	RenameFunc func(filepath string, rotateNum uint) string
+}
+
+// NewEmptyConfig new config instance
+func NewEmptyConfig(fns ...ConfigFn) *Config {
+	c := &Config{Levels: slog.AllLevels}
+	return c.With(fns...)
+}
+
+// NewConfig new config instance with some default settings.
+func NewConfig(fns ...ConfigFn) *Config {
+	c := &Config{
+		Levels:   slog.AllLevels,
+		BuffMode: BuffModeLine,
+		BuffSize: DefaultBufferSize,
+		// rotate file settings
+		MaxSize:    rotatefile.DefaultMaxSize,
+		RotateTime: rotatefile.EveryHour,
+		// old files clean settings
+		BackupNum:  rotatefile.DefaultBackNum,
+		BackupTime: rotatefile.DefaultBackTime,
+	}
+
+	return c.With(fns...)
 }
 
 // With more config settings func
@@ -86,13 +127,17 @@ func (c *Config) CreateWriter() (output SyncCloseWriter, err error) {
 
 	// create a rotate config.
 	if c.MaxSize > 0 || c.RotateTime > 0 {
-		rc := rotatefile.NewConfig(c.Logfile)
-		rc.MaxSize = c.MaxSize
+		rc := rotatefile.EmptyConfigWith()
 
 		// has locked on logger.write()
 		rc.CloseLock = true
-		rc.Compress = c.Compress
+		rc.Filepath = c.Logfile
+		// copy settings
+		rc.MaxSize = c.MaxSize
 		rc.RotateTime = c.RotateTime
+		rc.BackupNum = c.BackupNum
+		rc.BackupTime = c.BackupTime
+		rc.Compress = c.Compress
 
 		if c.RenameFunc != nil {
 			rc.RenameFunc = c.RenameFunc
@@ -132,28 +177,6 @@ func (c *Config) wrapBuffer(w io.Writer) (bw flushSyncCloseWriter) {
 		bw = bufwrite.NewBufIOWriterSize(w, c.BuffSize)
 	}
 	return bw
-}
-
-// NewEmptyConfig new config instance
-func NewEmptyConfig(fns ...ConfigFn) *Config {
-	c := &Config{
-		Levels: slog.AllLevels,
-	}
-	return c.With(fns...)
-}
-
-// NewConfig new config instance with some default settings.
-func NewConfig(fns ...ConfigFn) *Config {
-	c := &Config{
-		Levels:   slog.AllLevels,
-		MaxSize:  rotatefile.DefaultMaxSize,
-		BuffMode: BuffModeLine,
-		BuffSize: DefaultBufferSize,
-		// time rotate settings
-		RotateTime: rotatefile.EveryHour,
-	}
-
-	return c.With(fns...)
 }
 
 // WithLogfile setting

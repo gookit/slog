@@ -28,6 +28,13 @@ func TestNewConfig(t *testing.T) {
 	assert.Equal(t, rotatefile.DefaultMaxSize, cfg.MaxSize)
 
 	dump.P(cfg)
+
+	cfg = rotatefile.EmptyConfigWith(func(c *rotatefile.Config) {
+		c.Compress = true
+	})
+	assert.True(t, cfg.Compress)
+	assert.Equal(t, 0, cfg.BackupNum)
+	assert.Equal(t, 0, cfg.BackupTime)
 }
 
 func TestRotateTime_String(t *testing.T) {
