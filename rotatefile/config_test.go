@@ -33,8 +33,8 @@ func TestNewConfig(t *testing.T) {
 		c.Compress = true
 	})
 	assert.True(t, cfg.Compress)
-	assert.Equal(t, 0, cfg.BackupNum)
-	assert.Equal(t, 0, cfg.BackupTime)
+	assert.Equal(t, uint(0), cfg.BackupNum)
+	assert.Equal(t, uint(0), cfg.BackupTime)
 }
 
 func TestRotateTime_String(t *testing.T) {
