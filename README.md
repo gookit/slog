@@ -32,9 +32,9 @@
   - `rotate_file` outputs logs to the specified file, and supports splitting files by time and size, and `buffer` buffered writing is enabled by default
   - See ./handler folder for more built-in implementations
 - Output logs to file
-  - Support enabling buffers for log writing
-  - Support splitting log files by time and size
-  - Support configuration to compress log files via gzip
+  - Support enabling `buffer` for log writing
+  - Support splitting log files by `time` and `size`
+  - Support configuration to compress log files via `gzip`
   - Support clean old log files by `BackupNum` `BackupTime`
 
 > NEW: `v0.3.0` discards the various handlers that were originally implemented, and the unified abstraction is

@@ -4,7 +4,8 @@ go 1.17
 
 require (
 	github.com/golang/glog v1.0.0
-	github.com/gookit/slog v0.3.1
+	github.com/gookit/goutil v0.5.2
+	github.com/gookit/slog v0.3.2
 	github.com/phuslu/log v1.0.67
 	github.com/rs/zerolog v1.26.1
 	github.com/sirupsen/logrus v1.8.1
@@ -14,7 +15,6 @@ require (
 
 require (
 	github.com/gookit/color v1.5.0 // indirect
-	github.com/gookit/goutil v0.5.2 // indirect
 	github.com/gookit/gsr v0.0.7 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
