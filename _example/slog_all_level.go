@@ -15,7 +15,7 @@ func main() {
 	})
 
 	l.AddHandler(handler.NewConsoleHandler(slog.AllLevels))
-	printAllLevel(l, "this a", "log", "message")
+	printAllLevel(l, "this is a", "log", "message")
 }
 
 func printAllLevel(l *slog.Logger, args ...interface{}) {

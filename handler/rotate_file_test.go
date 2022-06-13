@@ -125,7 +125,7 @@ func TestNewTimeRotateFileHandler_EveryHour(t *testing.T) {
 	assert.NoError(t, fsutil.DeleteIfExist(logfile))
 
 	hourStart := timex.Now().HourStart()
-	newFile := logfile + hourStart.DateFormat(".YMD_H00")
+	newFile := logfile + hourStart.DateFormat(".Ymd_H00")
 	assert.NoError(t, fsutil.DeleteIfFileExist(newFile))
 
 	sec := -2
