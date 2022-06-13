@@ -122,7 +122,7 @@ func (c *Config) RotateWriter() (output SyncCloseWriter, err error) {
 // CreateWriter build writer by config
 func (c *Config) CreateWriter() (output SyncCloseWriter, err error) {
 	if c.Logfile == "" {
-		return nil, errorx.Raw("slog: logfile cannot be emtpy for create writer")
+		return nil, errorx.Raw("slog: logfile cannot be empty for create writer")
 	}
 
 	// create a rotate config.

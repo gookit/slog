@@ -138,11 +138,11 @@ func newTestHandler() *testHandler {
 	return &testHandler{}
 }
 
-func (h testHandler) Reset() {
-	h.errOnHandle = false
-	h.errOnFlush = false
-	h.errOnClose = false
-}
+// func (h testHandler) Reset() {
+// 	h.errOnHandle = false
+// 	h.errOnFlush = false
+// 	h.errOnClose = false
+// }
 
 func (h testHandler) IsHandling(level slog.Level) bool {
 	return true

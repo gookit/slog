@@ -24,11 +24,8 @@ func printAllLevel(l *slog.Logger, args ...interface{}) {
 	l.Warn(args...)
 	l.Error(args...)
 	l.Print(args...)
-	l.Println(args...)
 	l.Fatal(args...)
-	l.Fatalln(args...)
 	l.Panic(args...)
-	l.Panicln(args...)
 
 	l.Trace(args...)
 	l.Notice(args...)
