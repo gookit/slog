@@ -186,6 +186,13 @@ func WithLogfile(logfile string) ConfigFn {
 	}
 }
 
+// WithLogLevels setting
+func WithLogLevels(levels slog.Levels) ConfigFn {
+	return func(c *Config) {
+		c.Levels = levels
+	}
+}
+
 // WithRotateTime setting
 func WithRotateTime(rt rotatefile.RotateTime) ConfigFn {
 	return func(c *Config) {
@@ -200,13 +207,6 @@ func WithBuffMode(buffMode string) ConfigFn {
 	}
 }
 
-// WithCompress setting
-func WithCompress(compress bool) ConfigFn {
-	return func(c *Config) {
-		c.Compress = compress
-	}
-}
-
 // WithBuffSize setting
 func WithBuffSize(buffSize int) ConfigFn {
 	return func(c *Config) {
@@ -215,9 +215,16 @@ func WithBuffSize(buffSize int) ConfigFn {
 }
 
 // WithMaxSize setting
-func WithMaxSize(maxSize int) ConfigFn {
+func WithMaxSize(maxSize uint64) ConfigFn {
 	return func(c *Config) {
-		c.MaxSize = uint64(maxSize)
+		c.MaxSize = maxSize
+	}
+}
+
+// WithCompress setting
+func WithCompress(compress bool) ConfigFn {
+	return func(c *Config) {
+		c.Compress = compress
 	}
 }
 
@@ -228,12 +235,11 @@ func WithUseJSON(useJSON bool) ConfigFn {
 	}
 }
 
-// WithLogLevels setting
-func WithLogLevels(levels slog.Levels) ConfigFn {
-	return func(c *Config) {
-		c.Levels = levels
-	}
-}
+//
+// ---------------------------------------------------------------------------
+// handler builder
+// ---------------------------------------------------------------------------
+//
 
 // Builder struct for create handler
 type Builder struct {
@@ -257,6 +263,54 @@ func (b *Builder) WithOutput(w io.Writer) *Builder {
 // With some config fn
 func (b *Builder) With(fns ...ConfigFn) *Builder {
 	b.Config.With(fns...)
+	return b
+}
+
+// WithLogfile setting
+func (b *Builder) WithLogfile(logfile string) *Builder {
+	b.Logfile = logfile
+	return b
+}
+
+// WithLogLevels setting
+func (b *Builder) WithLogLevels(levels []slog.Level) *Builder {
+	b.Levels = levels
+	return b
+}
+
+// WithBuffMode setting
+func (b *Builder) WithBuffMode(bufMode string) *Builder {
+	b.BuffMode = bufMode
+	return b
+}
+
+// WithBuffSize setting
+func (b *Builder) WithBuffSize(bufSize int) *Builder {
+	b.BuffSize = bufSize
+	return b
+}
+
+// WithMaxSize setting
+func (b *Builder) WithMaxSize(maxSize uint64) *Builder {
+	b.MaxSize = maxSize
+	return b
+}
+
+// WithRotateTime setting
+func (b *Builder) WithRotateTime(rt rotatefile.RotateTime) *Builder {
+	b.RotateTime = rt
+	return b
+}
+
+// WithCompress setting
+func (b *Builder) WithCompress(compress bool) *Builder {
+	b.Compress = compress
+	return b
+}
+
+// WithUseJSON setting
+func (b *Builder) WithUseJSON(useJSON bool) *Builder {
+	b.UseJSON = useJSON
 	return b
 }
 

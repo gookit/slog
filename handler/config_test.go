@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/gookit/goutil/fmtutil"
 	"github.com/gookit/goutil/fsutil"
+	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
+	"github.com/gookit/slog/rotatefile"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,20 +25,29 @@ func TestNewBuilder(t *testing.T) {
 	testFile := "testdata/builder.log"
 	assert.NoError(t, fsutil.DeleteIfFileExist(testFile))
 
-	h := handler.NewBuilder().
-		With(
-			handler.WithLogfile(testFile),
-			handler.WithBuffSize(128),
-			handler.WithBuffMode(handler.BuffModeBite),
-			handler.WithCompress(true),
-		).
-		Build()
+	b := handler.NewBuilder().
+		WithLogfile(testFile).
+		WithLogLevels(slog.AllLevels).
+		WithBuffSize(128).
+		WithBuffMode(handler.BuffModeBite).
+		WithMaxSize(fmtutil.OneMByte * 3).
+		WithRotateTime(rotatefile.Every30Min).
+		WithCompress(true).
+		With(func(c *handler.Config) {
+			c.BackupNum = 3
+		})
+
+	assert.Equal(t, uint(3), b.BackupNum)
+	assert.Equal(t, handler.BuffModeBite, b.BuffMode)
+	assert.Equal(t, rotatefile.Every30Min, b.RotateTime)
+
+	h := b.Build()
 	assert.NotNil(t, h)
 	assert.NoError(t, h.Close())
 
 	h2 := handler.NewBuilder().
 		WithOutput(new(bytes.Buffer)).
-		With(handler.WithUseJSON(true)).
+		WithUseJSON(true).
 		Build()
 	assert.NotNil(t, h2)
 

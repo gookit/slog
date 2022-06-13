@@ -61,7 +61,7 @@ func NewSizeRotateFile(logfile string, maxSize int, fns ...ConfigFn) (*SyncClose
 // NewSizeRotateFileHandler instance
 func NewSizeRotateFileHandler(logfile string, maxSize int, fns ...ConfigFn) (*SyncCloseHandler, error) {
 	// close rotate by time.
-	fns = append(fns, WithMaxSize(maxSize))
+	fns = append(fns, WithMaxSize(uint64(maxSize)))
 
 	return NewRotateFileHandler(logfile, 0, fns...)
 }

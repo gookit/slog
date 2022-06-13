@@ -31,11 +31,13 @@
   - `simple` output log to the specified file, write directly to the file without buffering
   - `rotate_file` outputs logs to the specified file, and supports splitting files by time and size, and `buffer` buffered writing is enabled by default
   - See ./handler folder for more built-in implementations
-- Output logs to file
-  - Support enabling `buffer` for log writing
-  - Support splitting log files by `time` and `size`
-  - Support configuration to compress log files via `gzip`
-  - Support clean old log files by `BackupNum` `BackupTime`
+
+### Output logs to file
+
+- Support enabling `buffer` for log writing
+- Support splitting log files by `time` and `size`
+- Support configuration to compress log files via `gzip`
+- Support clean old log files by `BackupNum` `BackupTime`
 
 > NEW: `v0.3.0` discards the various handlers that were originally implemented, and the unified abstraction is
 > `FlushCloseHandler` `SyncCloseHandler` `WriteCloserHandler` `IOWriterHandler`
@@ -513,7 +515,9 @@ size-rotate-file.log.122915_00001
 size-rotate-file.log.122915_00002
 ```
 
-### Quickly create a Handler instance based on config
+### Quickly create a Handler based on config
+
+This is config struct for create a Handler:
 
 ```go
 // Config struct
@@ -565,18 +569,19 @@ type Config struct {
 	l := slog.NewWithHandlers(h)
 ```
 
-### Use Builder to quickly create Handler instances
+### Use Builder to quickly create Handler
+
+Use `handler.Builder` to easily and quickly create Handler instances.
 
 ```go
 	testFile := "testdata/info.log"
 
 	h := handler.NewBuilder().
-		With(
-			handler.WithLogfile(testFile),
-			handler.WithBuffSize(1024*8),
-			handler.WithLogLevels(slog.NormalLevels),
-			handler.WithBuffMode(handler.BuffModeBite),
-		).
+		WithLogfile(testFile).
+		WithLogLevels(slog.NormalLevels).
+		WithBuffSize(1024*8).
+		WithLogLevels(slog.NormalLevels).
+		WithBuffMode(handler.BuffModeBite).
 		Build()
 	
 	l := slog.NewWithHandlers(h)

@@ -31,11 +31,13 @@
   - `simple` 输出日志到指定文件，无缓冲直接写入文件
   - `rotate_file` 输出日志到指定文件，并且同时支持按时间、按大小分割文件，默认启用 `buffer` 缓冲写入
   - 更多内置实现请查看 ./handler 文件夹
-- 输出日志到指定文件
-  - 支持启用 `buffer` 缓冲日志写入
-  - 支持按时间、按大小自动分割文件
-  - 支持配置通过 `gzip` 压缩日志文件
-  - 支持清理旧日志文件 配置: `BackupNum` `BackupTime`
+
+### 输出日志到文件
+
+- 支持启用 `buffer` 缓冲日志写入
+- 支持按时间、按大小自动分割文件
+- 支持配置通过 `gzip` 压缩日志文件
+- 支持清理旧日志文件 配置: `BackupNum` `BackupTime`
 
 > NEW: `v0.3.0` 废弃原来实现的纷乱的各种handler,统一抽象为
 > `FlushCloseHandler` `SyncCloseHandler` `WriteCloserHandler` `IOWriterHandler` 
@@ -577,16 +579,17 @@ type Config struct {
 
 ### 使用Builder快速创建Handler实例
 
+使用 `handler.Builder` 可以方便快速的创建Handler实例。
+
 ```go
 	testFile := "testdata/info.log"
 
 	h := handler.NewBuilder().
-		With(
-			handler.WithLogfile(testFile),
-			handler.WithBuffSize(1024*8),
-			handler.WithLogLevels(slog.NormalLevels),
-			handler.WithBuffMode(handler.BuffModeBite),
-		).
+		WithLogfile(testFile).
+		WithLogLevels(slog.NormalLevels).
+		WithBuffSize(1024*8).
+		WithLogLevels(slog.NormalLevels).
+		WithBuffMode(handler.BuffModeBite).
 		Build()
 	
 	l := slog.NewWithHandlers(h)
