@@ -78,7 +78,7 @@ func TestNewSizeRotateFileHandler(t *testing.T) {
 func TestNewTimeRotateFileHandler_EveryDay(t *testing.T) {
 	logfile := "./testdata/time-rotate_EveryDay.log"
 	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
-	newFile := logfile + timex.Now().DateFormat(".YMD")
+	newFile := logfile + timex.Now().DateFormat(".Ymd")
 	assert.NoError(t, fsutil.DeleteIfFileExist(newFile))
 
 	sec := -2
