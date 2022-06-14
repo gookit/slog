@@ -580,10 +580,11 @@ Use `handler.Builder` to easily and quickly create Handler instances.
 		WithLogfile(testFile).
 		WithLogLevels(slog.NormalLevels).
 		WithBuffSize(1024*8).
-		WithLogLevels(slog.NormalLevels).
 		WithBuffMode(handler.BuffModeBite).
+		WithRotateTime(rotatefile.Every30Min).
+		WithCompress(true).
 		Build()
-	
+
 	l := slog.NewWithHandlers(h)
 ```
 
