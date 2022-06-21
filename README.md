@@ -463,10 +463,10 @@ import (
 func main() {
 	defer slog.MustFlush()
 
-	// DangerLevels 包含： slog.PanicLevel, slog.ErrorLevel, slog.WarnLevel
+	// DangerLevels contains: slog.PanicLevel, slog.ErrorLevel, slog.WarnLevel
 	h1 := handler.MustFileHandler("/tmp/error.log", handler.WithLogLevels(slog.DangerLevels))
 
-	// NormalLevels 包含： slog.InfoLevel, slog.NoticeLevel, slog.DebugLevel, slog.TraceLevel
+	// NormalLevels contains: slog.InfoLevel, slog.NoticeLevel, slog.DebugLevel, slog.TraceLevel
 	h2 := handler.MustFileHandler("/tmp/info.log", handler.WithLogLevels(slog.NormalLevels))
 
 	slog.PushHandler(h1)
@@ -511,8 +511,8 @@ Example of a filename cut by size, in the format `filename.log.HIS_000N`. For ex
 
 ```text
 size-rotate-file.log
-size-rotate-file.log.122915_00001
-size-rotate-file.log.122915_00002
+size-rotate-file.log.122915_0001
+size-rotate-file.log.122915_0002
 ```
 
 ### Quickly create a Handler based on config
@@ -542,10 +542,8 @@ type Config struct {
 	// BackupNum max number for keep old files.
 	// 0 is not limit, default is 20.
 	BackupNum uint `json:"backup_num" yaml:"backup_num"`
-	// BackupTime max time for keep old files.
+	// BackupTime max time for keep old files. unit is hours
 	// 0 is not limit, default is a week.
-	//
-	// unit is hours
 	BackupTime uint `json:"backup_time" yaml:"backup_time"`
 	// RenameFunc build filename for rotate file
 	RenameFunc func(filepath string, rotateNum uint) string
