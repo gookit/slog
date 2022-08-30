@@ -4,8 +4,8 @@ github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/gookit/color v1.5.1/go.mod h1:wZFzea4X8qN6vHOSP2apMb4/+w/orMznEzYsIHPaqKM=
 github.com/gookit/color v1.5.2 h1:uLnfXcaFjlrDnQDT+NCBcfhrXqYTx/rcCa6xn01Y8yI=
 github.com/gookit/color v1.5.2/go.mod h1:w8h4bGiHeeBpvQVePTutdbERIUf3oJE5lZ8HM0UgXyg=
-github.com/gookit/goutil v0.5.9 h1:DBaSHaealbqxLWEZrEt/vqnPKiJHLQJau9dbcFQG/ng=
-github.com/gookit/goutil v0.5.9/go.mod h1:iZLXpRhMqKGvKtJ9+b0cdls2gXRH4HaGWQfkf2mdHRQ=
+github.com/gookit/goutil v0.5.10 h1:tKvo3LzE6j8vTXizQoPvZq9jt4VrVriuD5lQMbQbhH4=
+github.com/gookit/goutil v0.5.10/go.mod h1:rZCjNKf63zWuD5N0vyn6718utvN9m2uT0jsHBV66hAU=
 github.com/gookit/gsr v0.0.8 h1:zmkRYe4irObBAskD9UlZCRf8j5VwhhntlYQaSjrrUQk=
 github.com/gookit/gsr v0.0.8/go.mod h1:Q3CLTuluDDyk9/Du6xM721lG9/LQ3ywZde9bjmHyWA8=
 github.com/mattn/go-isatty v0.0.16 h1:bq3VjFmv/sOjHtdEhmkEV4x1AJtvUvOJ2PFAZ5+peKQ=
