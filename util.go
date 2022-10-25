@@ -73,7 +73,7 @@ func formatCaller(rf *runtime.Frame, flag uint8) (cs string) {
 }
 
 // it like Println, will add spaces for each argument
-func formatArgsWithSpaces(vs []interface{}) string {
+func formatArgsWithSpaces(vs []any) string {
 	ln := len(vs)
 	if ln == 0 {
 		return ""
@@ -107,15 +107,15 @@ func formatArgsWithSpaces(vs []interface{}) string {
 }
 
 // EncodeToString data to string
-func EncodeToString(v interface{}) string {
-	if mp, ok := v.(map[string]interface{}); ok {
+func EncodeToString(v any) string {
+	if mp, ok := v.(map[string]any); ok {
 		return mapToString(mp)
 	}
 
 	return stdutil.ToString(v)
 }
 
-func mapToString(mp map[string]interface{}) string {
+func mapToString(mp map[string]any) string {
 	ln := len(mp)
 	if ln == 0 {
 		return "{}"
@@ -159,6 +159,6 @@ func parseTemplateToFields(tplStr string) []string {
 	return vars
 }
 
-func printlnStderr(args ...interface{}) {
+func printlnStderr(args ...any) {
 	_, _ = fmt.Fprintln(os.Stderr, args...)
 }

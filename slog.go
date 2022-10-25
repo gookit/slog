@@ -21,7 +21,6 @@ Quick usage:
 	}
 
 More usage please see README.
-
 */
 package slog
 
@@ -85,7 +84,8 @@ func FlushTimeout(timeout time.Duration) { std.FlushTimeout(timeout) }
 // FlushDaemon run flush handle on daemon
 //
 // Usage:
-// 	go slog.FlushDaemon()
+//
+//	go slog.FlushDaemon()
 func FlushDaemon() { std.FlushDaemon() }
 
 // SetLogLevel for the std logger
@@ -130,107 +130,107 @@ func WithFields(fields M) *Record {
 // -------------------------- Add log messages with level -----------------------------
 
 // Print logs a message at level PrintLevel
-func Print(args ...interface{}) { std.log(PrintLevel, args) }
+func Print(args ...any) { std.log(PrintLevel, args) }
 
 // Println logs a message at level PrintLevel
-func Println(args ...interface{}) { std.log(PrintLevel, args) }
+func Println(args ...any) { std.log(PrintLevel, args) }
 
 // Printf logs a message at level PrintLevel
-func Printf(format string, args ...interface{}) { std.logf(PrintLevel, format, args) }
+func Printf(format string, args ...any) { std.logf(PrintLevel, format, args) }
 
 // Trace logs a message at level Trace
-func Trace(args ...interface{}) { std.log(TraceLevel, args) }
+func Trace(args ...any) { std.log(TraceLevel, args) }
 
 // Tracef logs a message at level Trace
-func Tracef(format string, args ...interface{}) { std.logf(TraceLevel, format, args) }
+func Tracef(format string, args ...any) { std.logf(TraceLevel, format, args) }
 
 // Info logs a message at level Info
-func Info(args ...interface{}) {
+func Info(args ...any) {
 	std.log(InfoLevel, args)
 }
 
 // Infof logs a message at level Info
-func Infof(format string, args ...interface{}) {
+func Infof(format string, args ...any) {
 	std.logf(InfoLevel, format, args)
 }
 
 // Notice logs a message at level Notice
-func Notice(args ...interface{}) {
+func Notice(args ...any) {
 	std.log(NoticeLevel, args)
 }
 
 // Noticef logs a message at level Notice
-func Noticef(format string, args ...interface{}) {
+func Noticef(format string, args ...any) {
 	std.logf(NoticeLevel, format, args)
 }
 
 // Warn logs a message at level Warn
-func Warn(args ...interface{}) {
+func Warn(args ...any) {
 	std.log(WarnLevel, args)
 }
 
 // Warnf logs a message at level Warn
-func Warnf(format string, args ...interface{}) {
+func Warnf(format string, args ...any) {
 	std.logf(WarnLevel, format, args)
 }
 
 // Error logs a message at level Error
-func Error(args ...interface{}) {
+func Error(args ...any) {
 	std.log(ErrorLevel, args)
 }
 
 // ErrorT logs a error type at level Error
 func ErrorT(err error) {
 	if err != nil {
-		std.log(ErrorLevel, []interface{}{err})
+		std.log(ErrorLevel, []any{err})
 	}
 }
 
 // Errorf logs a message at level Error
-func Errorf(format string, args ...interface{}) {
+func Errorf(format string, args ...any) {
 	std.logf(ErrorLevel, format, args)
 }
 
 // Debug logs a message at level Debug
-func Debug(args ...interface{}) {
+func Debug(args ...any) {
 	std.log(DebugLevel, args)
 }
 
 // Debugf logs a message at level Debug
-func Debugf(format string, args ...interface{}) {
+func Debugf(format string, args ...any) {
 	std.logf(DebugLevel, format, args)
 }
 
 // Fatal logs a message at level Fatal
-func Fatal(args ...interface{}) {
+func Fatal(args ...any) {
 	std.log(FatalLevel, args)
 }
 
 // Fatalf logs a message at level Fatal
-func Fatalf(format string, args ...interface{}) {
+func Fatalf(format string, args ...any) {
 	std.logf(FatalLevel, format, args)
 }
 
 // FatalErr logs a message at level Fatal on err is not nil
 func FatalErr(err error) {
 	if err != nil {
-		std.log(FatalLevel, []interface{}{err})
+		std.log(FatalLevel, []any{err})
 	}
 }
 
 // Panic logs a message at level Panic
-func Panic(args ...interface{}) {
+func Panic(args ...any) {
 	std.log(PanicLevel, args)
 }
 
 // Panicf logs a message at level Panic
-func Panicf(format string, args ...interface{}) {
+func Panicf(format string, args ...any) {
 	std.logf(PanicLevel, format, args)
 }
 
 // PanicErr logs a message at level Panic on err is not nil
 func PanicErr(err error) {
 	if err != nil {
-		std.log(PanicLevel, []interface{}{err})
+		std.log(PanicLevel, []any{err})
 	}
 }

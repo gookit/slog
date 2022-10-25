@@ -42,7 +42,7 @@ type TextFormatter struct {
 	FullDisplay bool
 	// EncodeFunc data encode for Record.Data, Record.Extra, etc.
 	// Default is encode by EncodeToString()
-	EncodeFunc func(v interface{}) string
+	EncodeFunc func(v any) string
 }
 
 // NewTextFormatter create new TextFormatter
@@ -98,6 +98,7 @@ func (f *TextFormatter) Fields() []string {
 }
 
 // Format a log record
+//
 //goland:noinspection GoUnhandledErrorResult
 func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 	buf := bytebufferpool.Get()

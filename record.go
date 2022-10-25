@@ -103,7 +103,7 @@ func (r *Record) WithData(data M) *Record {
 }
 
 // WithField with a new field to record
-func (r *Record) WithField(name string, val interface{}) *Record {
+func (r *Record) WithField(name string, val any) *Record {
 	return r.WithFields(M{name: val})
 }
 
@@ -184,7 +184,7 @@ func (r *Record) AddData(data M) *Record {
 }
 
 // AddValue add Data value to record
-func (r *Record) AddValue(key string, value interface{}) *Record {
+func (r *Record) AddValue(key string, value any) *Record {
 	if r.Data == nil {
 		r.Data = make(M, 8)
 		return r
@@ -214,7 +214,7 @@ func (r *Record) AddExtra(data M) *Record {
 }
 
 // SetExtraValue on record
-func (r *Record) SetExtraValue(k string, v interface{}) {
+func (r *Record) SetExtraValue(k string, v any) {
 	if r.Extra == nil {
 		r.Extra = make(M, 8)
 	}
@@ -228,7 +228,7 @@ func (r *Record) SetTime(t time.Time) *Record {
 }
 
 // AddField add new field to the record
-func (r *Record) AddField(name string, val interface{}) *Record {
+func (r *Record) AddField(name string, val any) *Record {
 	if r.Fields == nil {
 		r.Fields = make(M, 8)
 	}
@@ -283,130 +283,130 @@ func (r *Record) SetFields(fields M) *Record {
 // ---------------------------------------------------------------------------
 //
 
-func (r *Record) log(level Level, args []interface{}) {
+func (r *Record) log(level Level, args []any) {
 	// will reduce memory allocation once
 	// r.Message = strutil.Byte2str(formatArgsWithSpaces(args))
 	r.Message = formatArgsWithSpaces(args)
 	r.logBytes(level)
 }
 
-func (r *Record) logf(level Level, format string, args []interface{}) {
+func (r *Record) logf(level Level, format string, args []any) {
 	r.Message = fmt.Sprintf(format, args...)
 	r.logBytes(level)
 }
 
 // Log a message with level
-func (r *Record) Log(level Level, args ...interface{}) {
+func (r *Record) Log(level Level, args ...any) {
 	r.log(level, args)
 }
 
 // Logf a message with level
-func (r *Record) Logf(level Level, format string, args ...interface{}) {
+func (r *Record) Logf(level Level, format string, args ...any) {
 	r.logf(level, format, args)
 }
 
 // Info logs a message at level Info
-func (r *Record) Info(args ...interface{}) {
+func (r *Record) Info(args ...any) {
 	r.log(InfoLevel, args)
 }
 
 // Infof logs a message at level Info
-func (r *Record) Infof(format string, args ...interface{}) {
+func (r *Record) Infof(format string, args ...any) {
 	r.logf(InfoLevel, format, args)
 }
 
 // Trace logs a message at level Trace
-func (r *Record) Trace(args ...interface{}) {
+func (r *Record) Trace(args ...any) {
 	r.log(TraceLevel, args)
 }
 
 // Tracef logs a message at level Trace
-func (r *Record) Tracef(format string, args ...interface{}) {
+func (r *Record) Tracef(format string, args ...any) {
 	r.logf(TraceLevel, format, args)
 }
 
 // Error logs a message at level Error
-func (r *Record) Error(args ...interface{}) {
+func (r *Record) Error(args ...any) {
 	r.log(ErrorLevel, args)
 }
 
 // Errorf logs a message at level Error
-func (r *Record) Errorf(format string, args ...interface{}) {
+func (r *Record) Errorf(format string, args ...any) {
 	r.logf(ErrorLevel, format, args)
 }
 
 // Warn logs a message at level Warn
-func (r *Record) Warn(args ...interface{}) {
+func (r *Record) Warn(args ...any) {
 	r.log(WarnLevel, args)
 }
 
 // Warnf logs a message at level Warn
-func (r *Record) Warnf(format string, args ...interface{}) {
+func (r *Record) Warnf(format string, args ...any) {
 	r.logf(ErrorLevel, format, args)
 }
 
 // Notice logs a message at level Notice
-func (r *Record) Notice(args ...interface{}) {
+func (r *Record) Notice(args ...any) {
 	r.log(NoticeLevel, args)
 }
 
 // Noticef logs a message at level Notice
-func (r *Record) Noticef(format string, args ...interface{}) {
+func (r *Record) Noticef(format string, args ...any) {
 	r.logf(NoticeLevel, format, args)
 }
 
 // Debug logs a message at level Debug
-func (r *Record) Debug(args ...interface{}) {
+func (r *Record) Debug(args ...any) {
 	r.log(DebugLevel, args)
 }
 
 // Debugf logs a message at level Debug
-func (r *Record) Debugf(format string, args ...interface{}) {
+func (r *Record) Debugf(format string, args ...any) {
 	r.logf(DebugLevel, format, args)
 }
 
 // Print logs a message at level Print
-func (r *Record) Print(args ...interface{}) {
+func (r *Record) Print(args ...any) {
 	r.log(PrintLevel, args)
 }
 
 // Println logs a message at level Print, will not append \n. alias of Print
-func (r *Record) Println(args ...interface{}) {
+func (r *Record) Println(args ...any) {
 	r.log(PrintLevel, args)
 }
 
 // Printf logs a message at level Print
-func (r *Record) Printf(format string, args ...interface{}) {
+func (r *Record) Printf(format string, args ...any) {
 	r.logf(PrintLevel, format, args)
 }
 
 // Fatal logs a message at level Fatal
-func (r *Record) Fatal(args ...interface{}) {
+func (r *Record) Fatal(args ...any) {
 	r.log(FatalLevel, args)
 }
 
 // Fatalln logs a message at level Fatal, will not append \n.
-func (r *Record) Fatalln(args ...interface{}) {
+func (r *Record) Fatalln(args ...any) {
 	r.log(FatalLevel, args)
 }
 
 // Fatalf logs a message at level Fatal
-func (r *Record) Fatalf(format string, args ...interface{}) {
+func (r *Record) Fatalf(format string, args ...any) {
 	r.logf(FatalLevel, format, args)
 }
 
 // Panic logs a message at level Panic
-func (r *Record) Panic(args ...interface{}) {
+func (r *Record) Panic(args ...any) {
 	r.log(PanicLevel, args)
 }
 
 // Panicln logs a message at level Panic, will not append \n.
-func (r *Record) Panicln(args ...interface{}) {
+func (r *Record) Panicln(args ...any) {
 	r.log(PanicLevel, args)
 }
 
 // Panicf logs a message at level Panic
-func (r *Record) Panicf(format string, args ...interface{}) {
+func (r *Record) Panicf(format string, args ...any) {
 	r.logf(PanicLevel, format, args)
 }
 

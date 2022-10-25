@@ -15,6 +15,6 @@ type RotateWriter interface {
 	Sync() error
 }
 
-func printErrln(args ...interface{}) {
+func printErrln(args ...any) {
 	_, _ = fmt.Fprintln(os.Stderr, args...)
 }

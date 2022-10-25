@@ -12,8 +12,8 @@ import (
 // SLogger interface
 type SLogger interface {
 	gsr.Logger
-	Log(level Level, v ...interface{})
-	Logf(level Level, format string, v ...interface{})
+	Log(level Level, v ...any)
+	Logf(level Level, format string, v ...any)
 }
 
 // Logger log dispatcher definition.
@@ -49,7 +49,7 @@ type Logger struct {
 	exitHandlers []func()
 	// custom exit, panic handle.
 	ExitFunc  func(code int)
-	PanicFunc func(v interface{})
+	PanicFunc func(v any)
 }
 
 // New create a new logger
@@ -62,14 +62,14 @@ func NewWithConfig(fn func(l *Logger)) *Logger {
 	return NewWithName("logger").Configure(fn)
 }
 
-// NewWithHandlers create an new logger with handlers
+// NewWithHandlers create a new logger with handlers
 func NewWithHandlers(hs ...Handler) *Logger {
 	logger := NewWithName("logger")
 	logger.AddHandlers(hs...)
 	return logger
 }
 
-// NewWithName create an new logger with name
+// NewWithName create a new logger with name
 func NewWithName(name string) *Logger {
 	logger := &Logger{
 		name: name,
@@ -129,7 +129,8 @@ func (l *Logger) Configure(fn func(l *Logger)) *Logger {
 // FlushDaemon run flush handle on daemon
 //
 // Usage:
-// 	go slog.FlushDaemon()
+//
+//	go slog.FlushDaemon()
 func (l *Logger) FlushDaemon() {
 	for range time.NewTicker(flushInterval).C {
 		err := l.lockAndFlushAll()
@@ -323,7 +324,7 @@ func (l *Logger) Record() *Record {
 }
 
 // WithField new record with field
-func (l *Logger) WithField(name string, value interface{}) *Record {
+func (l *Logger) WithField(name string, value any) *Record {
 	r := l.newRecord()
 
 	defer l.releaseRecord(r)
@@ -368,7 +369,7 @@ func (l *Logger) WithContext(ctx context.Context) *Record {
 // ---------------------------------------------------------------------------
 //
 
-func (l *Logger) log(level Level, args []interface{}) {
+func (l *Logger) log(level Level, args []any) {
 	r := l.newRecord()
 	r.CallerSkip++
 	r.log(level, args)
@@ -376,7 +377,7 @@ func (l *Logger) log(level Level, args []interface{}) {
 }
 
 // Logf a format message with level
-func (l *Logger) logf(level Level, format string, args []interface{}) {
+func (l *Logger) logf(level Level, format string, args []any) {
 	r := l.newRecord()
 	r.CallerSkip++
 	r.logf(level, format, args)
@@ -384,128 +385,128 @@ func (l *Logger) logf(level Level, format string, args []interface{}) {
 }
 
 // Log a message with level
-func (l *Logger) Log(level Level, args ...interface{}) {
+func (l *Logger) Log(level Level, args ...any) {
 	l.log(level, args)
 }
 
 // Logf a format message with level
-func (l *Logger) Logf(level Level, format string, args ...interface{}) {
+func (l *Logger) Logf(level Level, format string, args ...any) {
 	l.logf(level, format, args)
 }
 
 // Print logs a message at level PrintLevel
-func (l *Logger) Print(args ...interface{}) {
+func (l *Logger) Print(args ...any) {
 	l.log(PrintLevel, args)
 }
 
 // Println logs a message at level PrintLevel
-func (l *Logger) Println(args ...interface{}) {
+func (l *Logger) Println(args ...any) {
 	l.log(PrintLevel, args)
 }
 
 // Printf logs a message at level PrintLevel
-func (l *Logger) Printf(format string, args ...interface{}) {
+func (l *Logger) Printf(format string, args ...any) {
 	l.logf(PrintLevel, format, args)
 }
 
 // Warn logs a message at level Warn
-func (l *Logger) Warn(args ...interface{}) {
+func (l *Logger) Warn(args ...any) {
 	l.log(WarnLevel, args)
 }
 
 // Warnf logs a message at level Warn
-func (l *Logger) Warnf(format string, args ...interface{}) {
+func (l *Logger) Warnf(format string, args ...any) {
 	l.logf(WarnLevel, format, args)
 }
 
 // Warning logs a message at level Warn
-func (l *Logger) Warning(args ...interface{}) {
+func (l *Logger) Warning(args ...any) {
 	l.log(WarnLevel, args)
 }
 
 // Info logs a message at level Info
-func (l *Logger) Info(args ...interface{}) {
+func (l *Logger) Info(args ...any) {
 	l.log(InfoLevel, args)
 }
 
 // Infof logs a message at level Info
-func (l *Logger) Infof(format string, args ...interface{}) {
+func (l *Logger) Infof(format string, args ...any) {
 	l.logf(InfoLevel, format, args)
 }
 
 // Trace logs a message at level Trace
-func (l *Logger) Trace(args ...interface{}) {
+func (l *Logger) Trace(args ...any) {
 	l.log(TraceLevel, args)
 }
 
 // Tracef logs a message at level Trace
-func (l *Logger) Tracef(format string, args ...interface{}) {
+func (l *Logger) Tracef(format string, args ...any) {
 	l.logf(TraceLevel, format, args)
 }
 
 // Error logs a message at level error
-func (l *Logger) Error(args ...interface{}) {
+func (l *Logger) Error(args ...any) {
 	l.log(ErrorLevel, args)
 }
 
 // Errorf logs a message at level Error
-func (l *Logger) Errorf(format string, args ...interface{}) {
+func (l *Logger) Errorf(format string, args ...any) {
 	l.logf(ErrorLevel, format, args)
 }
 
 // ErrorT logs a error type at level Error
 func (l *Logger) ErrorT(err error) {
 	if err != nil {
-		l.log(ErrorLevel, []interface{}{err})
+		l.log(ErrorLevel, []any{err})
 	}
 }
 
 // Notice logs a message at level Notice
-func (l *Logger) Notice(args ...interface{}) {
+func (l *Logger) Notice(args ...any) {
 	l.log(NoticeLevel, args)
 }
 
 // Noticef logs a message at level Notice
-func (l *Logger) Noticef(format string, args ...interface{}) {
+func (l *Logger) Noticef(format string, args ...any) {
 	l.logf(NoticeLevel, format, args)
 }
 
 // Debug logs a message at level Debug
-func (l *Logger) Debug(args ...interface{}) {
+func (l *Logger) Debug(args ...any) {
 	l.log(DebugLevel, args)
 }
 
 // Debugf logs a message at level Debug
-func (l *Logger) Debugf(format string, args ...interface{}) {
+func (l *Logger) Debugf(format string, args ...any) {
 	l.logf(DebugLevel, format, args)
 }
 
 // Fatal logs a message at level Fatal
-func (l *Logger) Fatal(args ...interface{}) {
+func (l *Logger) Fatal(args ...any) {
 	l.log(FatalLevel, args)
 }
 
 // Fatalf logs a message at level Fatal
-func (l *Logger) Fatalf(format string, args ...interface{}) {
+func (l *Logger) Fatalf(format string, args ...any) {
 	l.logf(FatalLevel, format, args)
 }
 
 // Fatalln logs a message at level Fatal
-func (l *Logger) Fatalln(args ...interface{}) {
+func (l *Logger) Fatalln(args ...any) {
 	l.log(FatalLevel, args)
 }
 
 // Panic logs a message at level Panic
-func (l *Logger) Panic(args ...interface{}) {
+func (l *Logger) Panic(args ...any) {
 	l.log(PanicLevel, args)
 }
 
 // Panicf logs a message at level Panic
-func (l *Logger) Panicf(format string, args ...interface{}) {
+func (l *Logger) Panicf(format string, args ...any) {
 	l.logf(PanicLevel, format, args)
 }
 
 // Panicln logs a message at level Panic
-func (l *Logger) Panicln(args ...interface{}) {
+func (l *Logger) Panicln(args ...any) {
 	l.log(PanicLevel, args)
 }

@@ -78,8 +78,8 @@ const (
 // StringMap string map short name
 type StringMap = map[string]string
 
-// M short name of map[string]interface{}
-type M map[string]interface{}
+// M short name of map[string]any
+type M map[string]any
 
 // String map to string
 func (m M) String() string {
@@ -166,10 +166,10 @@ var (
 	// DoNothingOnExit handle func. use for testing.
 	DoNothingOnExit = func(code int) {}
 	// DoNothingOnPanic handle func. use for testing.
-	DoNothingOnPanic = func(v interface{}) {}
+	DoNothingOnPanic = func(v any) {}
 
 	// DefaultPanicFn handle func
-	DefaultPanicFn = func(v interface{}) {
+	DefaultPanicFn = func(v any) {
 		panic(v)
 	}
 	// DefaultClockFn create func
