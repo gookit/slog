@@ -7,21 +7,21 @@ import (
 	"time"
 
 	"github.com/gookit/goutil/fsutil"
+	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/goutil/timex"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
 	"github.com/gookit/slog/rotatefile"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNewRotateFileHandler(t *testing.T) {
 	// by size
 	logfile := "./testdata/both-rotate-bysize.log"
-	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
+	assert.NoErr(t, fsutil.DeleteIfFileExist(logfile))
 
 	h, err := handler.NewRotateFileHandler(logfile, handler.EveryMinute, handler.WithMaxSize(128))
 
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 	assert.True(t, fsutil.IsFile(logfile))
 
 	l := slog.NewWithHandlers(h)
@@ -35,10 +35,10 @@ func TestNewRotateFileHandler(t *testing.T) {
 
 	// by time
 	logfile = "./testdata/both-rotate-bytime.log"
-	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
+	assert.NoErr(t, fsutil.DeleteIfFileExist(logfile))
 
 	h, err = handler.NewRotateFileHandler(logfile, handler.EverySecond)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 	assert.True(t, fsutil.IsFile(logfile))
 
 	l = slog.NewWithHandlers(h)
@@ -51,15 +51,15 @@ func TestNewRotateFileHandler(t *testing.T) {
 	}
 	l.Error("error message")
 
-	assert.NoError(t, l.FlushAll())
+	assert.NoErr(t, l.FlushAll())
 }
 
 func TestNewSizeRotateFileHandler(t *testing.T) {
 	logfile := "./testdata/size-rotate-file.log"
-	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
+	assert.NoErr(t, fsutil.DeleteIfFileExist(logfile))
 
 	h, err := handler.NewSizeRotateFileHandler(logfile, 468, handler.WithBuffSize(256))
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 	assert.True(t, fsutil.IsFile(logfile))
 
 	l := slog.NewWithHandlers(h)
@@ -71,15 +71,15 @@ func TestNewSizeRotateFileHandler(t *testing.T) {
 		l.Warn("this is a warn message, index=", i)
 	}
 
-	assert.NoError(t, l.Close())
+	assert.NoErr(t, l.Close())
 	checkLogFileContents(t, logfile)
 }
 
 func TestNewTimeRotateFileHandler_EveryDay(t *testing.T) {
 	logfile := "./testdata/time-rotate_EveryDay.log"
-	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
+	assert.NoErr(t, fsutil.DeleteIfFileExist(logfile))
 	newFile := logfile + timex.Now().DateFormat(".Ymd")
-	assert.NoError(t, fsutil.DeleteIfFileExist(newFile))
+	assert.NoErr(t, fsutil.DeleteIfFileExist(newFile))
 
 	sec := -2
 	// set current time to today 23:59:57
@@ -87,7 +87,7 @@ func TestNewTimeRotateFileHandler_EveryDay(t *testing.T) {
 		// dump.P(sec)
 		return timex.Now().DayEnd().AddSeconds(sec).Time
 	}
-	assert.Equal(t, "23:59:57", timex.Date(testClock(), "H:I:S"))
+	assert.Eq(t, "23:59:57", timex.Date(testClock(), "H:I:S"))
 
 	// backup
 	bckFn := rotatefile.DefaultTimeClockFn
@@ -122,11 +122,11 @@ func TestNewTimeRotateFileHandler_EveryDay(t *testing.T) {
 
 func TestNewTimeRotateFileHandler_EveryHour(t *testing.T) {
 	logfile := "./testdata/time-rotate_EveryHour.log"
-	assert.NoError(t, fsutil.DeleteIfExist(logfile))
+	assert.NoErr(t, fsutil.DeleteIfExist(logfile))
 
 	hourStart := timex.Now().HourStart()
 	newFile := logfile + hourStart.DateFormat(".Ymd_H00")
-	assert.NoError(t, fsutil.DeleteIfFileExist(newFile))
+	assert.NoErr(t, fsutil.DeleteIfFileExist(newFile))
 
 	sec := -2
 	// set current time to hour end 59:58
@@ -134,7 +134,7 @@ func TestNewTimeRotateFileHandler_EveryHour(t *testing.T) {
 		// dump.P(sec)
 		return hourStart.AddHour(1).AddSeconds(sec).Time
 	}
-	assert.Equal(t, "59:58", timex.Date(testClock(), "I:S"))
+	assert.Eq(t, "59:58", timex.Date(testClock(), "I:S"))
 
 	// backup
 	bckFn := rotatefile.DefaultTimeClockFn
@@ -148,7 +148,7 @@ func TestNewTimeRotateFileHandler_EveryHour(t *testing.T) {
 	}
 	h, err := handler.NewTimeRotateFile(logfile, rotatefile.EveryHour, options...)
 
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 	assert.True(t, fsutil.IsFile(logfile))
 
 	l := slog.NewWithHandlers(h)
@@ -169,10 +169,10 @@ func TestNewTimeRotateFileHandler_EveryHour(t *testing.T) {
 
 func TestNewTimeRotateFileHandler_someSeconds(t *testing.T) {
 	logfile := "./testdata/time-rotate-Seconds.log"
-	assert.NoError(t, fsutil.DeleteIfExist(logfile))
+	assert.NoErr(t, fsutil.DeleteIfExist(logfile))
 	h, err := handler.NewTimeRotateFileHandler(logfile, handler.EverySecond)
 
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 	assert.True(t, fsutil.IsFile(logfile))
 
 	l := slog.NewWithHandlers(h)
@@ -185,14 +185,14 @@ func TestNewTimeRotateFileHandler_someSeconds(t *testing.T) {
 		time.Sleep(time.Second * 1)
 	}
 	l.MustFlush()
-	// assert.NoError(t, os.Remove(fpath))
+	// assert.NoErr(t, os.Remove(fpath))
 }
 
 func checkLogFileContents(t *testing.T, logfile string) {
 	assert.True(t, fsutil.IsFile(logfile))
 
 	bts, err := ioutil.ReadFile(logfile)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 
 	str := string(bts)
 	assert.Contains(t, str, "[INFO]")

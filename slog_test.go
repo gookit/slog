@@ -9,9 +9,9 @@ import (
 
 	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/testutil"
+	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
-	"github.com/stretchr/testify/assert"
 )
 
 var doNothing = func(code int) {
@@ -20,7 +20,7 @@ var doNothing = func(code int) {
 
 func TestStd(t *testing.T) {
 	defer slog.Reset()
-	assert.Equal(t, "stdLogger", slog.Std().Name())
+	assert.Eq(t, "stdLogger", slog.Std().Name())
 
 	_, ok := slog.GetFormatter().(*slog.TextFormatter)
 	assert.True(t, ok)
@@ -41,7 +41,7 @@ func TestStd(t *testing.T) {
 		buf.WriteString(strconv.Itoa(code))
 	}
 	slog.Exit(34)
-	assert.Equal(t, "Exited,34", buf.String())
+	assert.Eq(t, "Exited,34", buf.String())
 }
 
 func TestTextFormatNoColor(t *testing.T) {
@@ -56,8 +56,8 @@ func TestTextFormatNoColor(t *testing.T) {
 	printLogs("print log message")
 	printfLogs("print log with %s", "params")
 
-	assert.NoError(t, slog.Std().FlushAll())
-	assert.NoError(t, slog.Std().Close())
+	assert.NoErr(t, slog.Std().FlushAll())
+	assert.NoErr(t, slog.Std().Close())
 }
 
 type logTest struct {
@@ -200,8 +200,8 @@ func TestAddProcessor(t *testing.T) {
 func TestName2Level(t *testing.T) {
 	for wantLevel, name := range slog.LevelNames {
 		level, err := slog.Name2Level(name)
-		assert.NoError(t, err)
-		assert.Equal(t, wantLevel, level)
+		assert.NoErr(t, err)
+		assert.Eq(t, wantLevel, level)
 	}
 
 	// special names
@@ -212,13 +212,13 @@ func TestName2Level(t *testing.T) {
 	}
 	for wantLevel, name := range tests {
 		level, err := slog.Name2Level(name)
-		assert.NoError(t, err)
-		assert.Equal(t, wantLevel, level)
+		assert.NoErr(t, err)
+		assert.Eq(t, wantLevel, level)
 	}
 
 	level, err := slog.Name2Level("unknown")
-	assert.Error(t, err)
-	assert.Equal(t, slog.Level(0), level)
+	assert.Err(t, err)
+	assert.Eq(t, slog.Level(0), level)
 }
 
 func TestPrependExitHandler(t *testing.T) {
@@ -239,7 +239,7 @@ func TestPrependExitHandler(t *testing.T) {
 		buf.WriteString("Exited")
 	})
 	slog.Exit(23)
-	assert.Equal(t, "HANDLER2-HANDLER1-Exited", buf.String())
+	assert.Eq(t, "HANDLER2-HANDLER1-Exited", buf.String())
 }
 
 func TestRegisterExitHandler(t *testing.T) {
@@ -264,7 +264,7 @@ func TestRegisterExitHandler(t *testing.T) {
 		buf.WriteString("Exited")
 	})
 	slog.Exit(23)
-	assert.Equal(t, "HANDLER3-HANDLER1-HANDLER2-Exited", buf.String())
+	assert.Eq(t, "HANDLER3-HANDLER1-HANDLER2-Exited", buf.String())
 }
 
 func TestExitHandlerWithError(t *testing.T) {
@@ -281,7 +281,7 @@ func TestExitHandlerWithError(t *testing.T) {
 	testutil.RewriteStderr()
 	slog.Exit(23)
 	str := testutil.RestoreStderr()
-	assert.Equal(t, "slog: run exit handler error: test error\n", str)
+	assert.Eq(t, "slog: run exit handler error: test error\n", str)
 }
 
 func TestLogger_ExitHandlerWithError(t *testing.T) {
@@ -298,7 +298,7 @@ func TestLogger_ExitHandlerWithError(t *testing.T) {
 	testutil.RewriteStderr()
 	l.Exit(23)
 	str := testutil.RestoreStderr()
-	assert.Equal(t, "slog: run exit handler error: test error\n", str)
+	assert.Eq(t, "slog: run exit handler error: test error\n", str)
 }
 
 func TestLogger_PrependExitHandler(t *testing.T) {
@@ -315,5 +315,5 @@ func TestLogger_PrependExitHandler(t *testing.T) {
 	testutil.RewriteStderr()
 	l.Exit(23)
 	str := testutil.RestoreStderr()
-	assert.Equal(t, "slog: run exit handler error: test error2\n", str)
+	assert.Eq(t, "slog: run exit handler error: test error2\n", str)
 }

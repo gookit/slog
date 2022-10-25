@@ -53,3 +53,15 @@ func TestIssues_52(t *testing.T) {
 
 	// dump.P(slog.GetFormatter())
 }
+
+// https://github.com/gookit/slog/issues/75
+func TestIssues_75(t *testing.T) {
+	slog.Error("Error message 1")
+
+	// set max level
+	slog.SetLogLevel(slog.Level(0))
+	// slog.SetLogLevel(slog.PanicLevel)
+	slog.Error("Error message 2")
+	slog.Reset()
+	// dump.P(slog.GetFormatter())
+}

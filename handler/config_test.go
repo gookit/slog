@@ -6,10 +6,10 @@ import (
 
 	"github.com/gookit/goutil/fmtutil"
 	"github.com/gookit/goutil/fsutil"
+	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
 	"github.com/gookit/slog/rotatefile"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNewConfig(t *testing.T) {
@@ -18,12 +18,12 @@ func TestNewConfig(t *testing.T) {
 	).With(handler.WithBuffSize(129))
 
 	assert.True(t, c.Compress)
-	assert.Equal(t, 129, c.BuffSize)
+	assert.Eq(t, 129, c.BuffSize)
 }
 
 func TestNewBuilder(t *testing.T) {
 	testFile := "testdata/builder.log"
-	assert.NoError(t, fsutil.DeleteIfFileExist(testFile))
+	assert.NoErr(t, fsutil.DeleteIfFileExist(testFile))
 
 	b := handler.NewBuilder().
 		WithLogfile(testFile).
@@ -37,13 +37,13 @@ func TestNewBuilder(t *testing.T) {
 			c.BackupNum = 3
 		})
 
-	assert.Equal(t, uint(3), b.BackupNum)
-	assert.Equal(t, handler.BuffModeBite, b.BuffMode)
-	assert.Equal(t, rotatefile.Every30Min, b.RotateTime)
+	assert.Eq(t, uint(3), b.BackupNum)
+	assert.Eq(t, handler.BuffModeBite, b.BuffMode)
+	assert.Eq(t, rotatefile.Every30Min, b.RotateTime)
 
 	h := b.Build()
 	assert.NotNil(t, h)
-	assert.NoError(t, h.Close())
+	assert.NoErr(t, h.Close())
 
 	h2 := handler.NewBuilder().
 		WithOutput(new(bytes.Buffer)).

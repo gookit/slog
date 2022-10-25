@@ -5,17 +5,17 @@ import (
 	"testing"
 
 	"github.com/gookit/goutil/fsutil"
+	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNewBufferedHandler(t *testing.T) {
 	logfile := "./testdata/buffer-os-file.log"
-	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
+	assert.NoErr(t, fsutil.DeleteIfFileExist(logfile))
 
 	file, err := handler.QuickOpenFile(logfile)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 	assert.True(t, fsutil.IsFile(logfile))
 
 	bh := handler.NewBuffered(file, 128)
@@ -25,26 +25,26 @@ func TestNewBufferedHandler(t *testing.T) {
 	l.Info("buffered info message")
 
 	bts, err := ioutil.ReadFile(logfile)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 	assert.Empty(t, bts)
 
 	l.Warn("buffered warn message")
 	bts, err = ioutil.ReadFile(logfile)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 
 	str := string(bts)
 	assert.Contains(t, str, "[INFO]")
 
 	err = l.FlushAll()
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 }
 
 func TestBufferWrapper(t *testing.T) {
 	logfile := "./testdata/buffer-wrap-handler.log"
-	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
+	assert.NoErr(t, fsutil.DeleteIfFileExist(logfile))
 
 	h, err := handler.NewSimpleFile(logfile)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 	assert.True(t, fsutil.IsFile(logfile))
 
 	bw := handler.BufferWrapper(h, 128)
@@ -54,36 +54,36 @@ func TestBufferWrapper(t *testing.T) {
 	l.Info("buffered info message")
 
 	bts, err := ioutil.ReadFile(logfile)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 	assert.Empty(t, bts)
 
 	l.Warn("buffered warn message")
 	bts, err = ioutil.ReadFile(logfile)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 
 	str := string(bts)
 	assert.Contains(t, str, "[INFO]")
 
 	err = l.FlushAll()
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 
-	assert.NoError(t, l.Close())
+	assert.NoErr(t, l.Close())
 }
 
 func TestLineBufferedFile(t *testing.T) {
 	logfile := "./testdata/line-buff-file.log"
-	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
+	assert.NoErr(t, fsutil.DeleteIfFileExist(logfile))
 
 	h, err := handler.LineBufferedFile(logfile, 12, slog.AllLevels)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 	assert.True(t, fsutil.IsFile(logfile))
 
 	r := newLogRecord("Test LineBufferedFile")
 	err = h.Handle(r)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 
 	bts, err := ioutil.ReadFile(logfile)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 
 	str := string(bts)
 	assert.Contains(t, str, "[INFO]")
@@ -92,21 +92,21 @@ func TestLineBufferedFile(t *testing.T) {
 
 func TestLineBuffOsFile(t *testing.T) {
 	logfile := "./testdata/line-buff-os-file.log"
-	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
+	assert.NoErr(t, fsutil.DeleteIfFileExist(logfile))
 
 	file, err := fsutil.QuickOpenFile(logfile)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 
 	h := handler.LineBuffOsFile(file, 12, slog.AllLevels)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 	assert.True(t, fsutil.IsFile(logfile))
 
 	r := newLogRecord("Test LineBuffOsFile")
 	err = h.Handle(r)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 
 	bts, err := ioutil.ReadFile(logfile)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 
 	str := string(bts)
 	assert.Contains(t, str, "[INFO]")
@@ -119,21 +119,21 @@ func TestLineBuffOsFile(t *testing.T) {
 
 func TestLineBuffWriter(t *testing.T) {
 	logfile := "./testdata/line-buff-writer.log"
-	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
+	assert.NoErr(t, fsutil.DeleteIfFileExist(logfile))
 
 	file, err := fsutil.QuickOpenFile(logfile)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 
 	h := handler.LineBuffWriter(file, 12, slog.AllLevels)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 	assert.True(t, fsutil.IsFile(logfile))
 
 	r := newLogRecord("Test LineBuffWriter")
 	err = h.Handle(r)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 
 	bts, err := ioutil.ReadFile(logfile)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 
 	str := string(bts)
 	assert.Contains(t, str, "[INFO]")

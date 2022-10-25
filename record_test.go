@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/gookit/goutil/errorx"
+	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/goutil/timex"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestRecord_AddData(t *testing.T) {

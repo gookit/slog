@@ -6,20 +6,20 @@ import (
 	"testing"
 
 	"github.com/gookit/goutil/errorx"
+	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/goutil/timex"
 	"github.com/gookit/gsr"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestLoggerBasic(t *testing.T) {
 	l := slog.New()
 	l.SetName("testName")
-	assert.Equal(t, "testName", l.Name())
+	assert.Eq(t, "testName", l.Name())
 
 	l = slog.NewWithName("testName")
-	assert.Equal(t, "testName", l.Name())
+	assert.Eq(t, "testName", l.Name())
 }
 
 func TestLogger_PushHandler(t *testing.T) {
@@ -42,11 +42,11 @@ func TestLogger_PushHandler(t *testing.T) {
 	assert.Contains(t, w2.String(), "TRACE message")
 	assert.Contains(t, w2.String(), "TestLogger_PushHandler")
 
-	assert.NoError(t, l.Sync())
-	assert.NoError(t, l.Flush())
+	assert.NoErr(t, l.Sync())
+	assert.NoErr(t, l.Flush())
 	l.MustFlush()
 
-	assert.NoError(t, l.Close())
+	assert.NoErr(t, l.Close())
 	l.Reset()
 }
 
@@ -93,8 +93,8 @@ func TestLogger_panic(t *testing.T) {
 	})
 
 	err := l.LastErr()
-	assert.Error(t, err)
-	assert.Equal(t, "flush error", err.Error())
+	assert.Err(t, err)
+	assert.Eq(t, "flush error", err.Error())
 }
 
 func TestLogger_error(t *testing.T) {
@@ -104,13 +104,13 @@ func TestLogger_error(t *testing.T) {
 	err := l.VisitAll(func(h slog.Handler) error {
 		return errorx.Raw("visit error")
 	})
-	assert.Error(t, err)
-	assert.Equal(t, "visit error", err.Error())
+	assert.Err(t, err)
+	assert.Eq(t, "visit error", err.Error())
 
 	h.errOnClose = true
 	err = l.Close()
-	assert.Error(t, err)
-	assert.Equal(t, "close error", err.Error())
+	assert.Err(t, err)
+	assert.Eq(t, "close error", err.Error())
 }
 
 func TestLogger_panicLevel(t *testing.T) {
@@ -136,7 +136,7 @@ func TestLogger_panicLevel(t *testing.T) {
 	})
 	assert.Contains(t, w.String(), "panic message")
 
-	assert.NoError(t, l.FlushAll())
+	assert.NoErr(t, l.FlushAll())
 }
 
 func TestLogger_log_allLevel(t *testing.T) {

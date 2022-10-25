@@ -32,7 +32,6 @@ func buildLowerLevelName() map[Level]string {
 	for level, s := range LevelNames {
 		mp[level] = strings.ToLower(s)
 	}
-
 	return mp
 }
 
@@ -51,10 +50,11 @@ func getCaller(callerSkip int) (fr runtime.Frame, ok bool) {
 func formatCaller(rf *runtime.Frame, flag uint8) (cs string) {
 	switch flag {
 	case CallerFlagFull:
-		// eg: "github.com/gookit/slog_test.TestLogger_ReportCaller,logger_test.go:48"
 		return rf.Function + "," + path.Base(rf.File) + ":" + strconv.FormatInt(int64(rf.Line), 10)
 	case CallerFlagFunc:
 		return rf.Function
+	case CallerFlagFcLine:
+		return rf.Function + ":" + strconv.Itoa(rf.Line)
 	case CallerFlagPkg:
 		i := strings.LastIndex(rf.Function, "/")
 		i += strings.IndexByte(rf.Function[i+1:], '.')

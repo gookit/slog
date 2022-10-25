@@ -5,18 +5,18 @@ import (
 	"testing"
 
 	"github.com/gookit/goutil/dump"
+	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestFormattable_Format(t *testing.T) {
 	r := newLogRecord("TEST_LOG_MESSAGE format")
 	f := &slog.Formattable{}
-	assert.Equal(t, "slog: TEST_LOG_MESSAGE format", r.GoString())
+	assert.Eq(t, "slog: TEST_LOG_MESSAGE format", r.GoString())
 
 	bts, err := f.Format(r)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 
 	str := string(bts)
 	assert.Contains(t, str, "TEST_LOG_MESSAGE format")
@@ -26,7 +26,7 @@ func TestFormattable_Format(t *testing.T) {
 	})
 
 	bts, err = fn.Format(r)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 
 	str = string(bts)
 	assert.Contains(t, str, "TEST_LOG_MESSAGE format")
@@ -53,7 +53,7 @@ func TestTextFormatter_Format(t *testing.T) {
 	logTxt := string(bs)
 	dump.Println(f.Template(), logTxt)
 
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 	assert.NotEmpty(t, logTxt)
 	assert.NotContains(t, logTxt, "{{")
 	assert.NotContains(t, logTxt, "}}")

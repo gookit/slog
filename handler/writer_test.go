@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/gookit/goutil/fsutil"
+	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNewIOWriter(t *testing.T) {
@@ -17,21 +17,21 @@ func TestNewIOWriter(t *testing.T) {
 	assert.True(t, h.IsHandling(slog.NoticeLevel))
 
 	r := newLogRecord("test io.writer handler")
-	assert.NoError(t, h.Handle(r))
-	assert.NoError(t, h.Flush())
+	assert.NoErr(t, h.Handle(r))
+	assert.NoErr(t, h.Flush())
 
 	str := w.String()
 	assert.Contains(t, str, "test io.writer handler")
 
-	assert.NoError(t, h.Close())
+	assert.NoErr(t, h.Close())
 }
 
 func TestNewSyncCloser(t *testing.T) {
 	logfile := "./testdata/sync-closer.log"
-	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
+	assert.NoErr(t, fsutil.DeleteIfFileExist(logfile))
 
 	f, err := handler.QuickOpenFile(logfile)
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 
 	h := handler.NewSyncCloser(f, slog.DangerLevels)
 
@@ -42,8 +42,8 @@ func TestNewSyncCloser(t *testing.T) {
 	r.Level = slog.ErrorLevel
 
 	err = h.Handle(r)
-	assert.NoError(t, err)
-	assert.NoError(t, h.Flush())
+	assert.NoErr(t, err)
+	assert.NoErr(t, h.Flush())
 
 	bts := fsutil.MustReadFile(logfile)
 	str := string(bts)
@@ -51,7 +51,7 @@ func TestNewSyncCloser(t *testing.T) {
 	assert.Contains(t, str, "test sync closer handler")
 
 	err = h.Close()
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 }
 
 func TestNewWriteCloser(t *testing.T) {
@@ -61,13 +61,13 @@ func TestNewWriteCloser(t *testing.T) {
 	assert.True(t, h.IsHandling(slog.NoticeLevel))
 
 	r := newLogRecord("test writeCloser handler")
-	assert.NoError(t, h.Handle(r))
-	assert.NoError(t, h.Flush())
+	assert.NoErr(t, h.Handle(r))
+	assert.NoErr(t, h.Flush())
 
 	str := w.String()
 	assert.Contains(t, str, "test writeCloser handler")
 
-	assert.NoError(t, h.Close())
+	assert.NoErr(t, h.Close())
 }
 
 func TestNewFlushCloser(t *testing.T) {
@@ -75,11 +75,11 @@ func TestNewFlushCloser(t *testing.T) {
 	h := handler.NewFlushCloser(w, slog.AllLevels)
 
 	r := newLogRecord("TestNewFlushCloser")
-	assert.NoError(t, h.Handle(r))
-	assert.NoError(t, h.Flush())
+	assert.NoErr(t, h.Handle(r))
+	assert.NoErr(t, h.Flush())
 
 	str := w.String()
 	assert.Contains(t, str, "TestNewFlushCloser")
 
-	assert.NoError(t, h.Close())
+	assert.NoErr(t, h.Close())
 }

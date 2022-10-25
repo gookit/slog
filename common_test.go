@@ -7,8 +7,8 @@ import (
 
 	"github.com/gookit/goutil/dump"
 	"github.com/gookit/goutil/errorx"
+	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/slog"
-	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -46,24 +46,24 @@ func TestM_String(t *testing.T) {
 }
 
 func TestLevel_Name(t *testing.T) {
-	assert.Equal(t, "INFO", slog.InfoLevel.Name())
-	assert.Equal(t, "INFO", slog.InfoLevel.String())
-	assert.Equal(t, "info", slog.InfoLevel.LowerName())
-	assert.Equal(t, "unknown", slog.Level(330).LowerName())
+	assert.Eq(t, "INFO", slog.InfoLevel.Name())
+	assert.Eq(t, "INFO", slog.InfoLevel.String())
+	assert.Eq(t, "info", slog.InfoLevel.LowerName())
+	assert.Eq(t, "unknown", slog.Level(330).LowerName())
 }
 
 func TestLevelByName(t *testing.T) {
-	assert.Equal(t, slog.InfoLevel, slog.LevelByName("info"))
-	assert.Equal(t, slog.InfoLevel, slog.LevelByName("invalid"))
+	assert.Eq(t, slog.InfoLevel, slog.LevelByName("info"))
+	assert.Eq(t, slog.InfoLevel, slog.LevelByName("invalid"))
 }
 
 func TestLevelName(t *testing.T) {
 	for level, wantName := range slog.LevelNames {
 		realName := slog.LevelName(level)
-		assert.Equal(t, wantName, realName)
+		assert.Eq(t, wantName, realName)
 	}
 
-	assert.Equal(t, "UNKNOWN", slog.LevelName(20))
+	assert.Eq(t, "UNKNOWN", slog.LevelName(20))
 }
 
 func TestLevel_ShouldHandling(t *testing.T) {

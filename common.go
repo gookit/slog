@@ -28,7 +28,6 @@ func (l Level) LowerName() string {
 	if n, ok := lowerLevelNames[l]; ok {
 		return n
 	}
-
 	return "unknown"
 }
 
@@ -52,7 +51,7 @@ func (ls Levels) Contains(level Level) bool {
 
 // These are the different logging levels. You can set the logging level to log handler
 const (
-	// PanicLevel level, highest level of severity. will call panic() if the logging level <= PanicLevel.
+	// PanicLevel level, the highest level of severity. will call panic() if the logging level <= PanicLevel.
 	PanicLevel Level = 100
 	// FatalLevel level. Logs and then calls `logger.Exit(1)`. It will exit even if the
 	// logging level <= FatalLevel.
@@ -107,6 +106,9 @@ const (
 	// CallerFlagFunc full package with func name.
 	// eg: "github.com/gookit/slog_test.TestLogger_ReportCaller"
 	CallerFlagFunc
+	// CallerFlagFcLine full package with func name and with line.
+	// eg: "github.com/gookit/slog_test.TestLogger_ReportCaller:48"
+	CallerFlagFcLine
 	// CallerFlagPkg report full package name.
 	// eg: "github.com/gookit/slog_test"
 	CallerFlagPkg

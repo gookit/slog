@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/gookit/goutil/testutil/assert"
 )
 
 func revertTemplateString(ss []string) string {
@@ -28,16 +28,16 @@ func TestInner_parseTemplateToFields(t *testing.T) {
 	ss := parseTemplateToFields(NamedTemplate)
 	str := revertTemplateString(ss)
 	// dump.P(ss, str)
-	assert.Equal(t, NamedTemplate, str)
+	assert.Eq(t, NamedTemplate, str)
 
 	ss = parseTemplateToFields(DefaultTemplate)
 	str = revertTemplateString(ss)
 	// dump.P(ss, str)
-	assert.Equal(t, DefaultTemplate, str)
+	assert.Eq(t, DefaultTemplate, str)
 
 	testTemplate := "[{{datetime}}] [{{level}}] {{message}} {{data}} {{extra}}"
 	ss = parseTemplateToFields(testTemplate)
 	str = revertTemplateString(ss)
-	assert.Equal(t, testTemplate, str)
+	assert.Eq(t, testTemplate, str)
 	// dump.P(ss, str)
 }

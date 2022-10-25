@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/gookit/goutil/fsutil"
+	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
-	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -24,14 +24,14 @@ func TestConfig_CreateWriter(t *testing.T) {
 
 	w, err := cfg.CreateWriter()
 	assert.Nil(t, w)
-	assert.Error(t, err)
+	assert.Err(t, err)
 
 	h, err := cfg.CreateHandler()
 	assert.Nil(t, h)
-	assert.Error(t, err)
+	assert.Err(t, err)
 
 	logfile := "./testdata/file-by-config.log"
-	assert.NoError(t, fsutil.DeleteIfFileExist(logfile))
+	assert.NoErr(t, fsutil.DeleteIfFileExist(logfile))
 
 	cfg.With(
 		handler.WithBuffMode(handler.BuffModeBite),
@@ -40,17 +40,17 @@ func TestConfig_CreateWriter(t *testing.T) {
 	)
 
 	w, err = cfg.CreateWriter()
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 
 	_, err = w.Write([]byte("hello, config"))
-	assert.NoError(t, err)
+	assert.NoErr(t, err)
 
 	bts := fsutil.MustReadFile(logfile)
 	str := string(bts)
 
-	assert.Equal(t, str, "hello, config")
-	assert.NoError(t, w.Sync())
-	assert.NoError(t, w.Close())
+	assert.Eq(t, str, "hello, config")
+	assert.NoErr(t, w.Sync())
+	assert.NoErr(t, w.Close())
 }
 
 func TestConfig_RotateWriter(t *testing.T) {
@@ -58,7 +58,7 @@ func TestConfig_RotateWriter(t *testing.T) {
 
 	w, err := cfg.RotateWriter()
 	assert.Nil(t, w)
-	assert.Error(t, err)
+	assert.Err(t, err)
 }
 
 func TestConsoleHandlerWithColor(t *testing.T) {
@@ -95,7 +95,7 @@ func TestNewEmailHandler(t *testing.T) {
 		"another@gmail.com",
 	})
 
-	assert.Equal(t, slog.InfoLevel, h.Level)
+	assert.Eq(t, slog.InfoLevel, h.Level)
 }
 
 func TestLevelWithFormatter(t *testing.T) {
@@ -119,34 +119,34 @@ func TestNewSimpleHandler(t *testing.T) {
 
 	h := handler.NewSimple(buf, slog.InfoLevel)
 	r := newLogRecord("test simple handler")
-	assert.NoError(t, h.Handle(r))
+	assert.NoErr(t, h.Handle(r))
 
 	s := buf.String()
 	buf.Reset()
 	fmt.Print(s)
 	assert.Contains(t, s, "test simple handler")
 
-	assert.NoError(t, h.Flush())
-	assert.NoError(t, h.Close())
+	assert.NoErr(t, h.Flush())
+	assert.NoErr(t, h.Close())
 
 	h = handler.NewHandler(buf, slog.InfoLevel)
 	r = newLogRecord("test simple handler2")
-	assert.NoError(t, h.Handle(r))
+	assert.NoErr(t, h.Handle(r))
 
 	s = buf.String()
 	buf.Reset()
 	fmt.Print(s)
 	assert.Contains(t, s, "test simple handler2")
 
-	assert.NoError(t, h.Flush())
-	assert.NoError(t, h.Close())
+	assert.NoErr(t, h.Flush())
+	assert.NoErr(t, h.Close())
 }
 
 func TestNopFlushClose_Flush(t *testing.T) {
 	nfc := handler.NopFlushClose{}
 
-	assert.NoError(t, nfc.Flush())
-	assert.NoError(t, nfc.Close())
+	assert.NoErr(t, nfc.Flush())
+	assert.NoErr(t, nfc.Close())
 }
 
 func TestLockWrapper_Lock(t *testing.T) {
@@ -160,7 +160,7 @@ func TestLockWrapper_Lock(t *testing.T) {
 	lw.Lock()
 	a++
 	lw.Unlock()
-	assert.Equal(t, 2, a)
+	assert.Eq(t, 2, a)
 }
 
 func logAllLevel(log slog.SLogger, msg string) {
