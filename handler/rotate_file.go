@@ -75,11 +75,12 @@ func NewSizeRotateFileHandler(logfile string, maxSize int, fns ...ConfigFn) (*Sy
 // RotateTime rotate log file by time.
 //
 // EveryDay:
-// 	- "error.log.20201223"
+//   - "error.log.20201223"
+//
 // EveryHour, Every30Minutes, EveryMinute:
-// 	- "error.log.20201223_1500"
-// 	- "error.log.20201223_1530"
-// 	- "error.log.20201223_1523"
+//   - "error.log.20201223_1500"
+//   - "error.log.20201223_1530"
+//   - "error.log.20201223_1523"
 //
 // Deprecated: please use rotatefile.RotateTime
 type RotateTime = rotatefile.RotateTime

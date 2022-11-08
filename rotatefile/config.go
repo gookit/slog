@@ -20,11 +20,12 @@ const (
 // RotateTime for rotate file. unit is seconds.
 //
 // EveryDay:
-// 	- "error.log.20201223"
+//   - "error.log.20201223"
+//
 // EveryHour, Every30Min, EveryMinute:
-// 	- "error.log.20201223_1500"
-// 	- "error.log.20201223_1530"
-// 	- "error.log.20201223_1523"
+//   - "error.log.20201223_1500"
+//   - "error.log.20201223_1530"
+//   - "error.log.20201223_1523"
 type RotateTime int
 
 // built in rotate time consts
@@ -89,11 +90,12 @@ func (rt RotateTime) level() rotateLevel {
 // TimeFormat get log file suffix format
 //
 // EveryDay:
-// 	- "error.log.20201223"
+//   - "error.log.20201223"
+//
 // EveryHour, Every30Min, EveryMinute:
-// 	- "error.log.20201223_1500"
-// 	- "error.log.20201223_1530"
-// 	- "error.log.20201223_1523"
+//   - "error.log.20201223_1500"
+//   - "error.log.20201223_1530"
+//   - "error.log.20201223_1523"
 func (rt RotateTime) TimeFormat() (suffixFormat string) {
 	suffixFormat = "20060102_1500" // default is levelHour
 	switch rt.level() {

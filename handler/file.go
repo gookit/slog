@@ -52,9 +52,11 @@ func NewSimpleFile(filepath string) (*SyncCloseHandler, error) {
 // NewSimpleFileHandler instance
 //
 // Usage:
-// 	h, err := NewSimpleFileHandler("/tmp/error.log")
+//
+//	h, err := NewSimpleFileHandler("/tmp/error.log")
 //
 // custom formatter
+//
 //	h.SetFormatter(slog.NewJSONFormatter())
 //	slog.PushHandler(h)
 //	slog.Info("log message")

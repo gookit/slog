@@ -20,8 +20,9 @@ func NewSyncCloser(out SyncCloseWriter, levels []slog.Level) *SyncCloseHandler {
 // NewSyncCloseHandler create new SyncCloseHandler
 //
 // Usage:
+//
 //	f, err := os.OpenFile("my.log", ...)
-// 	h := handler.NewSyncCloseHandler(f, slog.AllLevels)
+//	h := handler.NewSyncCloseHandler(f, slog.AllLevels)
 func NewSyncCloseHandler(out SyncCloseWriter, levels []slog.Level) *SyncCloseHandler {
 	return &SyncCloseHandler{
 		Output: out,

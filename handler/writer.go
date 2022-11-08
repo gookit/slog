@@ -20,11 +20,12 @@ func NewIOWriter(out io.Writer, levels []slog.Level) *IOWriterHandler {
 // NewIOWriterHandler create new IOWriterHandler
 //
 // Usage:
-// 	buf := new(bytes.Buffer)
-// 	h := handler.NewIOWriterHandler(&buf, slog.AllLevels)
+//
+//	buf := new(bytes.Buffer)
+//	h := handler.NewIOWriterHandler(&buf, slog.AllLevels)
 //
 //	f, err := os.OpenFile("my.log", ...)
-// 	h := handler.NewIOWriterHandler(f, slog.AllLevels)
+//	h := handler.NewIOWriterHandler(f, slog.AllLevels)
 func NewIOWriterHandler(out io.Writer, levels []slog.Level) *IOWriterHandler {
 	return &IOWriterHandler{
 		Output: out,

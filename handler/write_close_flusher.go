@@ -18,11 +18,12 @@ func NewFlushCloser(out FlushCloseWriter, levels []slog.Level) *FlushCloseHandle
 // NewFlushCloseHandler create new FlushCloseHandler
 //
 // Usage:
-// 	buf := new(bytes.Buffer)
-// 	h := handler.NewFlushCloseHandler(&buf, slog.AllLevels)
+//
+//	buf := new(bytes.Buffer)
+//	h := handler.NewFlushCloseHandler(&buf, slog.AllLevels)
 //
 //	f, err := os.OpenFile("my.log", ...)
-// 	h := handler.NewFlushCloseHandler(f, slog.AllLevels)
+//	h := handler.NewFlushCloseHandler(f, slog.AllLevels)
 func NewFlushCloseHandler(out FlushCloseWriter, levels []slog.Level) *FlushCloseHandler {
 	return &FlushCloseHandler{
 		Output: out,

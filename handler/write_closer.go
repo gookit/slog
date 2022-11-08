@@ -21,11 +21,12 @@ func NewWriteCloser(out io.WriteCloser, levels []slog.Level) *WriteCloserHandler
 // NewIOWriteCloserHandler create new WriteCloserHandler
 //
 // Usage:
-// 	buf := new(bytes.Buffer)
-// 	h := handler.NewIOWriteCloserHandler(&buf, slog.AllLevels)
+//
+//	buf := new(bytes.Buffer)
+//	h := handler.NewIOWriteCloserHandler(&buf, slog.AllLevels)
 //
 //	f, err := os.OpenFile("my.log", ...)
-// 	h := handler.NewIOWriteCloserHandler(f, slog.AllLevels)
+//	h := handler.NewIOWriteCloserHandler(f, slog.AllLevels)
 func NewIOWriteCloserHandler(out io.WriteCloser, levels []slog.Level) *WriteCloserHandler {
 	return &WriteCloserHandler{
 		Output: out,

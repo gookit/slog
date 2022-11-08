@@ -26,11 +26,12 @@ func NewSimple(out io.Writer, level slog.Level) *SimpleHandler {
 // NewSimpleHandler create new SimpleHandler
 //
 // Usage:
-// 	buf := new(bytes.Buffer)
-// 	h := handler.NewSimpleHandler(&buf, slog.InfoLevel)
+//
+//	buf := new(bytes.Buffer)
+//	h := handler.NewSimpleHandler(&buf, slog.InfoLevel)
 //
 //	f, err := os.OpenFile("my.log", ...)
-// 	h := handler.NewSimpleHandler(f, slog.InfoLevel)
+//	h := handler.NewSimpleHandler(f, slog.InfoLevel)
 func NewSimpleHandler(out io.Writer, level slog.Level) *SimpleHandler {
 	return &SimpleHandler{
 		Output: out,

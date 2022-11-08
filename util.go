@@ -111,7 +111,6 @@ func EncodeToString(v any) string {
 	if mp, ok := v.(map[string]any); ok {
 		return mapToString(mp)
 	}
-
 	return stdutil.ToString(v)
 }
 
