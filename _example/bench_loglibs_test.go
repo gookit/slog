@@ -13,12 +13,13 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// in _example dir:
+// In _example/ dir, run:
 //
-// 	go test -v -cpu=4 -run=none -bench=. -benchtime=10s -benchmem bench_loglibs_test.go
+//	go test -v -cpu=4 -run=none -bench=. -benchtime=10s -benchmem bench_loglibs_test.go
 //
 // code refer:
-// 	https://github.com/phuslu/log
+//
+//	https://github.com/phuslu/log
 var msg = "The quick brown fox jumps over the lazy dog"
 
 func BenchmarkZapNegative(b *testing.B) {
@@ -56,7 +57,7 @@ func BenchmarkPhusLogNegative(b *testing.B) {
 	}
 }
 
-// 	"github.com/sirupsen/logrus"
+// "github.com/sirupsen/logrus"
 func BenchmarkLogrusNegative(b *testing.B) {
 	logger := logrus.New()
 	logger.Out = ioutil.Discard

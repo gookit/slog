@@ -12,7 +12,8 @@ import (
 // go test -v -cpu=4 -run=none -bench=. -benchtime=10s -benchmem bench_test.go
 //
 // code refer:
-// 	https://github.com/phuslu/log
+//
+//	https://github.com/phuslu/log
 var msg = "The quick brown fox jumps over the lazy dog"
 
 func BenchmarkGookitSlogNegative(b *testing.B) {

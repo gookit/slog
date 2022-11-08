@@ -641,35 +641,35 @@ go test ./...
 make test-bench
 ```
 
-> record ad 2022.04.27
+> record ad 2022.11.08
 
-```text
+```shell
 % make test-bench
 goos: darwin
 goarch: amd64
 cpu: Intel(R) Core(TM) i7-3740QM CPU @ 2.70GHz
 BenchmarkZapNegative
-BenchmarkZapNegative-4                  128133166               93.97 ns/op          192 B/op          1 allocs/op
+BenchmarkZapNegative-4                  123297997              110.4 ns/op           192 B/op          1 allocs/op
 BenchmarkZeroLogNegative
-BenchmarkZeroLogNegative-4              909583207               13.41 ns/op            0 B/op          0 allocs/op
+BenchmarkZeroLogNegative-4              891508806               13.36 ns/op            0 B/op          0 allocs/op
 BenchmarkPhusLogNegative
-BenchmarkPhusLogNegative-4              784099310               15.24 ns/op            0 B/op          0 allocs/op
+BenchmarkPhusLogNegative-4              811990076               14.74 ns/op            0 B/op          0 allocs/op
 BenchmarkLogrusNegative
-BenchmarkLogrusNegative-4               289939296               41.60 ns/op           16 B/op          1 allocs/op
-BenchmarkGookit_SlogNegative
-> BenchmarkGookit_SlogNegative-4           29131203               417.4 ns/op           125 B/op          4 allocs/op
+BenchmarkLogrusNegative-4               242633541               49.40 ns/op           16 B/op          1 allocs/op
+BenchmarkGookitSlogNegative
+>>> BenchmarkGookitSlogNegative-4           29102253               422.8 ns/op           125 B/op          4 allocs/op
 BenchmarkZapPositive
-BenchmarkZapPositive-4                   9910075              1219 ns/op             192 B/op          1 allocs/op
+BenchmarkZapPositive-4                   9772791              1194 ns/op             192 B/op          1 allocs/op
 BenchmarkZeroLogPositive
-BenchmarkZeroLogPositive-4              13966810               871.0 ns/op             0 B/op          0 allocs/op
+BenchmarkZeroLogPositive-4              13944360               856.8 ns/op             0 B/op          0 allocs/op
 BenchmarkPhusLogPositive
-BenchmarkPhusLogPositive-4              26743148               446.2 ns/op             0 B/op          0 allocs/op
+BenchmarkPhusLogPositive-4              27839614               431.2 ns/op             0 B/op          0 allocs/op
 BenchmarkLogrusPositive
-BenchmarkLogrusPositive-4                2658482              4481 ns/op             608 B/op         17 allocs/op
-BenchmarkGookit_SlogPositive
-> BenchmarkGookit_SlogPositive-4            8349562              1441 ns/op             165 B/op          6 allocs/op
+BenchmarkLogrusPositive-4                2621076              4583 ns/op             608 B/op         17 allocs/op
+BenchmarkGookitSlogPositive
+>>> BenchmarkGookitSlogPositive-4            8908768              1359 ns/op             149 B/op          5 allocs/op
 PASS
-ok      command-line-arguments  146.669s
+ok      command-line-arguments  149.379s
 ```
 
 ## Gookit packages

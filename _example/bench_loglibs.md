@@ -1,10 +1,47 @@
 # Log libs benchmarks
 
+Run benchmark: `make test-bench`
+
+- on each test will update all package to latest.
+
+## v0.3.5 - 2022.11.08
+
+> record ad 2022.11.08
+
+```shell
+% make test-bench
+goos: darwin
+goarch: amd64
+cpu: Intel(R) Core(TM) i7-3740QM CPU @ 2.70GHz
+BenchmarkZapNegative
+BenchmarkZapNegative-4                  123297997              110.4 ns/op           192 B/op          1 allocs/op
+BenchmarkZeroLogNegative
+BenchmarkZeroLogNegative-4              891508806               13.36 ns/op            0 B/op          0 allocs/op
+BenchmarkPhusLogNegative
+BenchmarkPhusLogNegative-4              811990076               14.74 ns/op            0 B/op          0 allocs/op
+BenchmarkLogrusNegative
+BenchmarkLogrusNegative-4               242633541               49.40 ns/op           16 B/op          1 allocs/op
+BenchmarkGookitSlogNegative
+BenchmarkGookitSlogNegative-4           29102253               422.8 ns/op           125 B/op          4 allocs/op
+BenchmarkZapPositive
+BenchmarkZapPositive-4                   9772791              1194 ns/op             192 B/op          1 allocs/op
+BenchmarkZeroLogPositive
+BenchmarkZeroLogPositive-4              13944360               856.8 ns/op             0 B/op          0 allocs/op
+BenchmarkPhusLogPositive
+BenchmarkPhusLogPositive-4              27839614               431.2 ns/op             0 B/op          0 allocs/op
+BenchmarkLogrusPositive
+BenchmarkLogrusPositive-4                2621076              4583 ns/op             608 B/op         17 allocs/op
+BenchmarkGookitSlogPositive
+BenchmarkGookitSlogPositive-4            8908768              1359 ns/op             149 B/op          5 allocs/op
+PASS
+ok      command-line-arguments  149.379s
+```
+
 ## v0.3.0
 
 > record ad 2022.04.27
 
-```text
+```shell
 % make test-bench
 goos: darwin
 goarch: amd64
@@ -37,7 +74,7 @@ ok      command-line-arguments  146.669s
 
 > record ad 2022.04.17
 
-```text
+```shell
 $ go test -v -cpu=4 -run=none -bench=. -benchtime=10s -benchmem bench_loglibs_test.go
 goos: darwin
 goarch: amd64
@@ -71,7 +108,7 @@ ok      command-line-arguments  145.175s
 
 > record ad 2022.04.17
 
-```text
+```shell
 $ go test -v -cpu=4 -run=none -bench=. -benchtime=10s -benchmem bench_loglibs_test.go
 goos: darwin
 goarch: amd64
@@ -104,7 +141,7 @@ ok      command-line-arguments  156.038s
 
 > record ad 2022.02.26
 
-```text
+```shell
 $ go test -v -cpu=4 -run=none -bench=. -benchtime=10s -benchmem bench_loglibs_test.go
 goos: windows
 goarch: amd64                               
@@ -135,7 +172,7 @@ ok      command-line-arguments  135.460s
 
 > record ad 2022.02.26
 
-```text
+```shell
 $ go test -v -cpu=4 -run=none -bench=. -benchtime=10s -benchmem bench_loglibs_test.go
 goos: windows
 goarch: amd64
