@@ -42,7 +42,7 @@ func NewSugaredLogger(output io.Writer, level Level) *SugaredLogger {
 	}
 
 	// NOTICE: use self as an log handler
-	sl.AddHandler(sl)
+	sl.SetDefault(sl)
 
 	return sl
 }
@@ -90,7 +90,7 @@ func (sl *SugaredLogger) Handle(record *Record) error {
 
 // Close all log handlers
 func (sl *SugaredLogger) Close() error {
-	sl.Logger.VisitAll(func(handler Handler) error {
+	_ = sl.Logger.VisitAll(func(handler Handler) error {
 		// TIP: must exclude self
 		if _, ok := handler.(*SugaredLogger); !ok {
 			err := handler.Close()
@@ -111,11 +111,10 @@ func (sl *SugaredLogger) Flush() error {
 
 // FlushAll all logs
 func (sl *SugaredLogger) FlushAll() error {
-	sl.Logger.VisitAll(func(handler Handler) error {
+	return sl.Logger.VisitAll(func(handler Handler) error {
 		if _, ok := handler.(*SugaredLogger); !ok {
 			_ = handler.Flush()
 		}
 		return nil
 	})
-	return nil
 }

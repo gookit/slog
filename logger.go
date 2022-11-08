@@ -26,6 +26,8 @@ type Logger struct {
 	// log latest error
 	err error
 
+	// default handler for logger
+	defaultH   Handler
 	handlers   []Handler
 	processors []Processor
 
@@ -281,20 +283,41 @@ func (l *Logger) LastErr() error {
 // ---------------------------------------------------------------------------
 //
 
+// SetDefault handler to the logger
+func (l *Logger) SetDefault(h Handler) { l.defaultH = h }
+
 // AddHandler to the logger
-func (l *Logger) AddHandler(h Handler) { l.handlers = append(l.handlers, h) }
+func (l *Logger) AddHandler(h Handler) { l.PushHandlers(h) }
 
 // AddHandlers to the logger
-func (l *Logger) AddHandlers(hs ...Handler) { l.handlers = append(l.handlers, hs...) }
-
-// PushHandlers to the logger
-func (l *Logger) PushHandlers(hs ...Handler) { l.handlers = append(l.handlers, hs...) }
+func (l *Logger) AddHandlers(hs ...Handler) { l.PushHandlers(hs...) }
 
 // PushHandler to the l. alias of AddHandler()
-func (l *Logger) PushHandler(h Handler) { l.AddHandler(h) }
+func (l *Logger) PushHandler(h Handler) { l.PushHandlers(h) }
+
+// PushHandlers to the logger
+func (l *Logger) PushHandlers(hs ...Handler) {
+	// if not set default, use first handler
+	if l.defaultH == nil {
+		l.SetDefault(hs[0])
+		hs = hs[1:]
+	}
+
+	if len(hs) > 0 {
+		l.handlers = append(l.handlers, hs...)
+	}
+}
 
 // SetHandlers for the logger
-func (l *Logger) SetHandlers(hs []Handler) { l.handlers = hs }
+func (l *Logger) SetHandlers(hs []Handler) {
+	// if not set default, use first handler
+	if l.defaultH == nil {
+		l.SetDefault(hs[0])
+		hs = hs[1:]
+	}
+
+	l.handlers = hs
+}
 
 // AddProcessor to the logger
 func (l *Logger) AddProcessor(p Processor) { l.processors = append(l.processors, p) }
@@ -355,6 +378,9 @@ func (l *Logger) WithTime(t time.Time) *Record {
 	return r.WithTime(t)
 }
 
+// WithCtx new record with context.Context
+func (l *Logger) WithCtx(ctx context.Context) *Record { return l.WithContext(ctx) }
+
 // WithContext new record with context.Context
 func (l *Logger) WithContext(ctx context.Context) *Record {
 	r := l.newRecord()
@@ -385,9 +411,7 @@ func (l *Logger) logf(level Level, format string, args []any) {
 }
 
 // Log a message with level
-func (l *Logger) Log(level Level, args ...any) {
-	l.log(level, args)
-}
+func (l *Logger) Log(level Level, args ...any) { l.log(level, args) }
 
 // Logf a format message with level
 func (l *Logger) Logf(level Level, format string, args ...any) {
@@ -395,14 +419,10 @@ func (l *Logger) Logf(level Level, format string, args ...any) {
 }
 
 // Print logs a message at level PrintLevel
-func (l *Logger) Print(args ...any) {
-	l.log(PrintLevel, args)
-}
+func (l *Logger) Print(args ...any) { l.log(PrintLevel, args) }
 
 // Println logs a message at level PrintLevel
-func (l *Logger) Println(args ...any) {
-	l.log(PrintLevel, args)
-}
+func (l *Logger) Println(args ...any) { l.log(PrintLevel, args) }
 
 // Printf logs a message at level PrintLevel
 func (l *Logger) Printf(format string, args ...any) {
@@ -410,9 +430,7 @@ func (l *Logger) Printf(format string, args ...any) {
 }
 
 // Warn logs a message at level Warn
-func (l *Logger) Warn(args ...any) {
-	l.log(WarnLevel, args)
-}
+func (l *Logger) Warn(args ...any) { l.log(WarnLevel, args) }
 
 // Warnf logs a message at level Warn
 func (l *Logger) Warnf(format string, args ...any) {
@@ -420,14 +438,10 @@ func (l *Logger) Warnf(format string, args ...any) {
 }
 
 // Warning logs a message at level Warn
-func (l *Logger) Warning(args ...any) {
-	l.log(WarnLevel, args)
-}
+func (l *Logger) Warning(args ...any) { l.log(WarnLevel, args) }
 
 // Info logs a message at level Info
-func (l *Logger) Info(args ...any) {
-	l.log(InfoLevel, args)
-}
+func (l *Logger) Info(args ...any) { l.log(InfoLevel, args) }
 
 // Infof logs a message at level Info
 func (l *Logger) Infof(format string, args ...any) {
@@ -435,9 +449,7 @@ func (l *Logger) Infof(format string, args ...any) {
 }
 
 // Trace logs a message at level Trace
-func (l *Logger) Trace(args ...any) {
-	l.log(TraceLevel, args)
-}
+func (l *Logger) Trace(args ...any) { l.log(TraceLevel, args) }
 
 // Tracef logs a message at level Trace
 func (l *Logger) Tracef(format string, args ...any) {
@@ -445,9 +457,7 @@ func (l *Logger) Tracef(format string, args ...any) {
 }
 
 // Error logs a message at level error
-func (l *Logger) Error(args ...any) {
-	l.log(ErrorLevel, args)
-}
+func (l *Logger) Error(args ...any) { l.log(ErrorLevel, args) }
 
 // Errorf logs a message at level Error
 func (l *Logger) Errorf(format string, args ...any) {
@@ -462,9 +472,7 @@ func (l *Logger) ErrorT(err error) {
 }
 
 // Notice logs a message at level Notice
-func (l *Logger) Notice(args ...any) {
-	l.log(NoticeLevel, args)
-}
+func (l *Logger) Notice(args ...any) { l.log(NoticeLevel, args) }
 
 // Noticef logs a message at level Notice
 func (l *Logger) Noticef(format string, args ...any) {
@@ -472,9 +480,7 @@ func (l *Logger) Noticef(format string, args ...any) {
 }
 
 // Debug logs a message at level Debug
-func (l *Logger) Debug(args ...any) {
-	l.log(DebugLevel, args)
-}
+func (l *Logger) Debug(args ...any) { l.log(DebugLevel, args) }
 
 // Debugf logs a message at level Debug
 func (l *Logger) Debugf(format string, args ...any) {
@@ -482,9 +488,7 @@ func (l *Logger) Debugf(format string, args ...any) {
 }
 
 // Fatal logs a message at level Fatal
-func (l *Logger) Fatal(args ...any) {
-	l.log(FatalLevel, args)
-}
+func (l *Logger) Fatal(args ...any) { l.log(FatalLevel, args) }
 
 // Fatalf logs a message at level Fatal
 func (l *Logger) Fatalf(format string, args ...any) {
@@ -492,14 +496,10 @@ func (l *Logger) Fatalf(format string, args ...any) {
 }
 
 // Fatalln logs a message at level Fatal
-func (l *Logger) Fatalln(args ...any) {
-	l.log(FatalLevel, args)
-}
+func (l *Logger) Fatalln(args ...any) { l.log(FatalLevel, args) }
 
 // Panic logs a message at level Panic
-func (l *Logger) Panic(args ...any) {
-	l.log(PanicLevel, args)
-}
+func (l *Logger) Panic(args ...any) { l.log(PanicLevel, args) }
 
 // Panicf logs a message at level Panic
 func (l *Logger) Panicf(format string, args ...any) {
@@ -507,6 +507,4 @@ func (l *Logger) Panicf(format string, args ...any) {
 }
 
 // Panicln logs a message at level Panic
-func (l *Logger) Panicln(args ...any) {
-	l.log(PanicLevel, args)
-}
+func (l *Logger) Panicln(args ...any) { l.log(PanicLevel, args) }

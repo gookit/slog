@@ -6,7 +6,7 @@ package slog
 // ---------------------------------------------------------------------------
 //
 
-func (r *Record) logBytes(level Level) {
+func (r *Record) logWrite(level Level) {
 	// Will reduce memory allocation once
 	// r.Message = strutil.Byte2str(message)
 
@@ -17,30 +17,8 @@ func (r *Record) logBytes(level Level) {
 
 	// TODO release on here ??
 	// defer r.logger.releaseRecord(r)
-
-	handlers, ok := r.logger.matchHandlers(level)
-	if !ok {
-		return
-	}
-
-	// init record
 	r.Level = level
-	r.Init(r.logger.LowerLevelName)
-
-	r.logger.mu.Lock()
-	defer r.logger.mu.Unlock()
-
-	// log caller. will alloc 3 times
-	if r.logger.ReportCaller {
-		caller, ok := getCaller(r.CallerSkip)
-		if ok {
-			r.Caller = &caller
-		}
-	}
-
-	// do write log message
-	r.logger.write(level, r, handlers)
-
+	r.logger.writeRecord(level, r)
 	// r.Buffer = nil
 }
 
@@ -61,66 +39,60 @@ func (r *Record) Init(lowerLevelName bool) {
 	// r.microSecond = r.Time.Nanosecond() / 1000
 }
 
-//
-// ---------------------------------------------------------------------------
-// Do write log message
-// ---------------------------------------------------------------------------
-//
-
-func (l *Logger) matchHandlers(level Level) ([]Handler, bool) {
-	// alloc: 1 times for match handlers
-	var matched []Handler
-	for _, handler := range l.handlers {
-		if handler.IsHandling(level) {
-			matched = append(matched, handler)
+// Init something for record.
+func (r *Record) beforeHandle(l *Logger) {
+	// log caller. will alloc 3 times
+	if l.ReportCaller {
+		caller, ok := getCaller(r.CallerSkip)
+		if ok {
+			r.Caller = &caller
 		}
 	}
-
-	return matched, len(matched) > 0
-}
-
-func (l *Logger) write(level Level, r *Record, matched []Handler) {
-	// // alloc: 1 times for match handlers
-	// var matched []Handler
-	// for _, handler := range l.handlers {
-	// 	if handler.IsHandling(level) {
-	// 		matched = append(matched, handler)
-	// 	}
-	// }
-	//
-	// // log level is don't match
-	// if len(matched) == 0 {
-	// 	return
-	// }
-	//
-	// // init record
-	// r.Init(l.LowerLevelName)
-	// l.mu.Lock()
-	// defer l.mu.Unlock()
-	//
-	// // log caller. will alloc 3 times
-	// if l.ReportCaller {
-	// 	caller, ok := getCaller(l.CallerSkip)
-	// 	if ok {
-	// 		r.Caller = &caller
-	// 	}
-	// }
 
 	// processing log record
 	for i := range l.processors {
 		l.processors[i].Process(r)
 	}
+}
 
-	// handling log record
-	for _, handler := range matched {
-		if err := handler.Handle(r); err != nil {
+// do write log record
+func (l *Logger) writeRecord(level Level, r *Record) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	// do write log message
+	var inited bool
+	if l.defaultH != nil && l.defaultH.IsHandling(level) {
+		if !inited {
+			r.Init(l.LowerLevelName)
+			r.beforeHandle(l)
+			inited = true
+		}
+
+		if err := l.defaultH.Handle(r); err != nil {
 			printlnStderr("slog: failed to handle log, error: ", err)
 		}
 	}
 
+	for _, handler := range l.handlers {
+		if handler.IsHandling(level) {
+			if !inited {
+				r.Init(l.LowerLevelName)
+				r.beforeHandle(l)
+				inited = true
+			}
+
+			if err := handler.Handle(r); err != nil {
+				printlnStderr("slog: failed to handle log, error: ", err)
+			}
+		}
+	}
+
+	// ---- after write log ----
+
 	// flush logs on level <= error level.
 	if level <= ErrorLevel {
-		l.flushAll() // has locked on Record.logBytes()
+		l.flushAll() // has been in lock
 	}
 
 	if level <= PanicLevel {

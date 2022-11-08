@@ -158,6 +158,9 @@ func (r *Record) Copy() *Record {
 // ---------------------------------------------------------------------------
 //
 
+// SetCtx on record
+func (r *Record) SetCtx(ctx context.Context) *Record { return r.SetContext(ctx) }
+
 // SetContext on record
 func (r *Record) SetContext(ctx context.Context) *Record {
 	r.Ctx = ctx
@@ -259,7 +262,7 @@ func (r *Record) SetFields(fields M) *Record {
 //
 // ---------------------------------------------------------------------------
 // Add log message with builder
-// TODO r.Builder(InfoLevel).Str().Int().Float().Msg()
+// TODO r.Build(InfoLevel).Str().Int().Float().Msg()
 // ---------------------------------------------------------------------------
 //
 
@@ -269,12 +272,18 @@ func (r *Record) SetFields(fields M) *Record {
 // 	return r
 // }
 
+// Object data on record TODO optimize performance
+// func (r *Record) Any(v any) *Record {
+// 	r.Data = ctx
+// 	return r
+// }
+
 // func (r *Record) Str(message string) {
-// 	r.logBytes(level, []byte(message))
+// 	r.logWrite(level, []byte(message))
 // }
 
 // func (r *Record) Int(val int) {
-// 	r.logBytes(level, []byte(message))
+// 	r.logWrite(level, []byte(message))
 // }
 
 //
@@ -287,18 +296,16 @@ func (r *Record) log(level Level, args []any) {
 	// will reduce memory allocation once
 	// r.Message = strutil.Byte2str(formatArgsWithSpaces(args))
 	r.Message = formatArgsWithSpaces(args)
-	r.logBytes(level)
+	r.logWrite(level)
 }
 
 func (r *Record) logf(level Level, format string, args []any) {
 	r.Message = fmt.Sprintf(format, args...)
-	r.logBytes(level)
+	r.logWrite(level)
 }
 
 // Log a message with level
-func (r *Record) Log(level Level, args ...any) {
-	r.log(level, args)
-}
+func (r *Record) Log(level Level, args ...any) { r.log(level, args) }
 
 // Logf a message with level
 func (r *Record) Logf(level Level, format string, args ...any) {
@@ -306,9 +313,7 @@ func (r *Record) Logf(level Level, format string, args ...any) {
 }
 
 // Info logs a message at level Info
-func (r *Record) Info(args ...any) {
-	r.log(InfoLevel, args)
-}
+func (r *Record) Info(args ...any) { r.log(InfoLevel, args) }
 
 // Infof logs a message at level Info
 func (r *Record) Infof(format string, args ...any) {
@@ -316,9 +321,7 @@ func (r *Record) Infof(format string, args ...any) {
 }
 
 // Trace logs a message at level Trace
-func (r *Record) Trace(args ...any) {
-	r.log(TraceLevel, args)
-}
+func (r *Record) Trace(args ...any) { r.log(TraceLevel, args) }
 
 // Tracef logs a message at level Trace
 func (r *Record) Tracef(format string, args ...any) {
@@ -326,9 +329,7 @@ func (r *Record) Tracef(format string, args ...any) {
 }
 
 // Error logs a message at level Error
-func (r *Record) Error(args ...any) {
-	r.log(ErrorLevel, args)
-}
+func (r *Record) Error(args ...any) { r.log(ErrorLevel, args) }
 
 // Errorf logs a message at level Error
 func (r *Record) Errorf(format string, args ...any) {
@@ -336,9 +337,7 @@ func (r *Record) Errorf(format string, args ...any) {
 }
 
 // Warn logs a message at level Warn
-func (r *Record) Warn(args ...any) {
-	r.log(WarnLevel, args)
-}
+func (r *Record) Warn(args ...any) { r.log(WarnLevel, args) }
 
 // Warnf logs a message at level Warn
 func (r *Record) Warnf(format string, args ...any) {
@@ -346,9 +345,7 @@ func (r *Record) Warnf(format string, args ...any) {
 }
 
 // Notice logs a message at level Notice
-func (r *Record) Notice(args ...any) {
-	r.log(NoticeLevel, args)
-}
+func (r *Record) Notice(args ...any) { r.log(NoticeLevel, args) }
 
 // Noticef logs a message at level Notice
 func (r *Record) Noticef(format string, args ...any) {
@@ -356,9 +353,7 @@ func (r *Record) Noticef(format string, args ...any) {
 }
 
 // Debug logs a message at level Debug
-func (r *Record) Debug(args ...any) {
-	r.log(DebugLevel, args)
-}
+func (r *Record) Debug(args ...any) { r.log(DebugLevel, args) }
 
 // Debugf logs a message at level Debug
 func (r *Record) Debugf(format string, args ...any) {
@@ -366,14 +361,10 @@ func (r *Record) Debugf(format string, args ...any) {
 }
 
 // Print logs a message at level Print
-func (r *Record) Print(args ...any) {
-	r.log(PrintLevel, args)
-}
+func (r *Record) Print(args ...any) { r.log(PrintLevel, args) }
 
 // Println logs a message at level Print, will not append \n. alias of Print
-func (r *Record) Println(args ...any) {
-	r.log(PrintLevel, args)
-}
+func (r *Record) Println(args ...any) { r.log(PrintLevel, args) }
 
 // Printf logs a message at level Print
 func (r *Record) Printf(format string, args ...any) {
@@ -381,14 +372,10 @@ func (r *Record) Printf(format string, args ...any) {
 }
 
 // Fatal logs a message at level Fatal
-func (r *Record) Fatal(args ...any) {
-	r.log(FatalLevel, args)
-}
+func (r *Record) Fatal(args ...any) { r.log(FatalLevel, args) }
 
-// Fatalln logs a message at level Fatal, will not append \n.
-func (r *Record) Fatalln(args ...any) {
-	r.log(FatalLevel, args)
-}
+// Fatalln logs a message at level Fatal
+func (r *Record) Fatalln(args ...any) { r.log(FatalLevel, args) }
 
 // Fatalf logs a message at level Fatal
 func (r *Record) Fatalf(format string, args ...any) {
@@ -396,14 +383,10 @@ func (r *Record) Fatalf(format string, args ...any) {
 }
 
 // Panic logs a message at level Panic
-func (r *Record) Panic(args ...any) {
-	r.log(PanicLevel, args)
-}
+func (r *Record) Panic(args ...any) { r.log(PanicLevel, args) }
 
-// Panicln logs a message at level Panic, will not append \n.
-func (r *Record) Panicln(args ...any) {
-	r.log(PanicLevel, args)
-}
+// Panicln logs a message at level Panic
+func (r *Record) Panicln(args ...any) { r.log(PanicLevel, args) }
 
 // Panicf logs a message at level Panic
 func (r *Record) Panicf(format string, args ...any) {
