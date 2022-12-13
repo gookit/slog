@@ -160,7 +160,7 @@ var (
 	// DefaultChannelName for log record
 	DefaultChannelName = "application"
 	// DefaultTimeFormat define
-	DefaultTimeFormat = "2006/01/02T15:04:05"
+	DefaultTimeFormat = "2006/01/02T15:04:05.000"
 	// TimeFormatRFC3339  = time.RFC3339
 
 	// DoNothingOnExit handle func. use for testing.

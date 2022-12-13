@@ -1,6 +1,7 @@
 package slog_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -51,6 +52,7 @@ func TestIssues_52(t *testing.T) {
 	slog.Error("Error message")
 	slog.Reset()
 
+	fmt.Println()
 	// dump.P(slog.GetFormatter())
 }
 

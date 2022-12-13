@@ -81,7 +81,7 @@ func NewWithName(name string) *Logger {
 		exitHandlers: []func(){},
 		// options
 		ReportCaller: true,
-		CallerSkip:   5,
+		CallerSkip:   7,
 		TimeClock:    DefaultClockFn,
 	}
 
@@ -219,6 +219,12 @@ func (l *Logger) Close() error {
 
 // VisitAll logger handlers
 func (l *Logger) VisitAll(fn func(handler Handler) error) error {
+	if l.defaultH != nil {
+		if err := fn(l.defaultH); err != nil {
+			return err
+		}
+	}
+
 	for _, handler := range l.handlers {
 		// you can return nil for ignore error
 		if err := fn(handler); err != nil {

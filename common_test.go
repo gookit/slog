@@ -144,7 +144,7 @@ func newTestHandler() *testHandler {
 // 	h.errOnClose = false
 // }
 
-func (h testHandler) IsHandling(level slog.Level) bool {
+func (h testHandler) IsHandling(_ slog.Level) bool {
 	return true
 }
 
@@ -162,7 +162,7 @@ func (h testHandler) Flush() error {
 	return nil
 }
 
-func (h testHandler) Handle(record *slog.Record) error {
+func (h testHandler) Handle(_ *slog.Record) error {
 	if h.errOnHandle {
 		return errorx.Raw("handle error")
 	}
