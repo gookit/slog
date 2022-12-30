@@ -7,6 +7,9 @@ import (
 	"github.com/gookit/color"
 )
 
+// SugaredLoggerFn func type.
+type SugaredLoggerFn func(sl *SugaredLogger)
+
 // SugaredLogger definition.
 // Is a fast and usable Logger, which already contains
 // the default formatting and handling capabilities
@@ -22,7 +25,7 @@ type SugaredLogger struct {
 
 // NewStdLogger instance
 func NewStdLogger() *SugaredLogger {
-	return NewSugaredLogger(os.Stdout, DebugLevel).Config(func(sl *SugaredLogger) {
+	return NewSugaredLogger(os.Stdout, DebugLevel, func(sl *SugaredLogger) {
 		sl.SetName("stdLogger")
 		// sl.CallerSkip += 1
 		sl.ReportCaller = true
@@ -32,7 +35,7 @@ func NewStdLogger() *SugaredLogger {
 }
 
 // NewSugaredLogger create new SugaredLogger
-func NewSugaredLogger(output io.Writer, level Level) *SugaredLogger {
+func NewSugaredLogger(output io.Writer, level Level, fns ...SugaredLoggerFn) *SugaredLogger {
 	sl := &SugaredLogger{
 		Level:  level,
 		Output: output,
@@ -42,30 +45,31 @@ func NewSugaredLogger(output io.Writer, level Level) *SugaredLogger {
 	}
 
 	// NOTICE: use self as an log handler
-	sl.SetDefault(sl)
+	sl.AddHandler(sl)
 
-	return sl
+	return sl.Config(fns...)
 }
 
 // NewJSONSugared create new SugaredLogger with JSONFormatter
-func NewJSONSugared(out io.Writer, level Level) *SugaredLogger {
+func NewJSONSugared(out io.Writer, level Level, fns ...SugaredLoggerFn) *SugaredLogger {
 	sl := NewSugaredLogger(out, level)
 	sl.Formatter = NewJSONFormatter()
 
-	return sl
+	return sl.Config(fns...)
 }
 
 // Config current logger
-func (sl *SugaredLogger) Config(fn func(sl *SugaredLogger)) *SugaredLogger {
-	fn(sl)
+func (sl *SugaredLogger) Config(fns ...SugaredLoggerFn) *SugaredLogger {
+	for _, fn := range fns {
+		fn(sl)
+	}
 	return sl
 }
 
 // Configure current logger
-func (sl *SugaredLogger) Configure(fn func(sl *SugaredLogger)) *SugaredLogger {
-	fn(sl)
-	return sl
-}
+//
+// Deprecated: please use SugaredLogger.Config()
+func (sl *SugaredLogger) Configure(fn SugaredLoggerFn) *SugaredLogger { return sl.Config(fn) }
 
 // Reset the logger
 func (sl *SugaredLogger) Reset() {

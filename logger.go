@@ -16,6 +16,9 @@ type SLogger interface {
 	Logf(level Level, format string, v ...any)
 }
 
+// LoggerFn func
+type LoggerFn func(l *Logger)
+
 // Logger log dispatcher definition.
 //
 // The logger implements the `github.com/gookit/gsr.Logger`
@@ -26,8 +29,7 @@ type Logger struct {
 	// log latest error
 	err error
 
-	// default handler for logger
-	defaultH   Handler
+	// log handlers for logger
 	handlers   []Handler
 	processors []Processor
 
@@ -59,11 +61,6 @@ func New() *Logger {
 	return NewWithName("logger")
 }
 
-// NewWithConfig create a new logger with config func
-func NewWithConfig(fn func(l *Logger)) *Logger {
-	return NewWithName("logger").Configure(fn)
-}
-
 // NewWithHandlers create a new logger with handlers
 func NewWithHandlers(hs ...Handler) *Logger {
 	logger := NewWithName("logger")
@@ -71,8 +68,13 @@ func NewWithHandlers(hs ...Handler) *Logger {
 	return logger
 }
 
+// NewWithConfig create a new logger with config func
+func NewWithConfig(fns ...LoggerFn) *Logger {
+	return NewWithName("logger", fns...)
+}
+
 // NewWithName create a new logger with name
-func NewWithName(name string) *Logger {
+func NewWithName(name string, fns ...LoggerFn) *Logger {
 	logger := &Logger{
 		name: name,
 		// exit handle
@@ -88,7 +90,7 @@ func NewWithName(name string) *Logger {
 	logger.recordPool.New = func() interface{} {
 		return newRecord(logger)
 	}
-	return logger
+	return logger.Config(fns...)
 }
 
 // NewRecord get new logger record
@@ -115,7 +117,7 @@ func (l *Logger) releaseRecord(r *Record) {
 const flushInterval = 30 * time.Second
 
 // Config current logger
-func (l *Logger) Config(fns ...func(l *Logger)) *Logger {
+func (l *Logger) Config(fns ...LoggerFn) *Logger {
 	for _, fn := range fns {
 		fn(l)
 	}
@@ -123,10 +125,7 @@ func (l *Logger) Config(fns ...func(l *Logger)) *Logger {
 }
 
 // Configure current logger
-func (l *Logger) Configure(fn func(l *Logger)) *Logger {
-	fn(l)
-	return l
-}
+func (l *Logger) Configure(fn LoggerFn) *Logger { return l.Config(fn) }
 
 // FlushDaemon run flush handle on daemon
 //
@@ -219,12 +218,6 @@ func (l *Logger) Close() error {
 
 // VisitAll logger handlers
 func (l *Logger) VisitAll(fn func(handler Handler) error) error {
-	if l.defaultH != nil {
-		if err := fn(l.defaultH); err != nil {
-			return err
-		}
-	}
-
 	for _, handler := range l.handlers {
 		// you can return nil for ignore error
 		if err := fn(handler); err != nil {
@@ -289,9 +282,6 @@ func (l *Logger) LastErr() error {
 // ---------------------------------------------------------------------------
 //
 
-// SetDefault handler to the logger
-func (l *Logger) SetDefault(h Handler) { l.defaultH = h }
-
 // AddHandler to the logger
 func (l *Logger) AddHandler(h Handler) { l.PushHandlers(h) }
 
@@ -303,12 +293,6 @@ func (l *Logger) PushHandler(h Handler) { l.PushHandlers(h) }
 
 // PushHandlers to the logger
 func (l *Logger) PushHandlers(hs ...Handler) {
-	// if not set default, use first handler
-	if l.defaultH == nil {
-		l.SetDefault(hs[0])
-		hs = hs[1:]
-	}
-
 	if len(hs) > 0 {
 		l.handlers = append(l.handlers, hs...)
 	}
@@ -316,12 +300,6 @@ func (l *Logger) PushHandlers(hs ...Handler) {
 
 // SetHandlers for the logger
 func (l *Logger) SetHandlers(hs []Handler) {
-	// if not set default, use first handler
-	if l.defaultH == nil {
-		l.SetDefault(hs[0])
-		hs = hs[1:]
-	}
-
 	l.handlers = hs
 }
 
@@ -347,7 +325,6 @@ func (l *Logger) SetProcessors(ps []Processor) { l.processors = ps }
 // Record return a new record for log
 func (l *Logger) Record() *Record {
 	r := l.newRecord()
-
 	defer l.releaseRecord(r)
 	return r
 }
@@ -355,7 +332,6 @@ func (l *Logger) Record() *Record {
 // WithField new record with field
 func (l *Logger) WithField(name string, value any) *Record {
 	r := l.newRecord()
-
 	defer l.releaseRecord(r)
 	return r.WithField(name, value)
 }
@@ -363,7 +339,6 @@ func (l *Logger) WithField(name string, value any) *Record {
 // WithFields new record with fields
 func (l *Logger) WithFields(fields M) *Record {
 	r := l.newRecord()
-
 	defer l.releaseRecord(r)
 	return r.WithFields(fields)
 }
@@ -371,7 +346,6 @@ func (l *Logger) WithFields(fields M) *Record {
 // WithData new record with data
 func (l *Logger) WithData(data M) *Record {
 	r := l.newRecord()
-
 	defer l.releaseRecord(r)
 	return r.WithData(data)
 }
@@ -379,7 +353,6 @@ func (l *Logger) WithData(data M) *Record {
 // WithTime new record with time.Time
 func (l *Logger) WithTime(t time.Time) *Record {
 	r := l.newRecord()
-
 	defer l.releaseRecord(r)
 	return r.WithTime(t)
 }
@@ -390,7 +363,6 @@ func (l *Logger) WithCtx(ctx context.Context) *Record { return l.WithContext(ctx
 // WithContext new record with context.Context
 func (l *Logger) WithContext(ctx context.Context) *Record {
 	r := l.newRecord()
-
 	defer l.releaseRecord(r)
 	return r.WithContext(ctx)
 }
@@ -431,86 +403,68 @@ func (l *Logger) Print(args ...any) { l.log(PrintLevel, args) }
 func (l *Logger) Println(args ...any) { l.log(PrintLevel, args) }
 
 // Printf logs a message at level PrintLevel
-func (l *Logger) Printf(format string, args ...any) {
-	l.logf(PrintLevel, format, args)
-}
+func (l *Logger) Printf(format string, args ...any) { l.logf(PrintLevel, format, args) }
 
 // Warn logs a message at level Warn
 func (l *Logger) Warn(args ...any) { l.log(WarnLevel, args) }
 
 // Warnf logs a message at level Warn
-func (l *Logger) Warnf(format string, args ...any) {
-	l.logf(WarnLevel, format, args)
-}
+func (l *Logger) Warnf(format string, args ...any) { l.logf(WarnLevel, format, args) }
 
-// Warning logs a message at level Warn
+// Warning logs a message at level Warn, alias of Logger.Warn()
 func (l *Logger) Warning(args ...any) { l.log(WarnLevel, args) }
 
 // Info logs a message at level Info
 func (l *Logger) Info(args ...any) { l.log(InfoLevel, args) }
 
 // Infof logs a message at level Info
-func (l *Logger) Infof(format string, args ...any) {
-	l.logf(InfoLevel, format, args)
-}
+func (l *Logger) Infof(format string, args ...any) { l.logf(InfoLevel, format, args) }
 
-// Trace logs a message at level Trace
+// Trace logs a message at level trace
 func (l *Logger) Trace(args ...any) { l.log(TraceLevel, args) }
 
-// Tracef logs a message at level Trace
-func (l *Logger) Tracef(format string, args ...any) {
-	l.logf(TraceLevel, format, args)
-}
+// Tracef logs a message at level trace
+func (l *Logger) Tracef(format string, args ...any) { l.logf(TraceLevel, format, args) }
 
 // Error logs a message at level error
 func (l *Logger) Error(args ...any) { l.log(ErrorLevel, args) }
 
-// Errorf logs a message at level Error
-func (l *Logger) Errorf(format string, args ...any) {
-	l.logf(ErrorLevel, format, args)
-}
+// Errorf logs a message at level error
+func (l *Logger) Errorf(format string, args ...any) { l.logf(ErrorLevel, format, args) }
 
-// ErrorT logs a error type at level Error
+// ErrorT logs a error type at level error
 func (l *Logger) ErrorT(err error) {
 	if err != nil {
 		l.log(ErrorLevel, []any{err})
 	}
 }
 
-// Notice logs a message at level Notice
+// Notice logs a message at level notice
 func (l *Logger) Notice(args ...any) { l.log(NoticeLevel, args) }
 
-// Noticef logs a message at level Notice
-func (l *Logger) Noticef(format string, args ...any) {
-	l.logf(NoticeLevel, format, args)
-}
+// Noticef logs a message at level notice
+func (l *Logger) Noticef(format string, args ...any) { l.logf(NoticeLevel, format, args) }
 
-// Debug logs a message at level Debug
+// Debug logs a message at level debug
 func (l *Logger) Debug(args ...any) { l.log(DebugLevel, args) }
 
-// Debugf logs a message at level Debug
-func (l *Logger) Debugf(format string, args ...any) {
-	l.logf(DebugLevel, format, args)
-}
+// Debugf logs a message at level debug
+func (l *Logger) Debugf(format string, args ...any) { l.logf(DebugLevel, format, args) }
 
-// Fatal logs a message at level Fatal
+// Fatal logs a message at level fatal
 func (l *Logger) Fatal(args ...any) { l.log(FatalLevel, args) }
 
-// Fatalf logs a message at level Fatal
-func (l *Logger) Fatalf(format string, args ...any) {
-	l.logf(FatalLevel, format, args)
-}
+// Fatalf logs a message at level fatal
+func (l *Logger) Fatalf(format string, args ...any) { l.logf(FatalLevel, format, args) }
 
-// Fatalln logs a message at level Fatal
+// Fatalln logs a message at level fatal
 func (l *Logger) Fatalln(args ...any) { l.log(FatalLevel, args) }
 
-// Panic logs a message at level Panic
+// Panic logs a message at level panic
 func (l *Logger) Panic(args ...any) { l.log(PanicLevel, args) }
 
-// Panicf logs a message at level Panic
-func (l *Logger) Panicf(format string, args ...any) {
-	l.logf(PanicLevel, format, args)
-}
+// Panicf logs a message at level panic
+func (l *Logger) Panicf(format string, args ...any) { l.logf(PanicLevel, format, args) }
 
-// Panicln logs a message at level Panic
+// Panicln logs a message at level panic
 func (l *Logger) Panicln(args ...any) { l.log(PanicLevel, args) }

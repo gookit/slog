@@ -61,18 +61,6 @@ func (l *Logger) writeRecord(level Level, r *Record) {
 
 	// do write log message
 	var inited bool
-	if l.defaultH != nil && l.defaultH.IsHandling(level) {
-		if !inited {
-			r.Init(l.LowerLevelName)
-			r.beforeHandle(l)
-			inited = true
-		}
-
-		if err := l.defaultH.Handle(r); err != nil {
-			printlnStderr("slog: failed to handle log, error: ", err)
-		}
-	}
-
 	for _, handler := range l.handlers {
 		if handler.IsHandling(level) {
 			if !inited {
