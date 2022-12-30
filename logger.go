@@ -81,7 +81,7 @@ func NewWithName(name string) *Logger {
 		exitHandlers: []func(){},
 		// options
 		ReportCaller: true,
-		CallerSkip:   7,
+		CallerSkip:   6,
 		TimeClock:    DefaultClockFn,
 	}
 

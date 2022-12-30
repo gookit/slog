@@ -36,7 +36,7 @@ func TestIssues_31(t *testing.T) {
 	h2 := handler.MustFileHandler("testdata/info_issue31.log", handler.WithLogLevels(infoLevels))
 
 	slog.PushHandler(h1)
-	slog.PushHandler(h2)
+	slog.PushHandlers(h2)
 
 	// add logs
 	slog.Info("info message text")

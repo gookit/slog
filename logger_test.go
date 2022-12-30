@@ -2,6 +2,7 @@ package slog_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"testing"
 
@@ -82,6 +83,22 @@ func TestLogger_Log(t *testing.T) {
 	l.WithTime(timex.NowHourStart()).Panicln("a panic message")
 }
 
+func TestLogger_WithContext(t *testing.T) {
+	var buf bytes.Buffer
+	h := handler.NewIOWriterHandler(&buf, slog.AllLevels)
+
+	l := newLogger()
+	l.AddHandlers(h)
+
+	ctx := context.Background()
+
+	r := l.WithCtx(ctx)
+	r.Info("with context")
+
+	str := buf.String()
+	assert.Contains(t, str, `with context`)
+}
+
 func TestLogger_panic(t *testing.T) {
 	h := newTestHandler()
 	h.errOnFlush = true
@@ -158,6 +175,13 @@ func TestLogger_logf_allLevel(t *testing.T) {
 
 	l.AddHandler(handler.NewConsoleHandler(slog.AllLevels))
 	printfAllLevelLogs(l, "this a log %s", "message")
+}
+
+func newLogger() *slog.Logger {
+	return slog.NewWithConfig(func(l *slog.Logger) {
+		l.ReportCaller = true
+		l.DoNothingOnPanicFatal()
+	})
 }
 
 func printAllLevelLogs(l gsr.Logger, args ...interface{}) {

@@ -293,15 +293,19 @@ func (r *Record) SetFields(fields M) *Record {
 //
 
 func (r *Record) log(level Level, args []any) {
+	r.Level = level
 	// will reduce memory allocation once
 	// r.Message = strutil.Byte2str(formatArgsWithSpaces(args))
 	r.Message = formatArgsWithSpaces(args)
-	r.logWrite(level)
+	// r.logWrite(level)
+	r.logger.writeRecord(level, r)
 }
 
 func (r *Record) logf(level Level, format string, args []any) {
+	r.Level = level
 	r.Message = fmt.Sprintf(format, args...)
-	r.logWrite(level)
+	// r.logWrite(level)
+	r.logger.writeRecord(level, r)
 }
 
 // Log a message with level

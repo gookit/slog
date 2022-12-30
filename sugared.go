@@ -93,8 +93,7 @@ func (sl *SugaredLogger) Close() error {
 	_ = sl.Logger.VisitAll(func(handler Handler) error {
 		// TIP: must exclude self
 		if _, ok := handler.(*SugaredLogger); !ok {
-			err := handler.Close()
-			if err != nil {
+			if err := handler.Close(); err != nil {
 				sl.err = err
 			}
 		}

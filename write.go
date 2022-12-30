@@ -6,21 +6,20 @@ package slog
 // ---------------------------------------------------------------------------
 //
 
-func (r *Record) logWrite(level Level) {
-	// Will reduce memory allocation once
-	// r.Message = strutil.Byte2str(message)
+// func (r *Record) logWrite(level Level) {
+// Will reduce memory allocation once
+// r.Message = strutil.Byte2str(message)
 
-	// var buf *bytes.Buffer
-	// buf = bufferPool.Get().(*bytes.Buffer)
-	// defer bufferPool.Put(buf)
-	// r.Buffer = buf
+// var buf *bytes.Buffer
+// buf = bufferPool.Get().(*bytes.Buffer)
+// defer bufferPool.Put(buf)
+// r.Buffer = buf
 
-	// TODO release on here ??
-	// defer r.logger.releaseRecord(r)
-	r.Level = level
-	r.logger.writeRecord(level, r)
-	// r.Buffer = nil
-}
+// TODO release on here ??
+// defer r.logger.releaseRecord(r)
+// r.logger.writeRecord(level, r)
+// r.Buffer = nil
+// }
 
 // Init something for record.
 func (r *Record) Init(lowerLevelName bool) {
