@@ -45,7 +45,7 @@ type JSONFormatter struct {
 }
 
 // NewJSONFormatter create new JSONFormatter
-func NewJSONFormatter(fn ...func(*JSONFormatter)) *JSONFormatter {
+func NewJSONFormatter(fn ...func(f *JSONFormatter)) *JSONFormatter {
 	f := &JSONFormatter{
 		// Aliases: make(StringMap, 0),
 		Fields:     DefaultFields,

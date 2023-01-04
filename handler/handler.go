@@ -57,7 +57,7 @@ type SyncCloseWriter interface {
 //
 // Deprecated: please use slog.LevelWithFormatter instead.
 type LevelWithFormatter struct {
-	slog.Formattable
+	slog.FormattableTrait
 	// Level for log message. if current level <= Level will log message
 	Level slog.Level
 }
@@ -74,7 +74,7 @@ func (h *LevelWithFormatter) IsHandling(level slog.Level) bool {
 //
 // Deprecated: please use slog.LevelsWithFormatter instead.
 type LevelsWithFormatter struct {
-	slog.Formattable
+	slog.FormattableTrait
 	// Levels for log message
 	Levels []slog.Level
 }

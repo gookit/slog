@@ -106,7 +106,7 @@ func (b *Builder) WithUseJSON(useJSON bool) *Builder {
 }
 
 // Build slog handler.
-func (b *Builder) Build() slog.Handler {
+func (b *Builder) Build() slog.FormattableHandler {
 	if b.Output != nil {
 		return b.buildFromWriter(b.Output)
 	}
@@ -119,17 +119,11 @@ func (b *Builder) Build() slog.Handler {
 		return b.buildFromWriter(w)
 	}
 
-	panic("missing some information for build slog handler")
+	panic("slog: missing information for build slog handler")
 }
 
 // Build slog handler.
-func (b *Builder) reset() {
-	b.Output = nil
-	b.Config = NewEmptyConfig()
-}
-
-// Build slog handler.
-func (b *Builder) buildFromWriter(w io.Writer) (h slog.Handler) {
+func (b *Builder) buildFromWriter(w io.Writer) (h slog.FormattableHandler) {
 	defer b.reset()
 	bufSize := b.BuffSize
 	lf := b.newLevelFormattable()
@@ -178,14 +172,13 @@ func (b *Builder) buildFromWriter(w io.Writer) (h slog.Handler) {
 
 	// use json format.
 	if b.UseJSON {
-		type formatterSetter interface {
-			SetFormatter(slog.Formatter)
-		}
-
-		// has setter
-		if _, ok := h.(formatterSetter); ok {
-			h.(formatterSetter).SetFormatter(slog.NewJSONFormatter())
-		}
+		h.SetFormatter(slog.NewJSONFormatter())
 	}
 	return
+}
+
+// rest builder.
+func (b *Builder) reset() {
+	b.Output = nil
+	b.Config = NewEmptyConfig()
 }

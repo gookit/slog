@@ -25,8 +25,14 @@ type Handler interface {
 
 // LevelFormattable support limit log levels and provide formatter
 type LevelFormattable interface {
-	FormattableHandler
+	Formattable
 	IsHandling(level Level) bool
+}
+
+// FormattableHandler interface
+type FormattableHandler interface {
+	Handler
+	Formattable
 }
 
 /********************************************************************************
@@ -38,7 +44,7 @@ type LevelFormattable interface {
 // - support set log formatter
 // - only support set one log level
 type LevelWithFormatter struct {
-	Formattable
+	FormattableTrait
 	// Level for log message. if current level >= Level will log message
 	Level Level
 }
@@ -58,7 +64,7 @@ func (h *LevelWithFormatter) IsHandling(level Level) bool {
 // - support set log formatter
 // - support setting multi log levels
 type LevelsWithFormatter struct {
-	Formattable
+	FormattableTrait
 	// Levels for log message
 	Levels []Level
 }

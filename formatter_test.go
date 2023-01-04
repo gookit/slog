@@ -10,9 +10,25 @@ import (
 	"github.com/gookit/slog/handler"
 )
 
+func TestFormattableTrait_Formatter(t *testing.T) {
+	ft := &slog.FormattableTrait{}
+	tf := slog.AsTextFormatter(ft.Formatter())
+	assert.NotNil(t, tf)
+	assert.Panics(t, func() {
+		slog.AsJSONFormatter(ft.Formatter())
+	})
+
+	ft.SetFormatter(slog.NewJSONFormatter())
+	jf := slog.AsJSONFormatter(ft.Formatter())
+	assert.NotNil(t, jf)
+	assert.Panics(t, func() {
+		slog.AsTextFormatter(ft.Formatter())
+	})
+}
+
 func TestFormattable_Format(t *testing.T) {
 	r := newLogRecord("TEST_LOG_MESSAGE format")
-	f := &slog.Formattable{}
+	f := &slog.FormattableTrait{}
 	assert.Eq(t, "slog: TEST_LOG_MESSAGE format", r.GoString())
 
 	bts, err := f.Format(r)

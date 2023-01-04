@@ -18,21 +18,21 @@ func (fn FormatterFunc) Format(r *Record) ([]byte, error) {
 	return fn(r)
 }
 
-// FormattableHandler interface
-type FormattableHandler interface {
+// Formattable interface
+type Formattable interface {
 	// Formatter get the log formatter
 	Formatter() Formatter
 	// SetFormatter set the log formatter
 	SetFormatter(Formatter)
 }
 
-// Formattable definition
-type Formattable struct {
+// FormattableTrait definition
+type FormattableTrait struct {
 	formatter Formatter
 }
 
 // Formatter get formatter. if not set, will return TextFormatter
-func (f *Formattable) Formatter() Formatter {
+func (f *FormattableTrait) Formatter() Formatter {
 	if f.formatter == nil {
 		f.formatter = NewTextFormatter()
 	}
@@ -40,11 +40,27 @@ func (f *Formattable) Formatter() Formatter {
 }
 
 // SetFormatter to handler
-func (f *Formattable) SetFormatter(formatter Formatter) {
+func (f *FormattableTrait) SetFormatter(formatter Formatter) {
 	f.formatter = formatter
 }
 
 // Format log record to bytes
-func (f *Formattable) Format(record *Record) ([]byte, error) {
+func (f *FormattableTrait) Format(record *Record) ([]byte, error) {
 	return f.Formatter().Format(record)
+}
+
+// AsTextFormatter util func
+func AsTextFormatter(f Formatter) *TextFormatter {
+	if tf, ok := f.(*TextFormatter); ok {
+		return tf
+	}
+	panic("slog: cannot cast input as *TextFormatter")
+}
+
+// AsJSONFormatter util func
+func AsJSONFormatter(f Formatter) *JSONFormatter {
+	if jf, ok := f.(*JSONFormatter); ok {
+		return jf
+	}
+	panic("slog: cannot cast input as *JSONFormatter")
 }
