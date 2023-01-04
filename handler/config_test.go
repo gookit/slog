@@ -15,10 +15,18 @@ import (
 func TestNewConfig(t *testing.T) {
 	c := handler.NewConfig(
 		handler.WithCompress(true),
-	).With(handler.WithBuffSize(129))
+		handler.WithLevelMode(handler.LevelModeValue),
+	).
+		With(handler.WithBuffSize(129)).
+		WithConfigFn(handler.WithLogLevel(slog.ErrorLevel))
 
 	assert.True(t, c.Compress)
 	assert.Eq(t, 129, c.BuffSize)
+	assert.Eq(t, handler.LevelModeValue, c.LevelMode)
+	assert.Eq(t, slog.ErrorLevel, c.Level)
+
+	c.WithConfigFn(handler.WithLevelNames([]string{"info", "debug"}))
+	assert.Eq(t, []slog.Level{slog.InfoLevel, slog.DebugLevel}, c.Levels)
 }
 
 func TestNewBuilder(t *testing.T) {
@@ -45,10 +53,15 @@ func TestNewBuilder(t *testing.T) {
 	assert.NotNil(t, h)
 	assert.NoErr(t, h.Close())
 
-	h2 := handler.NewBuilder().
+	b1 := handler.NewBuilder().
 		WithOutput(new(bytes.Buffer)).
 		WithUseJSON(true).
-		Build()
+		WithLogLevel(slog.ErrorLevel).
+		WithLevelMode(handler.LevelModeValue)
+	assert.Eq(t, handler.LevelModeValue, b1.LevelMode)
+	assert.Eq(t, slog.ErrorLevel, b1.Level)
+
+	h2 := b1.Build()
 	assert.NotNil(t, h2)
 
 	assert.Panics(t, func() {

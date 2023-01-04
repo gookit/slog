@@ -16,6 +16,13 @@ const (
 	BuffModeBite = "bite"
 )
 
+const (
+	// LevelModeList use level list for filter record write
+	LevelModeList uint8 = iota
+	// LevelModeValue use level value compare for filter record write
+	LevelModeValue
+)
+
 // ConfigFn for config some settings
 type ConfigFn func(c *Config)
 
@@ -24,7 +31,13 @@ type Config struct {
 	// Logfile for write logs
 	Logfile string `json:"logfile" yaml:"logfile"`
 
-	// Levels for log record
+	// LevelMode for filter log record. default LevelModeList
+	LevelMode uint8 `json:"level_mode" yaml:"level_mode"`
+
+	// Level value. use on LevelMode = LevelModeValue
+	Level slog.Level `json:"level" yaml:"level"`
+
+	// Levels list for write. use on LevelMode = LevelModeList
 	Levels []slog.Level `json:"levels" yaml:"levels"`
 
 	// UseJSON for format logs
@@ -63,7 +76,7 @@ type Config struct {
 // NewEmptyConfig new config instance
 func NewEmptyConfig(fns ...ConfigFn) *Config {
 	c := &Config{Levels: slog.AllLevels}
-	return c.With(fns...)
+	return c.WithConfigFn(fns...)
 }
 
 // NewConfig new config instance with some default settings.
@@ -80,15 +93,27 @@ func NewConfig(fns ...ConfigFn) *Config {
 		BackupTime: rotatefile.DefaultBackTime,
 	}
 
-	return c.With(fns...)
+	return c.WithConfigFn(fns...)
 }
 
 // With more config settings func
 func (c *Config) With(fns ...ConfigFn) *Config {
+	return c.WithConfigFn(fns...)
+}
+
+// WithConfigFn more config settings func
+func (c *Config) WithConfigFn(fns ...ConfigFn) *Config {
 	for _, fn := range fns {
 		fn(c)
 	}
 	return c
+}
+
+func (c *Config) newLevelFormattable() slog.LevelFormattable {
+	if c.LevelMode == LevelModeValue {
+		return slog.NewLvFormatter(c.Level)
+	}
+	return slog.NewLvsFormatter(c.Levels)
 }
 
 // CreateHandler quick create a handler by config
@@ -100,8 +125,8 @@ func (c *Config) CreateHandler() (*SyncCloseHandler, error) {
 
 	h := &SyncCloseHandler{
 		Output: output,
-		// with log levels and formatter
-		LevelFormattable: slog.NewLvsFormatter(c.Levels),
+		// with log level and formatter
+		LevelFormattable: c.newLevelFormattable(),
 	}
 
 	if c.UseJSON {
@@ -179,6 +204,12 @@ func (c *Config) wrapBuffer(w io.Writer) (bw flushSyncCloseWriter) {
 	return bw
 }
 
+//
+// ---------------------------------------------------------------------------
+// global config func
+// ---------------------------------------------------------------------------
+//
+
 // WithLogfile setting
 func WithLogfile(logfile string) ConfigFn {
 	return func(c *Config) {
@@ -186,8 +217,34 @@ func WithLogfile(logfile string) ConfigFn {
 	}
 }
 
+// WithLevelMode setting
+func WithLevelMode(mode uint8) ConfigFn {
+	return func(c *Config) {
+		c.LevelMode = mode
+	}
+}
+
+// WithLogLevel setting
+func WithLogLevel(level slog.Level) ConfigFn {
+	return func(c *Config) {
+		c.Level = level
+	}
+}
+
 // WithLogLevels setting
 func WithLogLevels(levels slog.Levels) ConfigFn {
+	return func(c *Config) {
+		c.Levels = levels
+	}
+}
+
+// WithLevelNames set levels by level names.
+func WithLevelNames(names []string) ConfigFn {
+	levels := make([]slog.Level, 0, len(names))
+	for _, name := range names {
+		levels = append(levels, slog.LevelByName(name))
+	}
+
 	return func(c *Config) {
 		c.Levels = levels
 	}
@@ -233,152 +290,4 @@ func WithUseJSON(useJSON bool) ConfigFn {
 	return func(c *Config) {
 		c.UseJSON = useJSON
 	}
-}
-
-//
-// ---------------------------------------------------------------------------
-// handler builder
-// ---------------------------------------------------------------------------
-//
-
-// Builder struct for create handler
-type Builder struct {
-	*Config
-	Output io.Writer
-}
-
-// NewBuilder create
-func NewBuilder() *Builder {
-	return &Builder{
-		Config: NewEmptyConfig(),
-	}
-}
-
-// WithOutput to the builder
-func (b *Builder) WithOutput(w io.Writer) *Builder {
-	b.Output = w
-	return b
-}
-
-// With some config fn
-func (b *Builder) With(fns ...ConfigFn) *Builder {
-	b.Config.With(fns...)
-	return b
-}
-
-// WithLogfile setting
-func (b *Builder) WithLogfile(logfile string) *Builder {
-	b.Logfile = logfile
-	return b
-}
-
-// WithLogLevels setting
-func (b *Builder) WithLogLevels(levels []slog.Level) *Builder {
-	b.Levels = levels
-	return b
-}
-
-// WithBuffMode setting
-func (b *Builder) WithBuffMode(bufMode string) *Builder {
-	b.BuffMode = bufMode
-	return b
-}
-
-// WithBuffSize setting
-func (b *Builder) WithBuffSize(bufSize int) *Builder {
-	b.BuffSize = bufSize
-	return b
-}
-
-// WithMaxSize setting
-func (b *Builder) WithMaxSize(maxSize uint64) *Builder {
-	b.MaxSize = maxSize
-	return b
-}
-
-// WithRotateTime setting
-func (b *Builder) WithRotateTime(rt rotatefile.RotateTime) *Builder {
-	b.RotateTime = rt
-	return b
-}
-
-// WithCompress setting
-func (b *Builder) WithCompress(compress bool) *Builder {
-	b.Compress = compress
-	return b
-}
-
-// WithUseJSON setting
-func (b *Builder) WithUseJSON(useJSON bool) *Builder {
-	b.UseJSON = useJSON
-	return b
-}
-
-// Build slog handler.
-func (b *Builder) Build() slog.Handler {
-	if b.Output != nil {
-		return b.buildFromWriter(b.Output)
-	}
-
-	if b.Logfile != "" {
-		w, err := b.CreateWriter()
-		if err != nil {
-			panic(err)
-		}
-		return b.buildFromWriter(w)
-	}
-
-	panic("missing some information for build slog handler")
-}
-
-// Build slog handler.
-func (b *Builder) reset() {
-	b.Output = nil
-	b.Config = NewEmptyConfig()
-}
-
-// Build slog handler.
-func (b *Builder) buildFromWriter(w io.Writer) (h slog.Handler) {
-	defer b.reset()
-	bufSize := b.BuffSize
-
-	if scw, ok := w.(SyncCloseWriter); ok {
-		if bufSize > 0 {
-			scw = b.wrapBuffer(scw)
-		}
-
-		h = NewSyncCloseHandler(scw, b.Levels)
-	} else if fcw, ok := w.(FlushCloseWriter); ok {
-		if bufSize > 0 {
-			fcw = b.wrapBuffer(fcw)
-		}
-
-		h = NewFlushCloseHandler(fcw, b.Levels)
-	} else if wc, ok := w.(io.WriteCloser); ok {
-		if bufSize > 0 {
-			wc = b.wrapBuffer(wc)
-		}
-
-		h = NewWriteCloser(wc, b.Levels)
-	} else {
-		if bufSize > 0 {
-			w = b.wrapBuffer(w)
-		}
-
-		h = NewIOWriter(w, b.Levels)
-	}
-
-	// use json format.
-	if b.UseJSON {
-		type formatterSetter interface {
-			SetFormatter(slog.Formatter)
-		}
-
-		// has setter
-		_, ok := h.(formatterSetter)
-		if ok {
-			h.(formatterSetter).SetFormatter(slog.NewJSONFormatter())
-		}
-	}
-	return
 }
