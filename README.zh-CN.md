@@ -140,7 +140,7 @@ h.GetFormatter().(*slog.TextFormatter).SetTemplate(slog.NamedTemplate)
 
 ![](_example/images/console-color-log1.png)
 
-> 注意： `slog.TextFormatter` 使用模板字符串来格式化输出日志，因此新增字段输出需要同时调整模板。
+> 注意：`slog.TextFormatter` 使用模板字符串来格式化输出日志，因此新增字段输出需要同时调整模板。
 
 ### 使用JSON格式
 
@@ -464,10 +464,15 @@ func main() {
 
 	// DangerLevels 包含： slog.PanicLevel, slog.ErrorLevel, slog.WarnLevel
 	h1 := handler.MustFileHandler("/tmp/error.log", handler.WithLogLevels(slog.DangerLevels))
+	// 配置日志格式
+	// f := h1.Formatter().(*slog.TextFormatter)
+	f := slog.AsTextFormatter(h1.Formatter())
+	f.SetTemplate("your template format\n")
 
 	// NormalLevels 包含： slog.InfoLevel, slog.NoticeLevel, slog.DebugLevel, slog.TraceLevel
 	h2 := handler.MustFileHandler("/tmp/info.log", handler.WithLogLevels(slog.NormalLevels))
 
+	// 注册 handler 到 logger(调度器)
 	slog.PushHandler(h1)
 	slog.PushHandler(h2)
 

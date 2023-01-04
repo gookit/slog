@@ -465,10 +465,15 @@ func main() {
 
 	// DangerLevels contains: slog.PanicLevel, slog.ErrorLevel, slog.WarnLevel
 	h1 := handler.MustFileHandler("/tmp/error.log", handler.WithLogLevels(slog.DangerLevels))
+	// custom log format
+	// f := h1.Formatter().(*slog.TextFormatter)
+	f := slog.AsTextFormatter(h1.Formatter())
+	f.SetTemplate("your template format\n")
 
 	// NormalLevels contains: slog.InfoLevel, slog.NoticeLevel, slog.DebugLevel, slog.TraceLevel
 	h2 := handler.MustFileHandler("/tmp/info.log", handler.WithLogLevels(slog.NormalLevels))
 
+	// register handlers
 	slog.PushHandler(h1)
 	slog.PushHandler(h2)
 
@@ -524,6 +529,10 @@ This is config struct for create a Handler:
 type Config struct {
 	// Logfile for write logs
 	Logfile string `json:"logfile" yaml:"logfile"`
+	// LevelMode for filter log record. default LevelModeList
+	LevelMode uint8 `json:"level_mode" yaml:"level_mode"`
+	// Level value. use on LevelMode = LevelModeValue
+	Level slog.Level `json:"level" yaml:"level"`
 	// Levels for log record
 	Levels []slog.Level `json:"levels" yaml:"levels"`
 	// UseJSON for format logs
