@@ -16,6 +16,11 @@ func TestNewConfig(t *testing.T) {
 	c := handler.NewConfig(
 		handler.WithCompress(true),
 		handler.WithLevelMode(handler.LevelModeValue),
+		handler.WithBackupNum(20),
+		handler.WithBackupTime(1800),
+		func(c *handler.Config) {
+			c.BackupTime = 23
+		},
 	).
 		With(handler.WithBuffSize(129)).
 		WithConfigFn(handler.WithLogLevel(slog.ErrorLevel))

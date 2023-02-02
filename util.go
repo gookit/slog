@@ -48,27 +48,32 @@ func getCaller(callerSkip int) (fr runtime.Frame, ok bool) {
 }
 
 func formatCaller(rf *runtime.Frame, flag uint8) (cs string) {
+	lineNum := strconv.FormatInt(int64(rf.Line), 10)
 	switch flag {
 	case CallerFlagFull:
-		return rf.Function + "," + path.Base(rf.File) + ":" + strconv.FormatInt(int64(rf.Line), 10)
+		return rf.Function + "," + path.Base(rf.File) + ":" + lineNum
 	case CallerFlagFunc:
 		return rf.Function
 	case CallerFlagFcLine:
-		return rf.Function + ":" + strconv.Itoa(rf.Line)
+		return rf.Function + ":" + lineNum
 	case CallerFlagPkg:
 		i := strings.LastIndex(rf.Function, "/")
 		i += strings.IndexByte(rf.Function[i+1:], '.')
 		return rf.Function[:i+1]
+	case CallerFlagPkgFnl:
+		i := strings.LastIndex(rf.Function, "/")
+		i += strings.IndexByte(rf.Function[i+1:], '.')
+		return rf.Function[:i+1] + "," + path.Base(rf.File) + ":" + lineNum
 	case CallerFlagFnlFcn:
 		ss := strings.Split(rf.Function, ".")
-		return path.Base(rf.File) + ":" + strconv.Itoa(rf.Line) + "," + ss[len(ss)-1]
+		return path.Base(rf.File) + ":" + lineNum + "," + ss[len(ss)-1]
 	case CallerFlagFnLine:
-		return path.Base(rf.File) + ":" + strconv.Itoa(rf.Line)
+		return path.Base(rf.File) + ":" + lineNum
 	case CallerFlagFcName:
 		ss := strings.Split(rf.Function, ".")
 		return ss[len(ss)-1]
 	default: // CallerFlagFpLine
-		return rf.File + ":" + strconv.Itoa(rf.Line)
+		return rf.File + ":" + lineNum
 	}
 }
 

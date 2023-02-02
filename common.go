@@ -112,6 +112,9 @@ const (
 	// CallerFlagPkg report full package name.
 	// eg: "github.com/gookit/slog_test"
 	CallerFlagPkg
+	// CallerFlagPkgFnl report full package name + filename + line.
+	// eg: "github.com/gookit/slog_test,logger_test.go:48"
+	CallerFlagPkgFnl
 	// CallerFlagFpLine report full filepath with line.
 	// eg: "/work/go/gookit/slog/logger_test.go:48"
 	CallerFlagFpLine

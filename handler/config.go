@@ -212,30 +212,22 @@ func (c *Config) wrapBuffer(w io.Writer) (bw flushSyncCloseWriter) {
 
 // WithLogfile setting
 func WithLogfile(logfile string) ConfigFn {
-	return func(c *Config) {
-		c.Logfile = logfile
-	}
+	return func(c *Config) { c.Logfile = logfile }
 }
 
 // WithLevelMode setting
 func WithLevelMode(mode uint8) ConfigFn {
-	return func(c *Config) {
-		c.LevelMode = mode
-	}
+	return func(c *Config) { c.LevelMode = mode }
 }
 
 // WithLogLevel setting
 func WithLogLevel(level slog.Level) ConfigFn {
-	return func(c *Config) {
-		c.Level = level
-	}
+	return func(c *Config) { c.Level = level }
 }
 
 // WithLogLevels setting
 func WithLogLevels(levels slog.Levels) ConfigFn {
-	return func(c *Config) {
-		c.Levels = levels
-	}
+	return func(c *Config) { c.Levels = levels }
 }
 
 // WithLevelNames set levels by level names.
@@ -252,42 +244,40 @@ func WithLevelNames(names []string) ConfigFn {
 
 // WithRotateTime setting
 func WithRotateTime(rt rotatefile.RotateTime) ConfigFn {
-	return func(c *Config) {
-		c.RotateTime = rt
-	}
+	return func(c *Config) { c.RotateTime = rt }
+}
+
+// WithBackupNum setting
+func WithBackupNum(bt uint) ConfigFn {
+	return func(c *Config) { c.BackupNum = bt }
+}
+
+// WithBackupTime setting
+func WithBackupTime(bt uint) ConfigFn {
+	return func(c *Config) { c.BackupTime = bt }
 }
 
 // WithBuffMode setting
 func WithBuffMode(buffMode string) ConfigFn {
-	return func(c *Config) {
-		c.BuffMode = buffMode
-	}
+	return func(c *Config) { c.BuffMode = buffMode }
 }
 
 // WithBuffSize setting
 func WithBuffSize(buffSize int) ConfigFn {
-	return func(c *Config) {
-		c.BuffSize = buffSize
-	}
+	return func(c *Config) { c.BuffSize = buffSize }
 }
 
 // WithMaxSize setting
 func WithMaxSize(maxSize uint64) ConfigFn {
-	return func(c *Config) {
-		c.MaxSize = maxSize
-	}
+	return func(c *Config) { c.MaxSize = maxSize }
 }
 
 // WithCompress setting
 func WithCompress(compress bool) ConfigFn {
-	return func(c *Config) {
-		c.Compress = compress
-	}
+	return func(c *Config) { c.Compress = compress }
 }
 
 // WithUseJSON setting
 func WithUseJSON(useJSON bool) ConfigFn {
-	return func(c *Config) {
-		c.UseJSON = useJSON
-	}
+	return func(c *Config) { c.UseJSON = useJSON }
 }
