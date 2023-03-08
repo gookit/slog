@@ -4,8 +4,8 @@ go 1.18
 
 require (
 	github.com/golang/glog v1.0.0
-	github.com/gookit/goutil v0.5.15
-	github.com/gookit/slog v0.3.4
+	github.com/gookit/goutil v0.6.4
+	github.com/gookit/slog v0.4.0
 	github.com/phuslu/log v1.0.67
 	github.com/rs/zerolog v1.28.0
 	github.com/sirupsen/logrus v1.9.0
@@ -22,8 +22,8 @@ require (
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
-	golang.org/x/sys v0.2.0 // indirect
-	golang.org/x/text v0.4.0 // indirect
+	golang.org/x/sys v0.4.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 )
 
 replace github.com/gookit/slog => ../
