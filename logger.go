@@ -57,8 +57,8 @@ type Logger struct {
 }
 
 // New create a new logger
-func New() *Logger {
-	return NewWithName("logger")
+func New(fns ...LoggerFn) *Logger {
+	return NewWithName("logger", fns...)
 }
 
 // NewWithHandlers create a new logger with handlers

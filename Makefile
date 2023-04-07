@@ -7,12 +7,13 @@ NAME := slog
 BUILD_TARGET = testdata
 MAIN_SRC_FILE=cmd/main.go
 GO :=go
-GO_NOMOD :=GO111MODULE=off go
-REV := $(shell git rev-parse --short HEAD 2> /dev/null || echo 'unknown')
+
 ORG := gookit
+REV := $(shell git rev-parse --short HEAD 2> /dev/null || echo 'unknown')
 ORG_REPO := $(ORG)/$(NAME)
 RELEASE_ORG_REPO := $(ORG_REPO)
 ROOT_PACKAGE := github.com/$(ORG_REPO)
+
 GO_VERSION := $(shell $(GO) version | sed -e 's/^[^0-9.]*\([0-9.]*\).*/\1/')
 GO_DEPENDENCIES := $(call rwildcard,pkg/,*.go) $(call rwildcard,cmd/,*.go)
 
@@ -76,8 +77,8 @@ help:
 full: check ## Build and run the tests
 check: build test ## Build and run the tests
 get-test-deps: ## Install test dependencies
-	$(GO_NOMOD) get github.com/axw/gocov/gocov
-	$(GO_NOMOD) get -u gopkg.in/matm/v1/gocov-html
+	get install github.com/axw/gocov/gocov
+	get install gopkg.in/matm/v1/gocov-html
 
 print-version: ## Print version
 	@echo $(VERSION)
@@ -157,7 +158,7 @@ clean: ## Clean the generated artifacts
 	rm -rf build release dist
 
 get-fmt-deps: ## Install test dependencies
-	$(GO_NOMOD) get golang.org/x/tools/cmd/goimports
+	get install golang.org/x/tools/cmd/goimports
 
 .PHONY: fmt
 fmt: importfmt ## Format the code

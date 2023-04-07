@@ -24,14 +24,21 @@ type SugaredLogger struct {
 }
 
 // NewStdLogger instance
-func NewStdLogger() *SugaredLogger {
-	return NewSugaredLogger(os.Stdout, DebugLevel, func(sl *SugaredLogger) {
-		sl.SetName("stdLogger")
-		// sl.CallerSkip += 1
-		sl.ReportCaller = true
-		// auto enable console color
-		sl.Formatter.(*TextFormatter).EnableColor = color.SupportColor()
-	})
+func NewStdLogger(fns ...SugaredLoggerFn) *SugaredLogger {
+	setFns := []SugaredLoggerFn{
+		func(sl *SugaredLogger) {
+			sl.SetName("stdLogger")
+			// sl.CallerSkip += 1
+			sl.ReportCaller = true
+			// auto enable console color
+			sl.Formatter.(*TextFormatter).EnableColor = color.SupportColor()
+		},
+	}
+
+	if len(fns) > 0 {
+		setFns = append(setFns, fns...)
+	}
+	return NewSugaredLogger(os.Stdout, DebugLevel, setFns...)
 }
 
 // NewSugaredLogger create new SugaredLogger
