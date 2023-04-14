@@ -108,7 +108,7 @@ func formatArgsWithSpaces(vs []any) string {
 // TODO replace to byteutil.AppendAny()
 func appendAny(dst []byte, v any) []byte {
 	if v == nil {
-		return dst
+		return append(dst, "<nil>"...)
 	}
 
 	switch val := v.(type) {

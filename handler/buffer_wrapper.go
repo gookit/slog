@@ -40,7 +40,6 @@ func (w *bufferWrapper) Flush() error {
 	if err := w.buffer.Flush(); err != nil {
 		return err
 	}
-
 	return w.handler.Flush()
 }
 

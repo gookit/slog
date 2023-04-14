@@ -79,6 +79,9 @@ func (r *Record) WithTime(t time.Time) *Record {
 	return nr
 }
 
+// WithCtx on record
+func (r *Record) WithCtx(ctx context.Context) *Record { return r.WithContext(ctx) }
+
 // WithContext on record
 func (r *Record) WithContext(ctx context.Context) *Record {
 	nr := r.Copy()
@@ -294,8 +297,8 @@ func (r *Record) SetFields(fields M) *Record {
 
 func (r *Record) log(level Level, args []any) {
 	r.Level = level
-	// will reduce memory allocation once
-	// r.Message = strutil.Byte2str(formatArgsWithSpaces(args))
+
+	// r.Message = strutil.Byte2str(formatArgsWithSpaces(args)) // will reduce memory allocation once
 	r.Message = formatArgsWithSpaces(args)
 	// r.logWrite(level)
 	r.logger.writeRecord(level, r)

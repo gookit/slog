@@ -87,6 +87,7 @@ func TestRecord_SetContext(t *testing.T) {
 	w := newBuffer()
 	l := slog.NewWithConfig(func(l *slog.Logger) {
 		l.DoNothingOnPanicFatal()
+	}).Config(func(l *slog.Logger) {
 		l.CallerFlag = slog.CallerFlagPkg
 	})
 	l.SetHandlers([]slog.Handler{
@@ -94,8 +95,9 @@ func TestRecord_SetContext(t *testing.T) {
 	})
 
 	r := l.Record()
-	r.SetContext(context.Background()).Info("info message")
-	r.WithContext(context.Background()).Debug("debug message")
+	r.SetCtx(context.Background()).Info("info message")
+	r.WithCtx(context.Background()).Debug("debug message")
+
 	s := w.StringReset()
 	fmt.Print(s)
 	assert.Contains(t, s, "github.com/gookit/slog_test")
@@ -154,8 +156,10 @@ func TestRecord_AddFields(t *testing.T) {
 func TestRecord_SetFields(t *testing.T) {
 	r := newLogRecord("AddFields")
 
+	r.SetTime(timex.Now().Yesterday().T())
 	r.SetFields(slog.M{"f1": "hi", "env": "prod"})
 	assert.NotEmpty(t, r.Fields)
+	assert.NotEmpty(t, r.Time)
 }
 
 func TestRecord_allLevel(t *testing.T) {

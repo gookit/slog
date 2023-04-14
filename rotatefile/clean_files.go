@@ -3,6 +3,8 @@ package rotatefile
 import (
 	"os"
 	"time"
+
+	"github.com/gookit/goutil/fsutil"
 )
 
 // CConfig struct for clean files
@@ -83,16 +85,15 @@ func (r *FilesClear) WithConfigFn(fn func(c *CConfig)) *FilesClear {
 
 const flushInterval = 60 * time.Second
 
-// DaemonClean daemon clean old files by config
-func (r *FilesClear) DaemonClean() {
+// CleanDaemon daemon clean old files by config
+func (r *FilesClear) CleanDaemon() {
 	if r.cfg.BackupNum == 0 && r.cfg.BackupTime == 0 {
 		return
 	}
 
 	for range time.NewTicker(flushInterval).C {
-		err := r.Clean()
-		if err != nil {
-			printErrln("files-clear: clean files error:", err)
+		if err := r.Clean(); err != nil {
+			printErrln("files-clear: clean old files error:", err)
 		}
 	}
 }
@@ -129,16 +130,13 @@ func (r *FilesClear) Clean() (err error) {
 	bckNum := int(r.cfg.BackupNum)
 	for _, fileDir := range r.filepathDirs {
 		pattern := fileDir + r.namePattern
-
-		err = r.cleanByBackupNum(pattern, bckNum)
-		if err != nil {
+		if err = r.cleanByBackupNum(pattern, bckNum); err != nil {
 			return err
 		}
 	}
 
 	for _, pattern := range r.filePatterns {
-		err = r.cleanByBackupNum(pattern, bckNum)
-		if err != nil {
+		if err = r.cleanByBackupNum(pattern, bckNum); err != nil {
 			break
 		}
 	}
@@ -147,7 +145,7 @@ func (r *FilesClear) Clean() (err error) {
 
 func (r *FilesClear) cleanByBackupNum(filePattern string, bckNum int) (err error) {
 	keepNum := 0
-	err = globWithFunc(filePattern, func(oldFile string) error {
+	err = fsutil.GlobWithFunc(filePattern, func(oldFile string) error {
 		stat, err := os.Stat(oldFile)
 		if err != nil {
 			return err
@@ -172,7 +170,7 @@ func (r *FilesClear) cleanByBackupTime(filePattern string, cutTime time.Time) (e
 	oldFiles := make([]string, 0, 8)
 
 	// match all old rotate files. eg: /tmp/error.log.*
-	err = globWithFunc(filePattern, func(filePath string) error {
+	err = fsutil.GlobWithFunc(filePattern, func(filePath string) error {
 		stat, err := os.Stat(filePath)
 		if err != nil {
 			return err

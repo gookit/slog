@@ -127,6 +127,9 @@ func TestLineBuffWriter(t *testing.T) {
 	h := handler.LineBuffWriter(file, 12, slog.AllLevels)
 	assert.NoErr(t, err)
 	assert.True(t, fsutil.IsFile(logfile))
+	assert.Panics(t, func() {
+		handler.LineBuffWriter(nil, 12, slog.AllLevels)
+	})
 
 	r := newLogRecord("Test LineBuffWriter")
 	err = h.Handle(r)

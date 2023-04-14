@@ -38,6 +38,10 @@ func TestNewWriter(t *testing.T) {
 	assert.NoErr(t, w.Sync())
 	assert.NoErr(t, w.Flush())
 	assert.NoErr(t, w.Close())
+
+	w, err = rotatefile.NewWriterWith(rotatefile.WithFilepath(testFile))
+	assert.NoErr(t, err)
+	assert.Eq(t, w.Config().Filepath, testFile)
 }
 
 func TestWriter_Clean(t *testing.T) {

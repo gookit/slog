@@ -177,6 +177,18 @@ func TestLogger_logf_allLevel(t *testing.T) {
 	printfAllLevelLogs(l, "this a log %s", "message")
 }
 
+func TestLogger_write_error(t *testing.T) {
+	h := newTestHandler()
+	h.errOnHandle = true
+
+	l := slog.NewWithHandlers(h)
+	l.Info("a message")
+
+	err := l.LastErr()
+	assert.Err(t, err)
+	assert.Eq(t, "handle error", err.Error())
+}
+
 func newLogger() *slog.Logger {
 	return slog.NewWithConfig(func(l *slog.Logger) {
 		l.ReportCaller = true

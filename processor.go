@@ -29,9 +29,9 @@ func (fn ProcessorFunc) Process(record *Record) {
 
 // ProcessableHandler interface
 type ProcessableHandler interface {
-	// AddProcessor add an processor
+	// AddProcessor add a processor
 	AddProcessor(Processor)
-	// ProcessRecord handle an record
+	// ProcessRecord handle a record
 	ProcessRecord(record *Record)
 }
 
@@ -60,7 +60,6 @@ func (p *Processable) ProcessRecord(r *Record) {
 // AddHostname to record
 func AddHostname() Processor {
 	hostname, _ := os.Hostname()
-
 	return ProcessorFunc(func(record *Record) {
 		record.AddField("hostname", hostname)
 	})
@@ -71,12 +70,7 @@ func AddUniqueID(fieldName string) Processor {
 	hs := md5.New()
 
 	return ProcessorFunc(func(record *Record) {
-		rb, err := strutil.RandomBytes(32)
-		if err != nil {
-			record.WithError(err)
-			return
-		}
-
+		rb, _ := strutil.RandomBytes(32)
 		hs.Write(rb)
 		randomID := hex.EncodeToString(hs.Sum(nil))
 		hs.Reset()
@@ -90,4 +84,19 @@ var MemoryUsage ProcessorFunc = func(record *Record) {
 	stat := new(runtime.MemStats)
 	runtime.ReadMemStats(stat)
 	record.SetExtraValue("memoryUsage", stat.Alloc)
+}
+
+// AppendCtxKeys append context keys to record.Fields
+func AppendCtxKeys(keys ...string) Processor {
+	return ProcessorFunc(func(record *Record) {
+		if record.Ctx == nil {
+			return
+		}
+
+		for _, key := range keys {
+			if val := record.Ctx.Value(key); val != nil {
+				record.AddField(key, record.Ctx.Value(key))
+			}
+		}
+	})
 }

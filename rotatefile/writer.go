@@ -218,7 +218,6 @@ func (d *Writer) ReopenFile() error {
 	if d.file != nil {
 		d.file.Close()
 	}
-
 	return d.openFile()
 }
 

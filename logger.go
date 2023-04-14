@@ -2,7 +2,6 @@ package slog
 
 import (
 	"context"
-	"os"
 	"sync"
 	"time"
 
@@ -78,7 +77,7 @@ func NewWithName(name string, fns ...LoggerFn) *Logger {
 	logger := &Logger{
 		name: name,
 		// exit handle
-		ExitFunc:     os.Exit,
+		// ExitFunc:  os.Exit,
 		PanicFunc:    DefaultPanicFn,
 		exitHandlers: []func(){},
 		// options
@@ -124,7 +123,9 @@ func (l *Logger) Config(fns ...LoggerFn) *Logger {
 	return l
 }
 
-// Configure current logger
+// Configure current logger.
+//
+// Deprecated: use Config()
 func (l *Logger) Configure(fn LoggerFn) *Logger { return l.Config(fn) }
 
 // FlushDaemon run flush handle on daemon
@@ -134,18 +135,21 @@ func (l *Logger) Configure(fn LoggerFn) *Logger { return l.Config(fn) }
 //	go slog.FlushDaemon()
 func (l *Logger) FlushDaemon() {
 	for range time.NewTicker(flushInterval).C {
-		err := l.lockAndFlushAll()
-		printlnStderr("slog: daemon flush logs error: ", err)
+		if err := l.lockAndFlushAll(); err != nil {
+			printlnStderr("slog.FlushDaemon: daemon flush logs error: ", err)
+		}
 	}
 }
 
 // FlushTimeout flush logs on limit time.
+//
 // refer from glog package
 func (l *Logger) FlushTimeout(timeout time.Duration) {
 	done := make(chan bool, 1)
 	go func() {
-		err := l.lockAndFlushAll()
-		printlnStderr("slog: flush logs error: ", err)
+		if err := l.lockAndFlushAll(); err != nil {
+			printlnStderr("slog.FlushTimeout: flush logs error: ", err)
+		}
 
 		done <- true
 	}()
@@ -153,7 +157,7 @@ func (l *Logger) FlushTimeout(timeout time.Duration) {
 	select {
 	case <-done:
 	case <-time.After(timeout):
-		printlnStderr("slog: flush took longer than timeout:", timeout)
+		printlnStderr("slog.FlushTimeout: flush took longer than timeout:", timeout)
 	}
 }
 
@@ -168,8 +172,7 @@ func (l *Logger) Flush() error { return l.lockAndFlushAll() }
 
 // MustFlush flush logs. will panic on error
 func (l *Logger) MustFlush() {
-	err := l.lockAndFlushAll()
-	if err != nil {
+	if err := l.lockAndFlushAll(); err != nil {
 		panic(err)
 	}
 }
@@ -190,10 +193,9 @@ func (l *Logger) lockAndFlushAll() error {
 
 // flush all without lock
 func (l *Logger) flushAll() {
-	// Flush from fatal down, in case there's trouble flushing.
+	// flush from fatal down, in case there's trouble flushing.
 	_ = l.VisitAll(func(handler Handler) error {
-		err := handler.Flush()
-		if err != nil {
+		if err := handler.Flush(); err != nil {
 			l.err = err
 			printlnStderr("slog: call handler.Flush() error:", err)
 		}
@@ -204,9 +206,8 @@ func (l *Logger) flushAll() {
 // Close the logger
 func (l *Logger) Close() error {
 	_ = l.VisitAll(func(handler Handler) error {
-		// Flush logs and then close
-		err := handler.Close()
-		if err != nil {
+		// flush logs and then close
+		if err := handler.Close(); err != nil {
 			l.err = err
 			printlnStderr("slog: call handler.Close() error:", err)
 		}
@@ -250,10 +251,9 @@ func (l *Logger) Exit(code int) {
 	// global exit handlers
 	runExitHandlers()
 
-	if l.ExitFunc == nil {
-		l.ExitFunc = os.Exit
+	if l.ExitFunc != nil {
+		l.ExitFunc(code)
 	}
-	l.ExitFunc(code)
 }
 
 // SetName for logger

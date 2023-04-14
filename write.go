@@ -64,13 +64,15 @@ func (l *Logger) writeRecord(level Level, r *Record) {
 	for _, handler := range l.handlers {
 		if handler.IsHandling(level) {
 			if !inited {
+				// init, call processors
 				r.Init(l.LowerLevelName)
 				r.beforeHandle(l)
 				inited = true
 			}
 
 			if err := handler.Handle(r); err != nil {
-				printlnStderr("slog: failed to handle log, error: ", err)
+				l.err = err
+				printlnStderr("slog: failed to handle log, error:", err)
 			}
 		}
 	}

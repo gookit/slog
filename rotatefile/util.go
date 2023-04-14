@@ -4,7 +4,6 @@ import (
 	"compress/gzip"
 	"io"
 	"os"
-	"path/filepath"
 
 	"github.com/gookit/goutil/fsutil"
 )
@@ -40,21 +39,6 @@ func compressFile(srcPath, dstPath string) error {
 	}
 
 	return zw.Close()
-}
-
-func globWithFunc(pattern string, fn func(filePath string) error) (err error) {
-	files, err := filepath.Glob(pattern)
-	if err != nil {
-		return err
-	}
-
-	for _, filePath := range files {
-		err = fn(filePath)
-		if err != nil {
-			break
-		}
-	}
-	return
 }
 
 type filterFunc func(fPath string, fi os.FileInfo) bool
