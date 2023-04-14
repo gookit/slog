@@ -1,7 +1,7 @@
 package slog_test
 
 import (
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/gookit/goutil/dump"
@@ -18,7 +18,7 @@ var msg = "The quick brown fox jumps over the lazy dog"
 
 func BenchmarkGookitSlogNegative(b *testing.B) {
 	logger := slog.NewWithHandlers(
-		handler.NewIOWriter(ioutil.Discard, []slog.Level{slog.ErrorLevel}),
+		handler.NewIOWriter(io.Discard, []slog.Level{slog.ErrorLevel}),
 	)
 
 	b.ReportAllocs()
@@ -31,7 +31,7 @@ func BenchmarkGookitSlogNegative(b *testing.B) {
 
 func TestLogger_Info_Negative(t *testing.T) {
 	logger := slog.NewWithHandlers(
-		handler.NewIOWriter(ioutil.Discard, []slog.Level{slog.ErrorLevel}),
+		handler.NewIOWriter(io.Discard, []slog.Level{slog.ErrorLevel}),
 	)
 
 	logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
@@ -39,7 +39,7 @@ func TestLogger_Info_Negative(t *testing.T) {
 
 func BenchmarkGookitSlogPositive(b *testing.B) {
 	logger := slog.NewWithHandlers(
-		handler.NewIOWriter(ioutil.Discard, slog.NormalLevels),
+		handler.NewIOWriter(io.Discard, slog.NormalLevels),
 	)
 
 	b.ReportAllocs()
@@ -77,7 +77,7 @@ func BenchmarkTextFormatter_Format(b *testing.B) {
 
 func TestLogger_Info_Positive(t *testing.T) {
 	logger := slog.NewWithHandlers(
-		handler.NewIOWriter(ioutil.Discard, slog.NormalLevels),
+		handler.NewIOWriter(io.Discard, slog.NormalLevels),
 	)
 
 	logger.Info("rate", "15", "low", 16, "high", 123.2, msg)

@@ -646,39 +646,46 @@ go test ./...
 
 ### Benchmarks
 
+Benchmark code at [_example/bench_loglibs_test.go](_example/bench_loglibs_test.go)
+
 ```bash
 make test-bench
 ```
 
-> record ad 2022.11.08
+Benchmarks for `slog` and other log packages:
+
+> **Note**: test and record ad 2023.04.13
 
 ```shell
-% make test-bench
 goos: darwin
 goarch: amd64
 cpu: Intel(R) Core(TM) i7-3740QM CPU @ 2.70GHz
 BenchmarkZapNegative
-BenchmarkZapNegative-4                  123297997              110.4 ns/op           192 B/op          1 allocs/op
+BenchmarkZapNegative-4                   8381674              1429 ns/op             216 B/op          3 allocs/op
+BenchmarkZapSugarNegative
+BenchmarkZapSugarNegative-4              8655980              1383 ns/op             104 B/op          4 allocs/op
 BenchmarkZeroLogNegative
-BenchmarkZeroLogNegative-4              891508806               13.36 ns/op            0 B/op          0 allocs/op
+BenchmarkZeroLogNegative-4              14173719               849.8 ns/op             0 B/op          0 allocs/op
 BenchmarkPhusLogNegative
-BenchmarkPhusLogNegative-4              811990076               14.74 ns/op            0 B/op          0 allocs/op
+BenchmarkPhusLogNegative-4              27456256               451.2 ns/op             0 B/op          0 allocs/op
 BenchmarkLogrusNegative
-BenchmarkLogrusNegative-4               242633541               49.40 ns/op           16 B/op          1 allocs/op
+BenchmarkLogrusNegative-4                2550771              4784 ns/op             608 B/op         17 allocs/op
 BenchmarkGookitSlogNegative
->>> BenchmarkGookitSlogNegative-4           29102253               422.8 ns/op           125 B/op          4 allocs/op
+>>>> BenchmarkGookitSlogNegative-4            8798220              1375 ns/op             120 B/op          3 allocs/op
 BenchmarkZapPositive
-BenchmarkZapPositive-4                   9772791              1194 ns/op             192 B/op          1 allocs/op
+BenchmarkZapPositive-4                  10302483              1167 ns/op             192 B/op          1 allocs/op
+BenchmarkZapSugarPositive
+BenchmarkZapSugarPositive-4              3833311              3154 ns/op             344 B/op          7 allocs/op
 BenchmarkZeroLogPositive
-BenchmarkZeroLogPositive-4              13944360               856.8 ns/op             0 B/op          0 allocs/op
+BenchmarkZeroLogPositive-4              14120524               846.7 ns/op             0 B/op          0 allocs/op
 BenchmarkPhusLogPositive
-BenchmarkPhusLogPositive-4              27839614               431.2 ns/op             0 B/op          0 allocs/op
+BenchmarkPhusLogPositive-4              27152686               434.9 ns/op             0 B/op          0 allocs/op
 BenchmarkLogrusPositive
-BenchmarkLogrusPositive-4                2621076              4583 ns/op             608 B/op         17 allocs/op
+BenchmarkLogrusPositive-4                2601892              4691 ns/op             608 B/op         17 allocs/op
 BenchmarkGookitSlogPositive
->>> BenchmarkGookitSlogPositive-4            8908768              1359 ns/op             149 B/op          5 allocs/op
+>>>> BenchmarkGookitSlogPositive-4            8997104              1340 ns/op             120 B/op          3 allocs/op
 PASS
-ok      command-line-arguments  149.379s
+ok      command-line-arguments  167.095s
 ```
 
 ## Gookit packages

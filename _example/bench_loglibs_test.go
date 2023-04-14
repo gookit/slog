@@ -1,12 +1,12 @@
 package main
 
 import (
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
-	"github.com/phuslu/log"
+	phuslu "github.com/phuslu/log"
 	"github.com/rs/zerolog"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/zap"
@@ -24,9 +24,9 @@ var msg = "The quick brown fox jumps over the lazy dog"
 
 func BenchmarkZapNegative(b *testing.B) {
 	logger := zap.New(zapcore.NewCore(
-		zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()),
-		zapcore.AddSync(ioutil.Discard),
-		zapcore.ErrorLevel,
+		zapcore.NewConsoleEncoder(zap.NewProductionEncoderConfig()),
+		zapcore.AddSync(io.Discard),
+		zapcore.InfoLevel,
 	))
 
 	b.ReportAllocs()
@@ -36,9 +36,26 @@ func BenchmarkZapNegative(b *testing.B) {
 	}
 }
 
+func BenchmarkZapSugarNegative(b *testing.B) {
+	logger := zap.New(zapcore.NewCore(
+		zapcore.NewConsoleEncoder(zap.NewProductionEncoderConfig()),
+		zapcore.AddSync(io.Discard),
+		// zapcore.AddSync(os.Stdout),
+		zapcore.InfoLevel,
+	)).Sugar()
+
+	// logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
+	// return
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
+	}
+}
+
 func BenchmarkZeroLogNegative(b *testing.B) {
-	logger := zerolog.New(ioutil.Discard).With().Timestamp().Logger()
-	zerolog.SetGlobalLevel(zerolog.ErrorLevel)
+	logger := zerolog.New(io.Discard).With().Timestamp().Logger().Level(zerolog.InfoLevel)
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -48,7 +65,7 @@ func BenchmarkZeroLogNegative(b *testing.B) {
 }
 
 func BenchmarkPhusLogNegative(b *testing.B) {
-	logger := log.Logger{Level: log.ErrorLevel, Writer: log.IOWriter{Writer: ioutil.Discard}}
+	logger := phuslu.Logger{Level: phuslu.InfoLevel, Writer: phuslu.IOWriter{Writer: io.Discard}}
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -60,8 +77,8 @@ func BenchmarkPhusLogNegative(b *testing.B) {
 // "github.com/sirupsen/logrus"
 func BenchmarkLogrusNegative(b *testing.B) {
 	logger := logrus.New()
-	logger.Out = ioutil.Discard
-	logger.Level = logrus.ErrorLevel
+	logger.Out = io.Discard
+	logger.Level = logrus.InfoLevel
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -72,9 +89,13 @@ func BenchmarkLogrusNegative(b *testing.B) {
 
 func BenchmarkGookitSlogNegative(b *testing.B) {
 	logger := slog.NewWithHandlers(
-		handler.NewIOWriter(ioutil.Discard, []slog.Level{slog.ErrorLevel}),
+		handler.NewIOWriter(io.Discard, []slog.Level{slog.InfoLevel}),
+		// handler.NewIOWriter(os.Stdout, []slog.Level{slog.InfoLevel}),
 	)
 	logger.ReportCaller = false
+
+	// logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
+	// return
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -87,7 +108,7 @@ func BenchmarkGookitSlogNegative(b *testing.B) {
 func BenchmarkZapPositive(b *testing.B) {
 	logger := zap.New(zapcore.NewCore(
 		zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()),
-		zapcore.AddSync(ioutil.Discard),
+		zapcore.AddSync(io.Discard),
 		zapcore.InfoLevel,
 	))
 
@@ -98,9 +119,22 @@ func BenchmarkZapPositive(b *testing.B) {
 	}
 }
 
+func BenchmarkZapSugarPositive(b *testing.B) {
+	logger := zap.New(zapcore.NewCore(
+		zapcore.NewConsoleEncoder(zap.NewProductionEncoderConfig()),
+		zapcore.AddSync(io.Discard),
+		zapcore.InfoLevel,
+	)).Sugar()
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		logger.Info(msg, zap.String("rate", "15"), zap.Int("low", 16), zap.Float32("high", 123.2))
+	}
+}
+
 func BenchmarkZeroLogPositive(b *testing.B) {
-	logger := zerolog.New(ioutil.Discard).With().Timestamp().Logger()
-	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	logger := zerolog.New(io.Discard).With().Timestamp().Logger().Level(zerolog.InfoLevel)
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -110,7 +144,7 @@ func BenchmarkZeroLogPositive(b *testing.B) {
 }
 
 func BenchmarkPhusLogPositive(b *testing.B) {
-	logger := log.Logger{Writer: log.IOWriter{Writer: ioutil.Discard}}
+	logger := phuslu.Logger{Level: phuslu.InfoLevel, Writer: phuslu.IOWriter{Writer: io.Discard}}
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -121,8 +155,8 @@ func BenchmarkPhusLogPositive(b *testing.B) {
 
 func BenchmarkLogrusPositive(b *testing.B) {
 	logger := logrus.New()
-	logger.Out = ioutil.Discard
-	logger.Level = logrus.TraceLevel
+	logger.Out = io.Discard
+	logger.Level = logrus.InfoLevel
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -133,7 +167,7 @@ func BenchmarkLogrusPositive(b *testing.B) {
 
 func BenchmarkGookitSlogPositive(b *testing.B) {
 	logger := slog.NewWithHandlers(
-		handler.NewIOWriter(ioutil.Discard, slog.NormalLevels),
+		handler.NewIOWriter(io.Discard, []slog.Level{slog.InfoLevel}),
 	)
 	logger.ReportCaller = false
 

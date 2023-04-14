@@ -2,11 +2,47 @@
 
 Run benchmark: `make test-bench`
 
-- on each test will update all package to latest.
+> **Note**: on each test will update all package to latest.
+
+## v0.5.1 - 2023.04.13
+
+> **Note**: test and record ad 2023.04.13
+
+```shell
+goos: darwin
+goarch: amd64
+cpu: Intel(R) Core(TM) i7-3740QM CPU @ 2.70GHz
+BenchmarkZapNegative
+BenchmarkZapNegative-4                   8381674              1429 ns/op             216 B/op          3 allocs/op
+BenchmarkZapSugarNegative
+BenchmarkZapSugarNegative-4              8655980              1383 ns/op             104 B/op          4 allocs/op
+BenchmarkZeroLogNegative
+BenchmarkZeroLogNegative-4              14173719               849.8 ns/op             0 B/op          0 allocs/op
+BenchmarkPhusLogNegative
+BenchmarkPhusLogNegative-4              27456256               451.2 ns/op             0 B/op          0 allocs/op
+BenchmarkLogrusNegative
+BenchmarkLogrusNegative-4                2550771              4784 ns/op             608 B/op         17 allocs/op
+BenchmarkGookitSlogNegative
+BenchmarkGookitSlogNegative-4            8798220              1375 ns/op             120 B/op          3 allocs/op
+BenchmarkZapPositive
+BenchmarkZapPositive-4                  10302483              1167 ns/op             192 B/op          1 allocs/op
+BenchmarkZapSugarPositive
+BenchmarkZapSugarPositive-4              3833311              3154 ns/op             344 B/op          7 allocs/op
+BenchmarkZeroLogPositive
+BenchmarkZeroLogPositive-4              14120524               846.7 ns/op             0 B/op          0 allocs/op
+BenchmarkPhusLogPositive
+BenchmarkPhusLogPositive-4              27152686               434.9 ns/op             0 B/op          0 allocs/op
+BenchmarkLogrusPositive
+BenchmarkLogrusPositive-4                2601892              4691 ns/op             608 B/op         17 allocs/op
+BenchmarkGookitSlogPositive
+BenchmarkGookitSlogPositive-4            8997104              1340 ns/op             120 B/op          3 allocs/op
+PASS
+ok      command-line-arguments  167.095s
+```
 
 ## v0.3.5 - 2022.11.08
 
-> record ad 2022.11.08
+> **Note**: test and record ad 2022.11.08
 
 ```shell
 % make test-bench
@@ -39,7 +75,7 @@ ok      command-line-arguments  149.379s
 
 ## v0.3.0
 
-> record ad 2022.04.27
+> **Note**: test and record ad 2022.04.27
 
 ```shell
 % make test-bench
@@ -72,7 +108,7 @@ ok      command-line-arguments  146.669s
 
 ### beta 2022.04.17
 
-> record ad 2022.04.17
+> **Note**: test and record ad 2022.04.17
 
 ```shell
 $ go test -v -cpu=4 -run=none -bench=. -benchtime=10s -benchmem bench_loglibs_test.go
@@ -106,7 +142,7 @@ ok      command-line-arguments  145.175s
 
 ## v0.2.1
 
-> record ad 2022.04.17
+> **Note**: test and record ad 2022.04.17
 
 ```shell
 $ go test -v -cpu=4 -run=none -bench=. -benchtime=10s -benchmem bench_loglibs_test.go

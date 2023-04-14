@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"runtime/pprof"
@@ -12,15 +12,19 @@ import (
 )
 
 // run serve:
-// 	go run ./_examples/pprof
+//
+//	go run ./_examples/pprof
 //
 // see prof on cli:
-// 	go tool pprof pprof/cpu_prof_data.out
+//
+//	go tool pprof pprof/cpu_prof_data.out
+//
 // see prof on web:
-// 	go tool pprof -http=:8080 pprof/cpu_prof_data.out
+//
+//	go tool pprof -http=:8080 pprof/cpu_prof_data.out
 func main() {
 	logger := slog.NewWithHandlers(
-		handler.NewIOWriter(ioutil.Discard, slog.NormalLevels),
+		handler.NewIOWriter(io.Discard, slog.NormalLevels),
 	)
 
 	times := 10000

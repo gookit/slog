@@ -2,7 +2,7 @@ package slog
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/gookit/goutil/dump"
@@ -10,7 +10,7 @@ import (
 
 func TestLogger_newRecord_AllocTimes(t *testing.T) {
 	l := Std()
-	l.Output = ioutil.Discard
+	l.Output = io.Discard
 	defer l.Reset()
 
 	// output: 0 times
@@ -34,7 +34,7 @@ func Test_formatArgsWithSpaces_oneElem_AllocTimes(t *testing.T) {
 
 func Test_AllocTimes_formatArgsWithSpaces_manyElem(t *testing.T) {
 	l := Std()
-	l.Output = ioutil.Discard
+	l.Output = io.Discard
 	defer l.Reset()
 
 	// TIP:
@@ -50,7 +50,7 @@ func Test_AllocTimes_formatArgsWithSpaces_manyElem(t *testing.T) {
 
 func Test_AllocTimes_stringsPool(t *testing.T) {
 	l := Std()
-	l.Output = ioutil.Discard
+	l.Output = io.Discard
 	l.LowerLevelName = true
 	defer l.Reset()
 
@@ -78,7 +78,7 @@ func Test_AllocTimes_stringsPool(t *testing.T) {
 
 func TestLogger_Info_oneElem_AllocTimes(t *testing.T) {
 	l := Std()
-	// l.Output = ioutil.Discard
+	// l.Output = io.Discard
 	l.ReportCaller = false
 	l.LowerLevelName = true
 	// 启用 color 会导致多次(10次左右)内存分配
@@ -95,7 +95,7 @@ func TestLogger_Info_oneElem_AllocTimes(t *testing.T) {
 
 func TestLogger_Info_moreElem_AllocTimes(t *testing.T) {
 	l := NewStdLogger()
-	// l.Output = ioutil.Discard
+	// l.Output = io.Discard
 	l.ReportCaller = false
 	l.LowerLevelName = true
 	// 启用 color 会导致多次(10次左右)内存分配
