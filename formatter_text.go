@@ -71,11 +71,6 @@ func NewTextFormatter(template ...string) *TextFormatter {
 
 // SetTemplate set the log format template and update field-map
 func (f *TextFormatter) SetTemplate(fmtTpl string) {
-	// ensure last char is newline.
-	// if fmtTpl[len(fmtTpl)-1] != '\n' {
-	// 	fmtTpl += "\n"
-	// }
-
 	f.template = fmtTpl
 	f.fields = parseTemplateToFields(fmtTpl)
 }
@@ -93,17 +88,17 @@ func (f *TextFormatter) Fields() []string {
 			ss = append(ss, s)
 		}
 	}
-
 	return ss
 }
+
+var textPool bytebufferpool.Pool
 
 // Format a log record
 //
 //goland:noinspection GoUnhandledErrorResult
 func (f *TextFormatter) Format(r *Record) ([]byte, error) {
-	buf := bytebufferpool.Get()
-	buf.Reset()
-	defer bytebufferpool.Put(buf)
+	buf := textPool.Get()
+	defer textPool.Put(buf)
 
 	for _, field := range f.fields {
 		// is not field name. eg: "}}] "
@@ -119,7 +114,7 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 
 		switch {
 		case field == FieldKeyDatetime:
-			buf.WriteString(r.Time.Format(f.TimeFormat))
+			buf.B = r.Time.AppendFormat(buf.B, f.TimeFormat)
 		case field == FieldKeyTimestamp:
 			buf.WriteString(r.timestamp())
 		case field == FieldKeyCaller && r.Caller != nil:

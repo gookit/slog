@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gookit/goutil/stdutil"
 	"github.com/gookit/goutil/strutil"
@@ -16,10 +17,6 @@ import (
 // const (
 // 	defaultMaxCallerDepth  int = 15
 // 	defaultKnownSlogFrames int = 4
-// )
-
-// var (
-// argFmtPool bytebufferpool.Pool
 // )
 
 // Stack that attempts to recover the data for all goroutines.
@@ -77,6 +74,8 @@ func formatCaller(rf *runtime.Frame, flag uint8) (cs string) {
 	}
 }
 
+var msgBufPool bytebufferpool.Pool
+
 // it like Println, will add spaces for each argument
 func formatArgsWithSpaces(vs []any) string {
 	ln := len(vs)
@@ -85,30 +84,76 @@ func formatArgsWithSpaces(vs []any) string {
 	}
 
 	if ln == 1 {
-		// return strutil.ToBytes(msg) // perf: Reduce one memory allocation
-		return stdutil.ToString(vs[0]) // perf: Reduce one memory allocation
+		return strutil.SafeString(vs[0]) // perf: Reduce one memory allocation
 	}
 
 	// buf = make([]byte, 0, ln*8)
-	bb := bytebufferpool.Get()
-	defer bytebufferpool.Put(bb)
+	bb := msgBufPool.Get()
+	defer msgBufPool.Put(bb)
 
 	// TIP:
 	// `float` to string - will alloc 2 times memory
 	// `int <0`, `int > 100` to string -  will alloc 1 times memory
 	for i := range vs {
-		// str, _ := strutil.AnyToString(vs[i], false)
-		str := stdutil.ToString(vs[i])
 		if i > 0 { // add space
-			// buf = append(buf, ' ')
 			bb.B = append(bb.B, ' ')
 		}
-
-		// buf = append(buf, str...)
-		bb.B = append(bb.B, str...)
+		bb.B = appendAny(bb.B, vs[i])
 	}
 
-	return bb.String()
+	return string(bb.B)
+	// return byteutil.String(bb.B) // perf: Reduce one memory allocation
+}
+
+// TODO replace to byteutil.AppendAny()
+func appendAny(dst []byte, v any) []byte {
+	if v == nil {
+		return dst
+	}
+
+	switch val := v.(type) {
+	case []byte:
+		dst = append(dst, val...)
+	case string:
+		dst = append(dst, val...)
+	case int:
+		dst = strconv.AppendInt(dst, int64(val), 10)
+	case int8:
+		dst = strconv.AppendInt(dst, int64(val), 10)
+	case int16:
+		dst = strconv.AppendInt(dst, int64(val), 10)
+	case int32:
+		dst = strconv.AppendInt(dst, int64(val), 10)
+	case int64:
+		dst = strconv.AppendInt(dst, val, 10)
+	case uint:
+		dst = strconv.AppendUint(dst, uint64(val), 10)
+	case uint8:
+		dst = strconv.AppendUint(dst, uint64(val), 10)
+	case uint16:
+		dst = strconv.AppendUint(dst, uint64(val), 10)
+	case uint32:
+		dst = strconv.AppendUint(dst, uint64(val), 10)
+	case uint64:
+		dst = strconv.AppendUint(dst, val, 10)
+	case float32:
+		dst = strconv.AppendFloat(dst, float64(val), 'f', -1, 32)
+	case float64:
+		dst = strconv.AppendFloat(dst, val, 'f', -1, 64)
+	case bool:
+		dst = strconv.AppendBool(dst, val)
+	case time.Time:
+		dst = val.AppendFormat(dst, time.RFC3339)
+	case time.Duration:
+		dst = strconv.AppendInt(dst, int64(val), 10)
+	case error:
+		dst = append(dst, val.Error()...)
+	case fmt.Stringer:
+		dst = append(dst, val.String()...)
+	default:
+		dst = append(dst, fmt.Sprint(v)...)
+	}
+	return dst
 }
 
 // EncodeToString data to string

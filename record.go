@@ -401,19 +401,8 @@ func (r *Record) Panicf(format string, args ...any) {
 // helper methods
 // ---------------------------------------------------------------------------
 
-// NewBuffer get or create a Buffer
-// func (r *Record) NewBuffer() *bytes.Buffer {
-// 	if r.Buffer == nil {
-// 		return &bytes.Buffer{}
-// 	}
-// 	return r.Buffer
-// }
-
 // LevelName get
 func (r *Record) LevelName() string { return r.levelName }
-
-// MicroSecond of the record
-// func (r *Record) MicroSecond() int { return r.microSecond }
 
 // GoString of the record
 func (r *Record) GoString() string {
@@ -421,9 +410,6 @@ func (r *Record) GoString() string {
 }
 
 func (r *Record) timestamp() string {
-	return strconv.FormatInt(r.Time.Unix(), 10) + "." + strconv.Itoa(r.Time.Nanosecond()/1000)
-
-	// require go 1.16+
-	// s := strconv.FormatInt(r.Time.UnixMicro(), 10)
-	// return s[:10] + "." + s[10:]
+	s := strconv.FormatInt(r.Time.UnixMicro(), 10)
+	return s[:10] + "." + s[10:]
 }

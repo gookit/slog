@@ -70,10 +70,13 @@ func (f *JSONFormatter) AddField(name string) *JSONFormatter {
 	return f
 }
 
+var jsonPool bytebufferpool.Pool
+
 // Format an log record
 func (f *JSONFormatter) Format(r *Record) ([]byte, error) {
 	logData := make(M, len(f.Fields))
 
+	// TODO perf: use buf write build JSON string.
 	for _, field := range f.Fields {
 		outName, ok := f.Aliases[field]
 		if !ok {
@@ -113,9 +116,9 @@ func (f *JSONFormatter) Format(r *Record) ([]byte, error) {
 	}
 
 	// sort.Interface()
-	buf := bytebufferpool.Get()
+	buf := jsonPool.Get()
 	// buf.Reset()
-	defer bytebufferpool.Put(buf)
+	defer jsonPool.Put(buf)
 	// buf := r.NewBuffer()
 	// buf.Reset()
 	// buf.Grow(256)
