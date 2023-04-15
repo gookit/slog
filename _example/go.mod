@@ -11,6 +11,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/syyongx/llog v0.0.0-20200222114215-e8f9f86ac0a3
 	go.uber.org/zap v1.24.0
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
 require (
