@@ -18,11 +18,8 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-/alone
-/cliapp
 .DS_Store
 *.prof
-*.out
 
 # shell script
 /*.bash
@@ -31,3 +28,4 @@
 /*.pid
 #go.sum
 go.work
+changelog.md

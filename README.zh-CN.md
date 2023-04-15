@@ -539,25 +539,28 @@ size-rotate-file.log.122915_00002.gz
 type Config struct {
 	// Logfile for write logs
 	Logfile string `json:"logfile" yaml:"logfile"`
-	// Levels for log record
+	// LevelMode 筛选日志记录的过滤级别，默认为 LevelModeList
+	LevelMode uint8 `json:"level_mode" yaml:"level_mode"`
+	// Level 筛选日志记录的级别值。当 LevelMode = LevelModeValue 时生效
+ 	Level slog.Level `json:"level" yaml:"level"`
+	// Levels 日志记录的级别列表。当 LevelMode = LevelModeList 时生效
 	Levels []slog.Level `json:"levels" yaml:"levels"`
-	// UseJSON for format logs
+	// UseJSON 是否以 JSON 格式输出日志
 	UseJSON bool `json:"use_json" yaml:"use_json"`
-	// BuffMode buffer缓冲模式. allow: line, bite
+	// BuffMode 使用的buffer缓冲模式. allow: line, bite
 	BuffMode string `json:"buff_mode" yaml:"buff_mode"`
-	// BuffSize 启用缓冲区，单位是字节。设置 0 以禁用缓冲
+	// BuffSize 开启缓冲时的缓冲区大小，单位为字节。设置为 0 时禁用缓冲
 	BuffSize int `json:"buff_size" yaml:"buff_size"`
 	// RotateTime 用于按时间切割文件，单位是秒。
 	RotateTime rotatefile.RotateTime `json:"rotate_time" yaml:"rotate_time"`
-	// MaxSize 用于按大小旋转文件，单位是字节。
+	// MaxSize 用于按大小旋转切割文件，单位是字节。
 	MaxSize uint64 `json:"max_size" yaml:"max_size"`
-	// Compress 确定是否应使用 gzip 压缩旋转的日志文件。
-	// The default is not to perform compression.
+	// Compress 是否对切割后的日志进行 gzip 压缩。 默认为不压缩
 	Compress bool `json:"compress" yaml:"compress"`
-	// BackupNum 保留旧文件的最大数量。
+	// BackupNum 日志清理，保留旧文件的最大数量。
 	// 0 不限制，默认为 20。
 	BackupNum uint `json:"backup_num" yaml:"backup_num"`
-	// BackupTime 保留旧文件的最长时间。单位是小时
+	// BackupTime 日志清理，保留旧文件的最长时间。单位是小时
 	// 0 不进行清理，默认为一周。
 	BackupTime uint `json:"backup_time" yaml:"backup_time"`
 	// RenameFunc build filename for rotate file
@@ -570,8 +573,7 @@ type Config struct {
 ```go
 	testFile := "testdata/error.log"
 
-	h := handler.NewEmptyConfig().
-		With(
+	h := handler.NewEmptyConfig(
 			handler.WithLogfile(testFile),
 			handler.WithBuffSize(1024*8),
 			handler.WithLogLevels(slog.DangerLevels),
@@ -581,6 +583,13 @@ type Config struct {
 
 	l := slog.NewWithHandlers(h)
 ```
+
+**BuffMode说明**
+
+`Config.BuffMode` 使用的 BuffMode 类型名称。允许的值：line、bite
+
+- `BuffModeLine`：按行缓冲，到达缓冲大小时，始终保证一行完整日志内容写入文件(可以避免日志内容被截断)
+- `BuffModeBite`：按字节缓冲，当缓冲区的字节数达到指定的大小时，将缓冲区的内容写入文件
 
 ### 使用Builder快速创建Handler实例
 

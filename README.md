@@ -564,8 +564,7 @@ type Config struct {
 ```go
 	testFile := "testdata/error.log"
 
-	h := handler.NewEmptyConfig().
-		With(
+	h := handler.NewEmptyConfig(
 			handler.WithLogfile(testFile),
 			handler.WithBuffSize(1024*8),
 			handler.WithLogLevels(slog.DangerLevels),
@@ -575,6 +574,13 @@ type Config struct {
 
 	l := slog.NewWithHandlers(h)
 ```
+
+**About BuffMode**
+
+`Config.BuffMode` The name of the BuffMode type to use. Allow: line, bite
+
+- `BuffModeBite`: Buffer by bytes, when the number of bytes in the buffer reaches the specified size, write the contents of the buffer to the file
+- `BuffModeLine`: Buffer by line, when the buffer size is reached, always ensure that a complete line of log content is written to the file (to avoid log content being truncated)
 
 ### Use Builder to quickly create Handler
 

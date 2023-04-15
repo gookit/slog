@@ -248,8 +248,8 @@ func WithRotateTime(rt rotatefile.RotateTime) ConfigFn {
 }
 
 // WithBackupNum setting
-func WithBackupNum(bt uint) ConfigFn {
-	return func(c *Config) { c.BackupNum = bt }
+func WithBackupNum(n uint) ConfigFn {
+	return func(c *Config) { c.BackupNum = n }
 }
 
 // WithBackupTime setting

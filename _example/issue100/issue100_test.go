@@ -101,7 +101,7 @@ func TestZapLog(t *testing.T) {
 }
 
 func TestSlog(t *testing.T) {
-	h1, err := handler.NewEmptyConfig().With(
+	h1, err := handler.NewEmptyConfig(
 		handler.WithLogfile("./slog-info.log"),    // 路径
 		handler.WithRotateTime(handler.EveryHour), // 日志分割间隔
 		handler.WithLogLevels(slog.AllLevels),     // 日志level
