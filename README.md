@@ -31,6 +31,7 @@
   - `simple` output log to the specified file, write directly to the file without buffering
   - `rotate_file` outputs logs to the specified file, and supports splitting files by time and size, and `buffer` buffered writing is enabled by default
   - See ./handler folder for more built-in implementations
+- Benchmark performance test please see [Benchmarks](#benchmarks)
 
 ### Output logs to file
 
