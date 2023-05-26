@@ -223,7 +223,7 @@ func (d *Writer) ReopenFile() error {
 
 // ReopenFile the log file
 func (d *Writer) openFile() error {
-	file, err := fsutil.OpenFile(d.cfg.Filepath, DefaultFileFlags, DefaultFilePerm)
+	file, err := fsutil.OpenFile(d.cfg.Filepath, DefaultFileFlags, d.cfg.FilePerm)
 	if err != nil {
 		return err
 	}

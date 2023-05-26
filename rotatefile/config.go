@@ -146,6 +146,9 @@ type Config struct {
 	// Filepath the log file path, will be rotating
 	Filepath string `json:"filepath" yaml:"filepath"`
 
+	// FilePerm the log file permission, default is 0644.
+	FilePerm os.FileMode `json:"fileperm" yaml:"fileperm"`
+
 	// MaxSize file contents max size, unit is bytes.
 	// If is equals zero, disable rotate file by size
 	//
@@ -219,8 +222,6 @@ const (
 )
 
 var (
-	// DefaultFilePerm perm and flags for create log file
-	DefaultFilePerm os.FileMode = 0664
 	// DefaultFileFlags for open log file
 	DefaultFileFlags = os.O_CREATE | os.O_WRONLY | os.O_APPEND
 
@@ -241,6 +242,7 @@ var (
 // NewDefaultConfig instance
 func NewDefaultConfig() *Config {
 	return &Config{
+		FilePerm:   0644,
 		MaxSize:    DefaultMaxSize,
 		RotateTime: EveryHour,
 		BackupNum:  DefaultBackNum,
@@ -274,5 +276,11 @@ func EmptyConfigWith(fns ...ConfigFn) *Config {
 func WithFilepath(logfile string) ConfigFn {
 	return func(c *Config) {
 		c.Filepath = logfile
+	}
+}
+
+func WithFilePerm(perm os.FileMode) ConfigFn {
+	return func(c *Config) {
+		c.FilePerm = perm
 	}
 }
