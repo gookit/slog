@@ -2,6 +2,7 @@ package handler
 
 import (
 	"io"
+	"io/fs"
 
 	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/fsutil"
@@ -30,6 +31,9 @@ type ConfigFn func(c *Config)
 type Config struct {
 	// Logfile for write logs
 	Logfile string `json:"logfile" yaml:"logfile"`
+
+	// FilePerm for create log file. default rotatefile.DefaultFilePerm
+	FilePerm fs.FileMode `json:"file_perm" yaml:"file_perm"`
 
 	// LevelMode for filter log record. default LevelModeList
 	LevelMode uint8 `json:"level_mode" yaml:"level_mode"`
@@ -149,6 +153,9 @@ func (c *Config) CreateWriter() (output SyncCloseWriter, err error) {
 	if c.Logfile == "" {
 		return nil, errorx.Raw("slog: logfile cannot be empty for create writer")
 	}
+	if c.FilePerm == 0 {
+		c.FilePerm = rotatefile.DefaultFilePerm
+	}
 
 	// create a rotate config.
 	if c.MaxSize > 0 || c.RotateTime > 0 {
@@ -157,6 +164,8 @@ func (c *Config) CreateWriter() (output SyncCloseWriter, err error) {
 		// has locked on logger.write()
 		rc.CloseLock = true
 		rc.Filepath = c.Logfile
+		rc.FilePerm = c.FilePerm
+
 		// copy settings
 		rc.MaxSize = c.MaxSize
 		rc.RotateTime = c.RotateTime
@@ -171,7 +180,7 @@ func (c *Config) CreateWriter() (output SyncCloseWriter, err error) {
 		// create a rotating writer
 		output, err = rc.Create()
 	} else {
-		output, err = fsutil.QuickOpenFile(c.Logfile)
+		output, err = fsutil.OpenAppendFile(c.Logfile, c.FilePerm)
 	}
 
 	if err != nil {
@@ -213,6 +222,11 @@ func (c *Config) wrapBuffer(w io.Writer) (bw flushSyncCloseWriter) {
 // WithLogfile setting
 func WithLogfile(logfile string) ConfigFn {
 	return func(c *Config) { c.Logfile = logfile }
+}
+
+// WithFilePerm setting
+func WithFilePerm(filePerm fs.FileMode) ConfigFn {
+	return func(c *Config) { c.FilePerm = filePerm }
 }
 
 // WithLevelMode setting

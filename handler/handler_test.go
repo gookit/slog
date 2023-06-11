@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/gookit/goutil"
 	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/slog"
@@ -18,6 +19,11 @@ var (
 		"skill": "go,php,java",
 	}
 )
+
+func TestMain(m *testing.M) {
+	goutil.PanicErr(fsutil.RemoveSub("./testdata", fsutil.ExcludeNames(".keep")))
+	m.Run()
+}
 
 func TestConfig_CreateWriter(t *testing.T) {
 	cfg := handler.NewEmptyConfig()

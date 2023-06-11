@@ -56,16 +56,7 @@ type SyncCloseWriter interface {
 // - only support set one log level
 //
 // Deprecated: please use slog.LevelWithFormatter instead.
-type LevelWithFormatter struct {
-	slog.FormattableTrait
-	// Level for log message. if current level <= Level will log message
-	Level slog.Level
-}
-
-// IsHandling Check if the current level can be handling
-func (h *LevelWithFormatter) IsHandling(level slog.Level) bool {
-	return h.Level.ShouldHandling(level)
-}
+type LevelWithFormatter = slog.LevelWithFormatter
 
 // LevelsWithFormatter struct definition
 //
@@ -73,21 +64,7 @@ func (h *LevelWithFormatter) IsHandling(level slog.Level) bool {
 // - support setting multi log levels
 //
 // Deprecated: please use slog.LevelsWithFormatter instead.
-type LevelsWithFormatter struct {
-	slog.FormattableTrait
-	// Levels for log message
-	Levels []slog.Level
-}
-
-// IsHandling Check if the current level can be handling
-func (h *LevelsWithFormatter) IsHandling(level slog.Level) bool {
-	for _, l := range h.Levels {
-		if l == level {
-			return true
-		}
-	}
-	return false
-}
+type LevelsWithFormatter = slog.LevelsWithFormatter
 
 // NopFlushClose no operation.
 //

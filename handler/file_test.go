@@ -14,9 +14,7 @@ import (
 
 func TestNewFileHandler(t *testing.T) {
 	testFile := "testdata/file.log"
-	assert.NoErr(t, fsutil.DeleteIfFileExist(testFile))
-
-	h, err := handler.NewFileHandler(testFile)
+	h, err := handler.NewFileHandler(testFile, handler.WithFilePerm(0644))
 	assert.NoErr(t, err)
 
 	l := slog.NewWithHandlers(h)
@@ -27,10 +25,9 @@ func TestNewFileHandler(t *testing.T) {
 
 	assert.True(t, fsutil.IsFile(testFile))
 
-	bts, err := ioutil.ReadFile(testFile)
+	str, err := fsutil.ReadStringOrErr(testFile)
 	assert.NoErr(t, err)
 
-	str := string(bts)
 	assert.Contains(t, str, "[INFO]")
 	assert.Contains(t, str, "info message")
 	assert.Contains(t, str, "[WARNING]")
@@ -41,7 +38,6 @@ func TestNewFileHandler(t *testing.T) {
 
 func TestMustFileHandler(t *testing.T) {
 	testFile := "testdata/file-must.log"
-	assert.NoErr(t, fsutil.DeleteIfFileExist(testFile))
 
 	h := handler.MustFileHandler(testFile)
 	assert.NotEmpty(t, h.Writer())

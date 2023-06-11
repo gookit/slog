@@ -146,6 +146,9 @@ type Config struct {
 	// Filepath the log file path, will be rotating
 	Filepath string `json:"filepath" yaml:"filepath"`
 
+	// FilePerm for create log file. default DefaultFilePerm
+	FilePerm os.FileMode `json:"file_perm" yaml:"file_perm"`
+
 	// MaxSize file contents max size, unit is bytes.
 	// If is equals zero, disable rotate file by size
 	//
@@ -247,6 +250,7 @@ func NewDefaultConfig() *Config {
 		BackupTime: DefaultBackTime,
 		RenameFunc: DefaultFilenameFn,
 		TimeClock:  DefaultTimeClockFn,
+		FilePerm:   DefaultFilePerm,
 	}
 }
 
@@ -265,6 +269,7 @@ func EmptyConfigWith(fns ...ConfigFn) *Config {
 	c := &Config{
 		RenameFunc: DefaultFilenameFn,
 		TimeClock:  DefaultTimeClockFn,
+		FilePerm:   DefaultFilePerm,
 	}
 
 	return c.With(fns...)
