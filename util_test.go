@@ -59,7 +59,7 @@ func TestUtil_formatArgsWithSpaces(t *testing.T) {
 		{[]any{float32(12.12), 12.12}, "12.12 12.12"},
 		{[]any{true, false}, "true false"},
 		{[]any{[]byte("abc"), []byte("123")}, "abc 123"},
-		{[]any{timex.OneHour}, "1h0m0s"},
+		{[]any{timex.OneHour}, "3600000000000"},
 		{[]any{errorx.Raw("a error message")}, "a error message"},
 		{[]any{[]int{1, 2, 3}}, "[1 2 3]"},
 	}
@@ -68,5 +68,5 @@ func TestUtil_formatArgsWithSpaces(t *testing.T) {
 		assert.Eq(t, tt.want, formatArgsWithSpaces(tt.args))
 	}
 
-	assert.NotEmpty(t, formatArgsWithSpaces([]any{timex.Now()}))
+	assert.NotEmpty(t, formatArgsWithSpaces([]any{timex.Now().T()}))
 }

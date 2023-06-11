@@ -1,3 +1,4 @@
+// Package bufwrite provides buffered io.Writer with sync and close methods.
 package bufwrite
 
 import (

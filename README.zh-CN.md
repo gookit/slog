@@ -39,6 +39,7 @@
 - 支持按时间、按大小自动分割文件
 - 支持配置通过 `gzip` 压缩日志文件
 - 支持清理旧日志文件 配置: `BackupNum` `BackupTime`
+- `rotatefile` 包也可以用在其他日志库。例如：`log`、`glog`、`zap` 等等。
 
 > NEW: `v0.3.0` 废弃原来实现的纷乱的各种handler,统一抽象为
 > `FlushCloseHandler` `SyncCloseHandler` `WriteCloserHandler` `IOWriterHandler` 
@@ -623,9 +624,9 @@ type Config struct {
 - `rotatefile.Writer` 实现对日志文件按大小和指定时间进行自动切割，同时也支持自动清理日志文件
   - `handler/rotate_file` 即是通过使用它对日志文件进行切割处理
 
-### 在其他日志包上使用rotatefile
+### 在其他日志包上使用 rotatefile
 
-当然，`rotatefile.Writer` 也可以用在其他日志包上，例如：`log`、`glog` 等等。
+`rotatefile.Writer` 也可以用在其他日志包上，例如：`log`、`glog` 等等。
 
 例如，在 golang `log` 上使用 rotatefile:
 

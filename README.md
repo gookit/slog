@@ -39,10 +39,7 @@
 - Support splitting log files by `time` and `size`
 - Support configuration to compress log files via `gzip`
 - Support clean old log files by `BackupNum` `BackupTime`
-
-> NEW: `v0.3.0` discards the various handlers that were originally implemented, and the unified abstraction is
-> `FlushCloseHandler` `SyncCloseHandler` `WriteCloserHandler` `IOWriterHandler`
-> Several processors that support different types of writers. Makes it easier to build custom handlers, built-in handlers are basically composed of them.
+- The `rotatefile` package can also be used with other logging libraries. For example: `log`, `glog`, `zap`, etc.
 
 ## [中文说明](README.zh-CN.md)
 
@@ -519,6 +516,33 @@ Example of a filename cut by size, in the format `filename.log.HIS_000N`. For ex
 size-rotate-file.log
 size-rotate-file.log.122915_0001
 size-rotate-file.log.122915_0002
+```
+
+### Use rotatefile on another logger
+
+`rotatefile.Writer` can also be used with other logging packages, such as: `log`, `glog`, etc. 
+
+For example, using `rotatefile` on golang `log`:
+
+```go
+package main
+
+import (
+  "log"
+
+  "github.com/gookit/slog/rotatefile"
+)
+
+func main() {
+	logFile := "testdata/go_logger.log"
+	writer, err := rotatefile.NewConfig(logFile).Create()
+	if err != nil {
+		panic(err) 
+	}
+
+	log.SetOutput(writer)
+	log.Println("log message")
+}
 ```
 
 ### Quickly create a Handler based on config

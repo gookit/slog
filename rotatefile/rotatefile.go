@@ -1,3 +1,4 @@
+// Package rotatefile provides simple file rotation, compression and cleanup.
 package rotatefile
 
 import (
