@@ -56,6 +56,9 @@ type Config struct {
 	// RotateTime for rotate file, unit is seconds.
 	RotateTime rotatefile.RotateTime `json:"rotate_time" yaml:"rotate_time"`
 
+	// RotateMode for rotate file by time. default rotatefile.ModeRename
+	RotateMode rotatefile.RotateMode `json:"rotate_mode" yaml:"rotate_mode"`
+
 	// MaxSize on rotate file by size, unit is bytes.
 	MaxSize uint64 `json:"max_size" yaml:"max_size"`
 
@@ -169,6 +172,7 @@ func (c *Config) CreateWriter() (output SyncCloseWriter, err error) {
 		// copy settings
 		rc.MaxSize = c.MaxSize
 		rc.RotateTime = c.RotateTime
+		rc.RotateMode = c.RotateMode
 		rc.BackupNum = c.BackupNum
 		rc.BackupTime = c.BackupTime
 		rc.Compress = c.Compress
@@ -259,6 +263,11 @@ func WithLevelNames(names []string) ConfigFn {
 // WithRotateTime setting
 func WithRotateTime(rt rotatefile.RotateTime) ConfigFn {
 	return func(c *Config) { c.RotateTime = rt }
+}
+
+// WithRotateMode setting
+func WithRotateMode(m rotatefile.RotateMode) ConfigFn {
+	return func(c *Config) { c.RotateMode = m }
 }
 
 // WithBackupNum setting

@@ -18,6 +18,7 @@ func TestNewConfig(t *testing.T) {
 		handler.WithLevelMode(handler.LevelModeValue),
 		handler.WithBackupNum(20),
 		handler.WithBackupTime(1800),
+		handler.WithRotateMode(rotatefile.ModeCreate),
 		func(c *handler.Config) {
 			c.BackupTime = 23
 		},
@@ -29,6 +30,7 @@ func TestNewConfig(t *testing.T) {
 	assert.Eq(t, 129, c.BuffSize)
 	assert.Eq(t, handler.LevelModeValue, c.LevelMode)
 	assert.Eq(t, slog.ErrorLevel, c.Level)
+	assert.Eq(t, rotatefile.ModeCreate, c.RotateMode)
 
 	c.WithConfigFn(handler.WithLevelNames([]string{"info", "debug"}))
 	assert.Eq(t, []slog.Level{slog.InfoLevel, slog.DebugLevel}, c.Levels)

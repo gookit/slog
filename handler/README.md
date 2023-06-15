@@ -4,19 +4,11 @@
 handler -> buffered -> rotated -> writer(os.File)
 ```
 
-```plantuml
-@startuml
+## Built-in handlers
 
-!theme materia
-skinparam backgroundColor #fefefc
-
-start
-
-:Handler;
-:buffered;
-:rotated;
-:writer(os.File);
-stop
-
-@enduml
-```
+- `handler.ConsoleHandler` Console handler 
+- `handler.FileHandler` File handler
+- `handler.StreamHandler` Stream handler
+- `handler.SyslogHandler` Syslog handler
+- `handler.EmailHandler` Email handler
+- `handler.FlushCloseHandler` Flush and close handler

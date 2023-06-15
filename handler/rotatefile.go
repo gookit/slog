@@ -5,7 +5,7 @@ import (
 	"github.com/gookit/slog/rotatefile"
 )
 
-// MustRotateFile handler instance
+// MustRotateFile handler instance, will panic on error
 func MustRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) *SyncCloseHandler {
 	h, err := NewRotateFileHandler(logfile, rt, fns...)
 	if err != nil {
@@ -14,7 +14,7 @@ func MustRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) *
 	return h
 }
 
-// NewRotateFile instance
+// NewRotateFile instance. alias of NewRotateFileHandler()
 func NewRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error) {
 	return NewRotateFileHandler(logfile, rt, fns...)
 }
