@@ -143,11 +143,14 @@ type ConfigFn func(c *Config)
 
 // Config struct for rotate dispatcher
 type Config struct {
-	// Filepath the log file path, will be rotating
+	// Filepath the log file path, will be rotating. eg: "logs/error.log"
 	Filepath string `json:"filepath" yaml:"filepath"`
 
 	// FilePerm for create log file. default DefaultFilePerm
 	FilePerm os.FileMode `json:"file_perm" yaml:"file_perm"`
+
+	// RotateMode for rotate file. default ModeRename
+	RotateMode RotateMode `json:"rotate_mode" yaml:"rotate_mode"`
 
 	// MaxSize file contents max size, unit is bytes.
 	// If is equals zero, disable rotate file by size
@@ -158,7 +161,7 @@ type Config struct {
 	// RotateTime the file rotate interval time, unit is seconds.
 	// If is equals zero, disable rotate file by time
 	//
-	// default see EveryHour
+	// default: EveryHour
 	RotateTime RotateTime `json:"rotate_time" yaml:"rotate_time"`
 
 	// CloseLock use sync lock on write contents, rotating file.
@@ -193,8 +196,6 @@ func (c *Config) backupDuration() time.Duration {
 	if c.BackupTime < 1 {
 		return 0
 	}
-
-	// return int64(c.BackupTime) * 3600
 	return time.Duration(c.BackupTime) * time.Hour
 }
 
@@ -209,17 +210,8 @@ func (c *Config) With(fns ...ConfigFn) *Config {
 // Create new Writer by config
 func (c *Config) Create() (*Writer, error) { return NewWriter(c) }
 
-const (
-	// OneMByte size
-	OneMByte uint64 = 1024 * 1024
-
-	// DefaultMaxSize of a log file. default is 20M.
-	DefaultMaxSize = 20 * OneMByte
-	// DefaultBackNum default backup numbers for old files.
-	DefaultBackNum uint = 20
-	// DefaultBackTime default backup time for old files. default keep a week.
-	DefaultBackTime uint = 24 * 7
-)
+// IsMode check rotate mode
+func (c *Config) IsMode(m RotateMode) bool { return c.RotateMode == m }
 
 var (
 	// DefaultFilePerm perm and flags for create log file
@@ -232,7 +224,7 @@ var (
 		suffix := time.Now().Format("010215")
 
 		// eg: /tmp/error.log => /tmp/error.log.163021_0001
-		return filepath + fmt.Sprintf(".%s_%04d", suffix, rotateNum)
+		return filepath + fmt.Sprintf(".%s_%03d", suffix, rotateNum)
 	}
 
 	// DefaultTimeClockFn for create time

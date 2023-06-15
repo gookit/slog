@@ -1,6 +1,7 @@
 package rotatefile
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -19,25 +20,27 @@ import (
 type Writer struct {
 	mu sync.Mutex
 	// config of the writer
-	cfg  *Config
+	cfg *Config
+	// current opened logfile
 	file *os.File
+	path string
 	// file dir path for the Config.Filepath
 	fileDir string
-	// oldFiles []string
 	// file max backup time. equals Config.BackupTime * time.Hour
 	backupDur time.Duration
+	// oldFiles []string
 
 	// context use for rotating file by size
 	written   uint64 // written size
 	rotateNum uint   // rotate times number
 
 	// context use for rotating file by time
-	suffixFormat   string // the rotating file name suffix.
-	checkInterval  int64
+	suffixFormat   string // the rotating file name suffix. eg: "20210102", "20210102_1500"
+	checkInterval  int64  // check interval seconds.
 	nextRotatingAt int64
 }
 
-// NewWriter create rotate dispatcher with config.
+// NewWriter create rotate write with config and init it.
 func NewWriter(c *Config) (*Writer, error) {
 	d := &Writer{cfg: c}
 
@@ -54,18 +57,13 @@ func NewWriterWith(fns ...ConfigFn) (*Writer, error) {
 
 // init rotate dispatcher
 func (d *Writer) init() error {
-	d.fileDir = path.Dir(d.cfg.Filepath)
+	logfile := d.cfg.Filepath
+	d.fileDir = path.Dir(logfile)
 	d.backupDur = d.cfg.backupDuration()
 
 	// if d.cfg.BackupNum > 0 {
 	// 	d.oldFiles = make([]string, 0, int(float32(d.cfg.BackupNum)*1.6))
 	// }
-
-	// open the log file
-	err := d.openFile()
-	if err != nil {
-		return err
-	}
 
 	d.suffixFormat = d.cfg.RotateTime.TimeFormat()
 	d.checkInterval = d.cfg.RotateTime.Interval()
@@ -73,9 +71,16 @@ func (d *Writer) init() error {
 	// calc and storage next rotating time
 	if d.checkInterval > 0 {
 		nowTime := d.cfg.TimeClock.Now()
+		// next rotating time
 		d.nextRotatingAt = d.cfg.RotateTime.FirstCheckTime(nowTime)
+
+		if d.cfg.RotateMode == ModeCreate {
+			logfile = d.cfg.Filepath + "." + nowTime.Format(d.suffixFormat)
+		}
 	}
-	return nil
+
+	// open the logfile
+	return d.openFile(logfile)
 }
 
 // Config get the config
@@ -100,7 +105,6 @@ func (d *Writer) Close() error {
 	if err != nil {
 		return err
 	}
-
 	return d.file.Close()
 }
 
@@ -160,17 +164,17 @@ func (d *Writer) doRotate() (err error) {
 	return
 }
 
+// TIP: only called on d.checkInterval > 0
 func (d *Writer) rotatingByTime() error {
 	now := d.cfg.TimeClock.Now()
 	if d.nextRotatingAt > now.Unix() {
 		return nil
 	}
 
-	// rename current to new file.
+	// generate new file path.
 	// eg: /tmp/error.log => /tmp/error.log.20220423_1600
-	bakFilepath := d.cfg.Filepath + "." + now.Format(d.suffixFormat)
-
-	err := d.rotatingFile(bakFilepath)
+	file := d.cfg.Filepath + "." + now.Format(d.suffixFormat)
+	err := d.rotatingFile(file, false)
 
 	// storage next rotating time
 	d.nextRotatingAt = now.Unix() + d.checkInterval
@@ -178,33 +182,47 @@ func (d *Writer) rotatingByTime() error {
 }
 
 func (d *Writer) rotatingBySize() error {
-	// rename current to new file
 	d.rotateNum++
 
-	// eg: /tmp/error.log => /tmp/error.log.163021_1
-	bakFilepath := d.cfg.RenameFunc(d.cfg.Filepath, d.rotateNum)
+	var bakFile string
+	if d.cfg.IsMode(ModeCreate) {
+		// eg: /tmp/error.log.20220423_1600 => /tmp/error.log.20220423_1600_001
+		bakFile = fmt.Sprintf("%s_%03d", d.path, d.rotateNum)
+	} else {
+		// rename current to new file
+		// eg: /tmp/error.log => /tmp/error.log.163021_001
+		bakFile = d.cfg.RenameFunc(d.cfg.Filepath, d.rotateNum)
+	}
 
-	return d.rotatingFile(bakFilepath)
+	// always rename current to new file
+	return d.rotatingFile(bakFile, true)
 }
 
 // rotateFile closes the syncBuffer's file and starts a new one.
-func (d *Writer) rotatingFile(bakFilepath string) error {
+func (d *Writer) rotatingFile(bakFile string, rename bool) error {
 	// close the current file
 	if err := d.Close(); err != nil {
 		return err
 	}
 
+	// record old files for clean.
+	// d.oldFiles = append(d.oldFiles, bakFile)
+
 	// rename current to new file.
-	err := os.Rename(d.cfg.Filepath, bakFilepath)
-	if err != nil {
-		return err
+	if rename || d.cfg.RotateMode == ModeRename {
+		if err := os.Rename(d.path, bakFile); err != nil {
+			return err
+		}
 	}
 
-	// record old files for clean.
-	// d.oldFiles = append(d.oldFiles, bakFilepath)
+	// filepath for reopen
+	logfile := d.path
+	if d.cfg.RotateMode == ModeRename {
+		logfile = d.cfg.Filepath
+	}
 
 	// reopen log file
-	if err = d.openFile(); err != nil {
+	if err := d.openFile(logfile); err != nil {
 		return err
 	}
 
@@ -218,16 +236,17 @@ func (d *Writer) ReopenFile() error {
 	if d.file != nil {
 		d.file.Close()
 	}
-	return d.openFile()
+	return d.openFile(d.path)
 }
 
-// ReopenFile the log file
-func (d *Writer) openFile() error {
-	file, err := fsutil.OpenFile(d.cfg.Filepath, DefaultFileFlags, d.cfg.FilePerm)
+// open the log file. and set the d.file, d.path
+func (d *Writer) openFile(logfile string) error {
+	file, err := fsutil.OpenFile(logfile, DefaultFileFlags, d.cfg.FilePerm)
 	if err != nil {
 		return err
 	}
 
+	d.path = logfile
 	d.file = file
 	return nil
 }

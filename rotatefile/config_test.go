@@ -26,6 +26,7 @@ func TestNewConfig(t *testing.T) {
 	assert.Eq(t, rotatefile.DefaultBackTime, cfg.BackupTime)
 	assert.Eq(t, rotatefile.EveryHour, cfg.RotateTime)
 	assert.Eq(t, rotatefile.DefaultMaxSize, cfg.MaxSize)
+	assert.Eq(t, rotatefile.ModeRename, cfg.RotateMode)
 
 	dump.P(cfg)
 
@@ -35,6 +36,34 @@ func TestNewConfig(t *testing.T) {
 	assert.True(t, cfg.Compress)
 	assert.Eq(t, uint(0), cfg.BackupNum)
 	assert.Eq(t, uint(0), cfg.BackupTime)
+}
+
+func TestRotateMode_String(t *testing.T) {
+	assert.Eq(t, "rename", rotatefile.ModeRename.String())
+	assert.Eq(t, "create", rotatefile.ModeCreate.String())
+	assert.Eq(t, "unknown", rotatefile.RotateMode(9).String())
+}
+
+func TestRotateTime_TimeFormat(t *testing.T) {
+	now := timex.Now()
+
+	rt := rotatefile.EveryDay
+	assert.Eq(t, "20060102", rt.TimeFormat())
+	ft := rt.FirstCheckTime(now.T())
+	assert.Eq(t, now.DayEnd().Unix(), ft)
+
+	rt = rotatefile.EveryHour
+	assert.Eq(t, "20060102_1500", rt.TimeFormat())
+
+	rt = rotatefile.Every15Min
+	assert.Eq(t, "20060102_1504", rt.TimeFormat())
+	ft = rt.FirstCheckTime(now.T())
+	assert.Gt(t, ft, 0)
+
+	rt = rotatefile.EverySecond
+	assert.Eq(t, "20060102_150405", rt.TimeFormat())
+	ft = rt.FirstCheckTime(now.T())
+	assert.Eq(t, now.Unix()+rt.Interval(), ft)
 }
 
 func TestRotateTime_String(t *testing.T) {

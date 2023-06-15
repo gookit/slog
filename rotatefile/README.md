@@ -2,6 +2,16 @@
 
  `rotatefile` provides simple file rotation, compression and cleanup.
 
+## Features
+
+- Rotate file by size and time
+  - Custom filename for rotate file by size
+  - Custom time clock for rotate
+  - Custom file perm for create log file
+  - Custom rotate mode: create, rename
+- Compress rotated file
+- Cleanup old files
+
 ## Install
 
 ```bash
@@ -18,6 +28,9 @@ writer, err := rotatefile.NewConfig(logFile).Create()
 if err != nil {
     panic(err)
 }
+
+// use writer
+writer.Write([]byte("log message\n"))
 ```
 
 ### Use on another logger

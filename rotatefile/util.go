@@ -37,7 +37,6 @@ func compressFile(srcPath, dstPath string) error {
 	if _, err = io.Copy(zw, srcFile); err != nil {
 		return err
 	}
-
 	return zw.Close()
 }
 
@@ -45,6 +44,7 @@ type filterFunc func(fPath string, fi os.FileInfo) bool
 type handleFunc func(fPath string, fi os.FileInfo) error
 
 // from the go pkg: path/filepath.glob()
+// TODO replace use fsutil.FindInDir()
 func findFilesInDir(dir string, handleFn handleFunc, filters ...filterFunc) (err error) {
 	fi, err := os.Stat(dir)
 	if err != nil {

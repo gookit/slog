@@ -25,11 +25,14 @@ type CConfig struct {
 	// FileDirs list
 	FileDirs []string `json:"file_dirs" yaml:"file_dirs"`
 
+	// Patterns list. filename match patterns. eg: error.log.*
+	Patterns []string `json:"patterns" yaml:"patterns"`
+
 	// TimeClock for clean files
 	TimeClock Clocker
 
-	// skip error
-	// TODO skipError bool
+	// ignore error
+	// TODO ignoreError bool
 }
 
 // AddFileDir for clean
@@ -43,6 +46,7 @@ func NewCConfig() *CConfig {
 	return &CConfig{
 		BackupNum:  DefaultBackNum,
 		BackupTime: DefaultBackTime,
+		TimeClock:  DefaultTimeClockFn,
 	}
 }
 
@@ -54,7 +58,7 @@ type FilesClear struct {
 
 	namePattern  string
 	filepathDirs []string
-	// full file path patterns
+	// full file path glob patterns
 	filePatterns []string
 	// file max backup time. equals CConfig.BackupTime * time.Hour
 	backupDur time.Duration
@@ -91,7 +95,8 @@ func (r *FilesClear) CleanDaemon() {
 		return
 	}
 
-	for range time.NewTicker(flushInterval).C {
+	t := time.NewTicker(flushInterval)
+	for range t.C {
 		if err := r.Clean(); err != nil {
 			printErrln("files-clear: clean old files error:", err)
 		}
@@ -145,7 +150,7 @@ func (r *FilesClear) Clean() (err error) {
 
 func (r *FilesClear) cleanByBackupNum(filePattern string, bckNum int) (err error) {
 	keepNum := 0
-	err = fsutil.GlobWithFunc(filePattern, func(oldFile string) error {
+	return fsutil.GlobWithFunc(filePattern, func(oldFile string) error {
 		stat, err := os.Stat(oldFile)
 		if err != nil {
 			return err
@@ -162,8 +167,6 @@ func (r *FilesClear) cleanByBackupNum(filePattern string, bckNum int) (err error
 		// remove expired files
 		return os.Remove(oldFile)
 	})
-
-	return
 }
 
 func (r *FilesClear) cleanByBackupTime(filePattern string, cutTime time.Time) (err error) {
