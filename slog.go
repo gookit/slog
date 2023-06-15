@@ -25,18 +25,22 @@ More usage please see README.
 package slog
 
 import (
+	"context"
 	"time"
+
+	"github.com/gookit/goutil"
+	"github.com/gookit/gsr"
 )
 
-// var bufferPool *sync.Pool
-
-func init() {
-	// bufferPool = &sync.Pool{
-	// 	New: func() interface{} {
-	// 		return new(bytes.Buffer)
-	// 	},
-	// }
+// SLogger interface
+type SLogger interface {
+	gsr.Logger
+	Log(level Level, v ...any)
+	Logf(level Level, format string, v ...any)
 }
+
+// LoggerFn func
+type LoggerFn func(l *Logger)
 
 //
 // ------------------------------------------------------------
@@ -71,12 +75,7 @@ func SetExitFunc(fn func(code int)) { std.ExitFunc = fn }
 func Flush() error { return std.Flush() }
 
 // MustFlush log messages
-func MustFlush() {
-	err := Flush()
-	if err != nil {
-		panic(err)
-	}
-}
+func MustFlush() { goutil.PanicErr(Flush()) }
 
 // FlushTimeout flush logs with timeout.
 func FlushTimeout(timeout time.Duration) { std.FlushTimeout(timeout) }
@@ -122,9 +121,19 @@ func WithData(data M) *Record {
 	return std.WithData(data)
 }
 
+// WithField new record with field
+func WithField(name string, value any) *Record {
+	return std.WithField(name, value)
+}
+
 // WithFields new record with fields
 func WithFields(fields M) *Record {
 	return std.WithFields(fields)
+}
+
+// WithContext new record with context
+func WithContext(ctx context.Context) *Record {
+	return std.WithContext(ctx)
 }
 
 // -------------------------- Add log messages with level -----------------------------
@@ -145,39 +154,28 @@ func Trace(args ...any) { std.log(TraceLevel, args) }
 func Tracef(format string, args ...any) { std.logf(TraceLevel, format, args) }
 
 // Info logs a message at level Info
-func Info(args ...any) {
-	std.log(InfoLevel, args)
-}
+func Info(args ...any) { std.log(InfoLevel, args) }
 
 // Infof logs a message at level Info
-func Infof(format string, args ...any) {
-	std.logf(InfoLevel, format, args)
-}
+func Infof(format string, args ...any) { std.logf(InfoLevel, format, args) }
 
 // Notice logs a message at level Notice
-func Notice(args ...any) {
-	std.log(NoticeLevel, args)
-}
+func Notice(args ...any) { std.log(NoticeLevel, args) }
 
 // Noticef logs a message at level Notice
-func Noticef(format string, args ...any) {
-	std.logf(NoticeLevel, format, args)
-}
+func Noticef(format string, args ...any) { std.logf(NoticeLevel, format, args) }
 
 // Warn logs a message at level Warn
-func Warn(args ...any) {
-	std.log(WarnLevel, args)
-}
+func Warn(args ...any) { std.log(WarnLevel, args) }
 
 // Warnf logs a message at level Warn
-func Warnf(format string, args ...any) {
-	std.logf(WarnLevel, format, args)
-}
+func Warnf(format string, args ...any) { std.logf(WarnLevel, format, args) }
 
 // Error logs a message at level Error
-func Error(args ...any) {
-	std.log(ErrorLevel, args)
-}
+func Error(args ...any) { std.log(ErrorLevel, args) }
+
+// Errorf logs a message at level Error
+func Errorf(format string, args ...any) { std.logf(ErrorLevel, format, args) }
 
 // ErrorT logs a error type at level Error
 func ErrorT(err error) {
@@ -186,30 +184,17 @@ func ErrorT(err error) {
 	}
 }
 
-// Errorf logs a message at level Error
-func Errorf(format string, args ...any) {
-	std.logf(ErrorLevel, format, args)
-}
-
 // Debug logs a message at level Debug
-func Debug(args ...any) {
-	std.log(DebugLevel, args)
-}
+func Debug(args ...any) { std.log(DebugLevel, args) }
 
 // Debugf logs a message at level Debug
-func Debugf(format string, args ...any) {
-	std.logf(DebugLevel, format, args)
-}
+func Debugf(format string, args ...any) { std.logf(DebugLevel, format, args) }
 
 // Fatal logs a message at level Fatal
-func Fatal(args ...any) {
-	std.log(FatalLevel, args)
-}
+func Fatal(args ...any) { std.log(FatalLevel, args) }
 
 // Fatalf logs a message at level Fatal
-func Fatalf(format string, args ...any) {
-	std.logf(FatalLevel, format, args)
-}
+func Fatalf(format string, args ...any) { std.logf(FatalLevel, format, args) }
 
 // FatalErr logs a message at level Fatal on err is not nil
 func FatalErr(err error) {
@@ -219,14 +204,10 @@ func FatalErr(err error) {
 }
 
 // Panic logs a message at level Panic
-func Panic(args ...any) {
-	std.log(PanicLevel, args)
-}
+func Panic(args ...any) { std.log(PanicLevel, args) }
 
 // Panicf logs a message at level Panic
-func Panicf(format string, args ...any) {
-	std.logf(PanicLevel, format, args)
-}
+func Panicf(format string, args ...any) { std.logf(PanicLevel, format, args) }
 
 // PanicErr logs a message at level Panic on err is not nil
 func PanicErr(err error) {

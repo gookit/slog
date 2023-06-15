@@ -4,19 +4,7 @@ import (
 	"context"
 	"sync"
 	"time"
-
-	"github.com/gookit/gsr"
 )
-
-// SLogger interface
-type SLogger interface {
-	gsr.Logger
-	Log(level Level, v ...any)
-	Logf(level Level, format string, v ...any)
-}
-
-// LoggerFn func
-type LoggerFn func(l *Logger)
 
 // Logger log dispatcher definition.
 //
@@ -25,7 +13,7 @@ type Logger struct {
 	name string
 	// lock for write logs
 	mu sync.Mutex
-	// log latest error
+	// logger latest error
 	err error
 
 	// log handlers for logger
@@ -34,6 +22,8 @@ type Logger struct {
 
 	// reusable empty record
 	recordPool sync.Pool
+	// handlers on exit.
+	exitHandlers []func()
 
 	//
 	// logger options
@@ -45,12 +35,11 @@ type Logger struct {
 	ReportCaller bool
 	CallerSkip   int
 	CallerFlag   uint8
+	// BackupArgs backup log input args to Record.Args
+	BackupArgs bool
 	// TimeClock custom time clock, timezone
 	TimeClock ClockFn
-
-	// handlers on exit.
-	exitHandlers []func()
-	// custom exit, panic handle.
+	// custom exit, panic handler.
 	ExitFunc  func(code int)
 	PanicFunc func(v any)
 }
@@ -150,7 +139,6 @@ func (l *Logger) FlushTimeout(timeout time.Duration) {
 		if err := l.lockAndFlushAll(); err != nil {
 			printlnStderr("slog.FlushTimeout: flush logs error: ", err)
 		}
-
 		done <- true
 	}()
 
@@ -161,9 +149,7 @@ func (l *Logger) FlushTimeout(timeout time.Duration) {
 	}
 }
 
-// Sync flushes buffered logs (if any).
-//
-// alias of the Flush()
+// Sync flushes buffered logs (if any). alias of the Flush()
 func (l *Logger) Sync() error { return Flush() }
 
 // Flush flushes all the logs and attempts to "sync" their data to disk.
@@ -299,18 +285,15 @@ func (l *Logger) PushHandlers(hs ...Handler) {
 }
 
 // SetHandlers for the logger
-func (l *Logger) SetHandlers(hs []Handler) {
-	l.handlers = hs
-}
+func (l *Logger) SetHandlers(hs []Handler) { l.handlers = hs }
 
 // AddProcessor to the logger
 func (l *Logger) AddProcessor(p Processor) { l.processors = append(l.processors, p) }
 
-// PushProcessor to the logger
-// alias of AddProcessor()
+// PushProcessor to the logger, alias of AddProcessor()
 func (l *Logger) PushProcessor(p Processor) { l.processors = append(l.processors, p) }
 
-// AddProcessors to the logger
+// AddProcessors to the logger. alias of AddProcessor()
 func (l *Logger) AddProcessors(ps ...Processor) { l.processors = append(l.processors, ps...) }
 
 // SetProcessors for the logger

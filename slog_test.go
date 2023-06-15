@@ -7,9 +7,11 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/gookit/goutil/byteutil"
 	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/testutil"
 	"github.com/gookit/goutil/testutil/assert"
+	"github.com/gookit/goutil/timex"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
 )
@@ -58,6 +60,33 @@ func TestTextFormatNoColor(t *testing.T) {
 
 	assert.NoErr(t, slog.Std().FlushAll())
 	assert.NoErr(t, slog.Std().Close())
+}
+
+func TestFlushDaemon(t *testing.T) {
+	defer slog.Reset()
+	slog.Info("print log message")
+	slog.FlushTimeout(timex.Second * 1)
+}
+
+func TestNewSugaredLogger(t *testing.T) {
+	buf := byteutil.NewBuffer()
+	l := slog.NewSugared(buf, slog.DebugLevel, func(sl *slog.SugaredLogger) {
+		sl.SetName("test")
+		sl.ReportCaller = true
+		sl.CallerFlag = slog.CallerFlagFcLine
+	})
+
+	l.Debug("debug message")
+	l.Info("info message")
+	s := buf.ResetAndGet()
+	assert.StrContains(t, s, "debug message")
+
+	l = slog.NewStd(func(sl *slog.SugaredLogger) {
+		sl.SetName("test")
+		sl.ReportCaller = true
+		sl.CallerFlag = slog.CallerFlagFunc
+	})
+	l.Info("info message1")
 }
 
 type logTest struct {
@@ -269,7 +298,6 @@ func TestRegisterExitHandler(t *testing.T) {
 
 func TestExitHandlerWithError(t *testing.T) {
 	defer slog.Reset()
-
 	assert.Len(t, slog.ExitHandlers(), 0)
 
 	slog.RegisterExitHandler(func() {
@@ -316,4 +344,33 @@ func TestLogger_PrependExitHandler(t *testing.T) {
 	l.Exit(23)
 	str := testutil.RestoreStderr()
 	assert.Eq(t, "slog: run exit handler error: test error2\n", str)
+}
+
+func TestSugaredLogger_Close(t *testing.T) {
+	h := newTestHandler()
+
+	sl := slog.NewStd(func(sl *slog.SugaredLogger) {
+		sl.PushHandler(h)
+		sl.Formatter = newTestFormatter()
+	})
+
+	h.errOnClose = true
+	err := sl.Close()
+	assert.Err(t, err)
+	assert.Err(t, sl.LastErr())
+	assert.Eq(t, "close error", err.Error())
+}
+
+func TestSugaredLogger_Handle(t *testing.T) {
+	buf := byteutil.NewBuffer()
+	sl := slog.NewStd(func(sl *slog.SugaredLogger) {
+		sl.Output = buf
+		sl.Formatter = newTestFormatter(true)
+	})
+
+	// Handle error: format error
+	sl.WithField("key", "value").Error("error message")
+	err := sl.LastErr()
+	assert.Err(t, err)
+	assert.Eq(t, "format error", err.Error())
 }

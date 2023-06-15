@@ -23,6 +23,11 @@ type SugaredLogger struct {
 	Level Level
 }
 
+// NewStd logger instance, alias of NewStdLogger()
+func NewStd(fns ...SugaredLoggerFn) *SugaredLogger {
+	return NewStdLogger(fns...)
+}
+
 // NewStdLogger instance
 func NewStdLogger(fns ...SugaredLoggerFn) *SugaredLogger {
 	setFns := []SugaredLoggerFn{
@@ -39,6 +44,11 @@ func NewStdLogger(fns ...SugaredLoggerFn) *SugaredLogger {
 		setFns = append(setFns, fns...)
 	}
 	return NewSugaredLogger(os.Stdout, DebugLevel, setFns...)
+}
+
+// NewSugared create new SugaredLogger. alias of NewSugaredLogger()
+func NewSugared(out io.Writer, level Level, fns ...SugaredLoggerFn) *SugaredLogger {
+	return NewSugaredLogger(out, level, fns...)
 }
 
 // NewSugaredLogger create new SugaredLogger

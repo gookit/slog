@@ -37,6 +37,7 @@ func TestRecord_AddData(t *testing.T) {
 	fmt.Print(s)
 	assert.Contains(t, s, "log message add data2")
 	assert.Contains(t, s, "key01:val01")
+	assert.Eq(t, "val01", r.Value("key01"))
 
 	// - add value
 	r.AddValue("key01", "val02").Println("log message add value")
@@ -44,6 +45,11 @@ func TestRecord_AddData(t *testing.T) {
 	fmt.Print(s)
 	assert.Contains(t, s, "log message add value")
 	assert.Contains(t, s, "key01:val02")
+	// - first add value
+	nr := &slog.Record{}
+	assert.Nil(t, nr.Value("key01"))
+	nr.AddValue("key01", "val02")
+	assert.Eq(t, "val02", nr.Value("key01"))
 
 	// -with data
 	r.CallerFlag = slog.CallerFlagFcName
@@ -151,6 +157,15 @@ func TestRecord_AddFields(t *testing.T) {
 
 	r.AddFields(slog.M{"app": "goods"})
 	assert.NotEmpty(t, r.Fields)
+
+	r = r.WithFields(slog.M{"f2": "v2"})
+	assert.Eq(t, "v2", r.Field("f2"))
+
+	// - first add field
+	nr := slog.Record{}
+	assert.Nil(t, nr.Field("f3"))
+	nr.AddField("f3", "val02")
+	assert.Eq(t, "val02", nr.Field("f3"))
 }
 
 func TestRecord_SetFields(t *testing.T) {

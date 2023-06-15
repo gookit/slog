@@ -44,12 +44,10 @@ type Record struct {
 	// Buffer Can use Buffer on formatter
 	// Buffer *bytes.Buffer
 
-	// cache the r.Time.Nanosecond() / 1000
-	// microSecond int
-	// stacks []byte
-	// formatted []byte
-	// field caches mapping for optimize performance. TODO use map[string][]byte ?
-	// strMp map[string]string
+	// log input args backups, from log() and logf().
+	// default its dont use in formatter.
+	Fmt  string
+	Args []any
 }
 
 func newRecord(logger *Logger) *Record {
@@ -97,10 +95,6 @@ func (r *Record) WithError(err error) *Record {
 // WithData on record
 func (r *Record) WithData(data M) *Record {
 	nr := r.Copy()
-	// if nr.Data == nil {
-	// 	nr.Data = data
-	// }
-
 	nr.Data = data
 	return nr
 }
@@ -193,11 +187,18 @@ func (r *Record) AddData(data M) *Record {
 func (r *Record) AddValue(key string, value any) *Record {
 	if r.Data == nil {
 		r.Data = make(M, 8)
-		return r
 	}
 
 	r.Data[key] = value
 	return r
+}
+
+// Value get Data value from record
+func (r *Record) Value(key string) any {
+	if r.Data == nil {
+		return nil
+	}
+	return r.Data[key]
 }
 
 // SetExtra information on record
@@ -262,6 +263,14 @@ func (r *Record) SetFields(fields M) *Record {
 	return r
 }
 
+// Field value get from record
+func (r *Record) Field(key string) any {
+	if r.Fields == nil {
+		return nil
+	}
+	return r.Fields[key]
+}
+
 //
 // ---------------------------------------------------------------------------
 // Add log message with builder
@@ -297,6 +306,9 @@ func (r *Record) SetFields(fields M) *Record {
 
 func (r *Record) log(level Level, args []any) {
 	r.Level = level
+	if r.logger.BackupArgs {
+		r.Args = args
+	}
 
 	// r.Message = strutil.Byte2str(formatArgsWithSpaces(args)) // will reduce memory allocation once
 	r.Message = formatArgsWithSpaces(args)
@@ -305,6 +317,11 @@ func (r *Record) log(level Level, args []any) {
 }
 
 func (r *Record) logf(level Level, format string, args []any) {
+	if r.logger.BackupArgs {
+		r.Fmt = format
+		r.Args = args
+	}
+
 	r.Level = level
 	r.Message = fmt.Sprintf(format, args...)
 	// r.logWrite(level)

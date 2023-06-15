@@ -168,3 +168,20 @@ func (h testHandler) Handle(_ *slog.Record) error {
 	}
 	return nil
 }
+
+type testFormatter struct {
+	errOnFormat bool
+}
+
+func newTestFormatter(errOnFormat ...bool) *testFormatter {
+	return &testFormatter{
+		errOnFormat: len(errOnFormat) > 0 && errOnFormat[0],
+	}
+}
+
+func (f testFormatter) Format(r *slog.Record) ([]byte, error) {
+	if f.errOnFormat {
+		return nil, errorx.Raw("format error")
+	}
+	return []byte(r.Message), nil
+}
