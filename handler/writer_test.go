@@ -73,13 +73,14 @@ func TestNewWriteCloser(t *testing.T) {
 func TestNewFlushCloser(t *testing.T) {
 	w := fakeobj.NewWriter()
 	h := handler.NewFlushCloser(w, slog.AllLevels)
+	w.WriteString("before flush\n")
 
 	r := newLogRecord("TestNewFlushCloser")
 	assert.NoErr(t, h.Handle(r))
-	assert.NoErr(t, h.Flush())
 
 	str := w.String()
 	assert.Contains(t, str, "TestNewFlushCloser")
 
+	assert.NoErr(t, h.Flush())
 	assert.NoErr(t, h.Close())
 }
