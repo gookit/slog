@@ -1,13 +1,14 @@
 package handler_test
 
 import (
-	"bytes"
 	"fmt"
 	"testing"
 
 	"github.com/gookit/goutil"
+	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/goutil/testutil/assert"
+	"github.com/gookit/goutil/testutil/fakeobj"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
 )
@@ -121,7 +122,7 @@ func TestLevelsWithFormatter(t *testing.T) {
 }
 
 func TestNewSimpleHandler(t *testing.T) {
-	buf := new(bytes.Buffer)
+	buf := fakeobj.NewWriter()
 
 	h := handler.NewSimple(buf, slog.InfoLevel)
 	r := newLogRecord("test simple handler")
@@ -139,8 +140,7 @@ func TestNewSimpleHandler(t *testing.T) {
 	r = newLogRecord("test simple handler2")
 	assert.NoErr(t, h.Handle(r))
 
-	s = buf.String()
-	buf.Reset()
+	s = buf.ResetGet()
 	fmt.Print(s)
 	assert.Contains(t, s, "test simple handler2")
 
@@ -193,14 +193,19 @@ func newLogRecord(msg string) *slog.Record {
 	return r
 }
 
-type closedBuffer struct {
-	bytes.Buffer
+type testFormatter struct {
+	errOnFormat bool
 }
 
-func (w *closedBuffer) Close() error {
-	return nil
+func newTestFormatter(errOnFormat ...bool) *testFormatter {
+	return &testFormatter{
+		errOnFormat: len(errOnFormat) > 0 && errOnFormat[0],
+	}
 }
 
-func (w *closedBuffer) Flush() error {
-	return nil
+func (f testFormatter) Format(r *slog.Record) ([]byte, error) {
+	if f.errOnFormat {
+		return nil, errorx.Raw("format error")
+	}
+	return []byte(r.Message), nil
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/goutil/testutil/assert"
+	"github.com/gookit/goutil/testutil/fakeobj"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
 )
@@ -27,8 +28,7 @@ func TestNewIOWriter(t *testing.T) {
 }
 
 func TestNewSyncCloser(t *testing.T) {
-	logfile := "./testdata/sync-closer.log"
-	assert.NoErr(t, fsutil.DeleteIfFileExist(logfile))
+	logfile := "./testdata/sync_closer.log"
 
 	f, err := handler.QuickOpenFile(logfile)
 	assert.NoErr(t, err)
@@ -55,7 +55,7 @@ func TestNewSyncCloser(t *testing.T) {
 }
 
 func TestNewWriteCloser(t *testing.T) {
-	w := &closedBuffer{Buffer: bytes.Buffer{}}
+	w := fakeobj.NewWriter()
 	h := handler.NewWriteCloser(w, slog.NormalLevels)
 
 	assert.True(t, h.IsHandling(slog.NoticeLevel))
@@ -71,7 +71,7 @@ func TestNewWriteCloser(t *testing.T) {
 }
 
 func TestNewFlushCloser(t *testing.T) {
-	w := &closedBuffer{}
+	w := fakeobj.NewWriter()
 	h := handler.NewFlushCloser(w, slog.AllLevels)
 
 	r := newLogRecord("TestNewFlushCloser")

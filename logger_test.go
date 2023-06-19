@@ -3,13 +3,12 @@ package slog_test
 import (
 	"bytes"
 	"context"
-	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/goutil/timex"
-	"github.com/gookit/gsr"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
 )
@@ -189,45 +188,27 @@ func TestLogger_write_error(t *testing.T) {
 	assert.Eq(t, "handle error", err.Error())
 }
 
-func newLogger() *slog.Logger {
-	return slog.NewWithConfig(func(l *slog.Logger) {
-		l.ReportCaller = true
-		l.DoNothingOnPanicFatal()
+func TestLogger_option_BackupArgs(t *testing.T) {
+	l := slog.New(func(l *slog.Logger) {
+		l.BackupArgs = true
+		l.CallerFlag = slog.CallerFlagPkgFnl
 	})
-}
 
-func printAllLevelLogs(l gsr.Logger, args ...interface{}) {
-	l.Debug(args...)
-	l.Info(args...)
-	l.Warn(args...)
-	l.Error(args...)
-	l.Print(args...)
-	l.Println(args...)
-	l.Fatal(args...)
-	l.Fatalln(args...)
-	l.Panic(args...)
-	l.Panicln(args...)
+	buf := new(bytes.Buffer)
+	l.AddHandler(handler.NewSimple(buf, slog.DebugLevel))
 
-	sl, ok := l.(*slog.Logger)
-	if ok {
-		sl.Trace(args...)
-		sl.Notice(args...)
-		sl.ErrorT(errors.New("a error object"))
-		sl.ErrorT(errorx.New("error with stack info"))
-	}
-}
+	r := l.Record()
+	r.Info("str message1")
+	assert.NotEmpty(t, r.Args)
+	r = r.Copy()
+	r.Infof("fmt %s", "message2")
+	assert.NotEmpty(t, r.Fmt)
+	assert.NotEmpty(t, r.Args)
+	r.WithField("key", "value").Info("field message3")
 
-func printfAllLevelLogs(l gsr.Logger, tpl string, args ...interface{}) {
-	l.Printf(tpl, args...)
-	l.Debugf(tpl, args...)
-	l.Infof(tpl, args...)
-	l.Warnf(tpl, args...)
-	l.Errorf(tpl, args...)
-	l.Panicf(tpl, args...)
-	l.Fatalf(tpl, args...)
-
-	if sl, ok := l.(*slog.Logger); ok {
-		sl.Noticef(tpl, args...)
-		sl.Tracef(tpl, args...)
-	}
+	s := buf.String()
+	fmt.Println(s)
+	assert.StrContains(t, s, "str message1")
+	assert.StrContains(t, s, "fmt message2")
+	assert.StrContains(t, s, "field message3")
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/gookit/goutil/dump"
 	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/testutil/assert"
+	"github.com/gookit/gsr"
 	"github.com/gookit/slog"
 )
 
@@ -184,4 +185,47 @@ func (f testFormatter) Format(r *slog.Record) ([]byte, error) {
 		return nil, errorx.Raw("format error")
 	}
 	return []byte(r.Message), nil
+}
+
+func newLogger() *slog.Logger {
+	return slog.NewWithConfig(func(l *slog.Logger) {
+		l.ReportCaller = true
+		l.DoNothingOnPanicFatal()
+	})
+}
+
+func printAllLevelLogs(l gsr.Logger, args ...interface{}) {
+	l.Debug(args...)
+	l.Info(args...)
+	l.Warn(args...)
+	l.Error(args...)
+	l.Print(args...)
+	l.Println(args...)
+	l.Fatal(args...)
+	l.Fatalln(args...)
+	l.Panic(args...)
+	l.Panicln(args...)
+
+	sl, ok := l.(*slog.Logger)
+	if ok {
+		sl.Trace(args...)
+		sl.Notice(args...)
+		sl.ErrorT(errorx.Raw("a error object"))
+		sl.ErrorT(errorx.New("error with stack info"))
+	}
+}
+
+func printfAllLevelLogs(l gsr.Logger, tpl string, args ...interface{}) {
+	l.Printf(tpl, args...)
+	l.Debugf(tpl, args...)
+	l.Infof(tpl, args...)
+	l.Warnf(tpl, args...)
+	l.Errorf(tpl, args...)
+	l.Panicf(tpl, args...)
+	l.Fatalf(tpl, args...)
+
+	if sl, ok := l.(*slog.Logger); ok {
+		sl.Noticef(tpl, args...)
+		sl.Tracef(tpl, args...)
+	}
 }

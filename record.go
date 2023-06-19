@@ -44,8 +44,7 @@ type Record struct {
 	// Buffer Can use Buffer on formatter
 	// Buffer *bytes.Buffer
 
-	// log input args backups, from log() and logf().
-	// default its dont use in formatter.
+	// log input args backups, from log() and logf(). its dont use in formatter.
 	Fmt  string
 	Args []any
 }
