@@ -35,7 +35,7 @@ func TestM_String(t *testing.T) {
 		"k3": 23.45,
 		"k4": []int{12, 23},
 		"k5": []string{"ab", "bc"},
-		"k6": map[string]interface{}{
+		"k6": map[string]any{
 			"k6-1": 23,
 			"k6-2": "def",
 		},
@@ -96,11 +96,11 @@ func newLogRecord(msg string) *slog.Record {
 		Level:   slog.InfoLevel,
 		Message: msg,
 		Time:    slog.DefaultClockFn.Now(),
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"data_key0": "value",
 			"username":  "inhere",
 		},
-		Extra: map[string]interface{}{
+		Extra: map[string]any{
 			"source":     "linux",
 			"extra_key0": "hello",
 		},
@@ -194,7 +194,7 @@ func newLogger() *slog.Logger {
 	})
 }
 
-func printAllLevelLogs(l gsr.Logger, args ...interface{}) {
+func printAllLevelLogs(l gsr.Logger, args ...any) {
 	l.Debug(args...)
 	l.Info(args...)
 	l.Warn(args...)
@@ -215,7 +215,7 @@ func printAllLevelLogs(l gsr.Logger, args ...interface{}) {
 	}
 }
 
-func printfAllLevelLogs(l gsr.Logger, tpl string, args ...interface{}) {
+func printfAllLevelLogs(l gsr.Logger, tpl string, args ...any) {
 	l.Printf(tpl, args...)
 	l.Debugf(tpl, args...)
 	l.Infof(tpl, args...)

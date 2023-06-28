@@ -182,7 +182,7 @@ func newLogRecord(msg string) *slog.Record {
 		Message: msg,
 		Time:    slog.DefaultClockFn.Now(),
 		Data:    sampleData,
-		Extra: map[string]interface{}{
+		Extra: map[string]any{
 			"source":     "linux",
 			"extra_key0": "hello",
 			"sub":        slog.M{"sub_key1": "val0"},

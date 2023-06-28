@@ -144,7 +144,7 @@ func printLogs(msg string) {
 	slog.ErrorT(errorx.Newf("Traced Err: %s", msg))
 }
 
-func printfLogs(msg string, args ...interface{}) {
+func printfLogs(msg string, args ...any) {
 	slog.Printf(msg, args...)
 	slog.Tracef(msg, args...)
 	slog.Debugf(msg, args...)

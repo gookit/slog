@@ -61,7 +61,7 @@ func NewTextFormatter(template ...string) *TextFormatter {
 		TimeFormat: DefaultTimeFormat,
 		ColorTheme: ColorTheme,
 		// EnableColor: color.SupportColor(),
-		// EncodeFunc: func(v interface{}) string {
+		// EncodeFunc: func(v any) string {
 		// 	return fmt.Sprint(v)
 		// },
 		EncodeFunc: EncodeToString,

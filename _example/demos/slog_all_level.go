@@ -18,7 +18,7 @@ func main() {
 	printAllLevel(l, "this is a", "log", "message")
 }
 
-func printAllLevel(l *slog.Logger, args ...interface{}) {
+func printAllLevel(l *slog.Logger, args ...any) {
 	l.Debug(args...)
 	l.Info(args...)
 	l.Warn(args...)

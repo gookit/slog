@@ -26,7 +26,7 @@ func Test_formatArgsWithSpaces_oneElem_AllocTimes(t *testing.T) {
 	// output: 1 times -> 0 times
 	fmt.Println("Alloc Times:", int(testing.AllocsPerRun(10, func() {
 		// logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
-		formatArgsWithSpaces([]interface{}{
+		formatArgsWithSpaces([]any{
 			"msg", // 2343, -23, 123.2,
 		})
 	})))
@@ -42,7 +42,7 @@ func Test_AllocTimes_formatArgsWithSpaces_manyElem(t *testing.T) {
 	// `int <0`, `int > 100` will alloc 1 times memory
 	fmt.Println("Alloc Times:", int(testing.AllocsPerRun(100, func() {
 		// logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
-		formatArgsWithSpaces([]interface{}{
+		formatArgsWithSpaces([]any{
 			"rate", -23, true, 106, "high", 123.2,
 		})
 	})))
