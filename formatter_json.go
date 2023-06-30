@@ -42,6 +42,8 @@ type JSONFormatter struct {
 	PrettyPrint bool
 	// TimeFormat the time format layout. default is DefaultTimeFormat
 	TimeFormat string
+	// CallerFormatFunc the caller format layout. default is defined by CallerFlag
+	CallerFormatFunc CallerFormatFn
 }
 
 // NewJSONFormatter create new JSONFormatter
@@ -89,7 +91,11 @@ func (f *JSONFormatter) Format(r *Record) ([]byte, error) {
 		case field == FieldKeyTimestamp:
 			logData[outName] = r.timestamp()
 		case field == FieldKeyCaller && r.Caller != nil:
-			logData[outName] = formatCaller(r.Caller, r.CallerFlag)
+			if f.CallerFormatFunc != nil {
+				logData[outName] = f.CallerFormatFunc(r.Caller)
+			} else {
+				logData[outName] = formatCaller(r.Caller, r.CallerFlag)
+			}
 		case field == FieldKeyLevel:
 			logData[outName] = r.LevelName()
 		case field == FieldKeyChannel:

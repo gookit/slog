@@ -43,6 +43,8 @@ type TextFormatter struct {
 	// EncodeFunc data encode for Record.Data, Record.Extra, etc.
 	// Default is encode by EncodeToString()
 	EncodeFunc func(v any) string
+	// CallerFormatFunc the caller format layout. default is defined by CallerFlag
+	CallerFormatFunc CallerFormatFn
 }
 
 // NewTextFormatter create new TextFormatter
@@ -118,7 +120,13 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 		case field == FieldKeyTimestamp:
 			buf.WriteString(r.timestamp())
 		case field == FieldKeyCaller && r.Caller != nil:
-			buf.WriteString(formatCaller(r.Caller, r.CallerFlag))
+			var callerLog string
+			if f.CallerFormatFunc != nil {
+				callerLog = f.CallerFormatFunc(r.Caller)
+			} else {
+				callerLog = formatCaller(r.Caller, r.CallerFlag)
+			}
+			buf.WriteString(callerLog)
 		case field == FieldKeyLevel:
 			// output colored logs for console
 			if f.EnableColor {
