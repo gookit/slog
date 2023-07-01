@@ -24,6 +24,8 @@ import (
 // 	return nil
 // }
 
+type CallerFormatFn func(rf *runtime.Frame) (cs string)
+
 func buildLowerLevelName() map[Level]string {
 	mp := make(map[Level]string, len(LevelNames))
 	for level, s := range LevelNames {
