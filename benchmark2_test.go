@@ -8,7 +8,7 @@ import (
 	"github.com/gookit/goutil/dump"
 )
 
-func TestLogger_newRecord_AllocTimes(t *testing.T) {
+func TestLogger_newRecord_AllocTimes(_ *testing.T) {
 	l := Std()
 	l.Output = io.Discard
 	defer l.Reset()
@@ -22,7 +22,7 @@ func TestLogger_newRecord_AllocTimes(t *testing.T) {
 	})))
 }
 
-func Test_formatArgsWithSpaces_oneElem_AllocTimes(t *testing.T) {
+func Test_formatArgsWithSpaces_oneElem_AllocTimes(_ *testing.T) {
 	// output: 1 times -> 0 times
 	fmt.Println("Alloc Times:", int(testing.AllocsPerRun(10, func() {
 		// logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
@@ -32,7 +32,7 @@ func Test_formatArgsWithSpaces_oneElem_AllocTimes(t *testing.T) {
 	})))
 }
 
-func Test_AllocTimes_formatArgsWithSpaces_manyElem(t *testing.T) {
+func Test_AllocTimes_formatArgsWithSpaces_manyElem(_ *testing.T) {
 	l := Std()
 	l.Output = io.Discard
 	defer l.Reset()
@@ -48,7 +48,7 @@ func Test_AllocTimes_formatArgsWithSpaces_manyElem(t *testing.T) {
 	})))
 }
 
-func Test_AllocTimes_stringsPool(t *testing.T) {
+func Test_AllocTimes_stringsPool(_ *testing.T) {
 	l := Std()
 	l.Output = io.Discard
 	l.LowerLevelName = true
@@ -76,7 +76,7 @@ func Test_AllocTimes_stringsPool(t *testing.T) {
 	dump.P(ln, cp)
 }
 
-func TestLogger_Info_oneElem_AllocTimes(t *testing.T) {
+func TestLogger_Info_oneElem_AllocTimes(_ *testing.T) {
 	l := Std()
 	// l.Output = io.Discard
 	l.ReportCaller = false
@@ -93,7 +93,7 @@ func TestLogger_Info_oneElem_AllocTimes(t *testing.T) {
 	})))
 }
 
-func TestLogger_Info_moreElem_AllocTimes(t *testing.T) {
+func TestLogger_Info_moreElem_AllocTimes(_ *testing.T) {
 	l := NewStdLogger()
 	// l.Output = io.Discard
 	l.ReportCaller = false

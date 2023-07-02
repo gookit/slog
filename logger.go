@@ -75,7 +75,7 @@ func NewWithName(name string, fns ...LoggerFn) *Logger {
 		TimeClock:    DefaultClockFn,
 	}
 
-	logger.recordPool.New = func() interface{} {
+	logger.recordPool.New = func() any {
 		return newRecord(logger)
 	}
 	return logger.Config(fns...)
@@ -92,6 +92,7 @@ func (l *Logger) releaseRecord(r *Record) {
 	r.Data = nil
 	r.Extra = nil
 	r.Fields = nil
+	r.inited = false
 	r.CallerSkip = l.CallerSkip
 	l.recordPool.Put(r)
 }
@@ -305,11 +306,9 @@ func (l *Logger) SetProcessors(ps []Processor) { l.processors = ps }
 // ---------------------------------------------------------------------------
 //
 
-// Record return a new record for log
+// Record return a new record with logger
 func (l *Logger) Record() *Record {
-	r := l.newRecord()
-	defer l.releaseRecord(r)
-	return r
+	return l.newRecord()
 }
 
 // WithField new record with field

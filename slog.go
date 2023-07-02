@@ -63,13 +63,13 @@ func Reset() {
 }
 
 // Configure the std logger
-func Configure(fn func(l *SugaredLogger)) { std.Configure(fn) }
-
-// Exit runs all the logger exit handlers and then terminates the program using os.Exit(code)
-func Exit(code int) { std.Exit(code) }
+func Configure(fn func(l *SugaredLogger)) { std.Config(fn) }
 
 // SetExitFunc to the std logger
 func SetExitFunc(fn func(code int)) { std.ExitFunc = fn }
+
+// Exit runs all the logger exit handlers and then terminates the program using os.Exit(code)
+func Exit(code int) { std.Exit(code) }
 
 // Flush log messages
 func Flush() error { return std.Flush() }

@@ -1,5 +1,7 @@
 package slog
 
+import "runtime"
+
 //
 // Formatter interface
 //
@@ -48,6 +50,9 @@ func (f *FormattableTrait) SetFormatter(formatter Formatter) {
 func (f *FormattableTrait) Format(record *Record) ([]byte, error) {
 	return f.Formatter().Format(record)
 }
+
+// CallerFormatFn caller format func
+type CallerFormatFn func(rf *runtime.Frame) (cs string)
 
 // AsTextFormatter util func
 func AsTextFormatter(f Formatter) *TextFormatter {
