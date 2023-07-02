@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gookit/goutil/byteutil"
+	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
 )
@@ -91,4 +93,33 @@ func TestIssues_105(t *testing.T) {
 		}
 		wg.Wait()
 	})
+}
+
+// https://github.com/gookit/slog/issues/108
+func TestIssues_108(t *testing.T) {
+	buf1 := byteutil.NewBuffer()
+	root := slog.NewWithName("root", func(l *slog.Logger) {
+		l.ChannelName = l.Name()
+		l.AddHandler(handler.NewSimple(buf1, slog.InfoLevel))
+	})
+	root.Info("root info message")
+	root.Warn("root warn message")
+
+	str := buf1.ResetGet()
+	fmt.Println(str)
+	assert.StrContains(t, str, "[root] [INFO")
+	assert.StrContains(t, str, "[root] [WARN")
+
+	buf2 := byteutil.NewBuffer()
+	probe := slog.NewWithName("probe", func(l *slog.Logger) {
+		l.ChannelName = l.Name()
+		l.AddHandler(handler.NewSimple(buf2, slog.InfoLevel))
+	})
+	probe.Info("probe info message")
+	probe.Warn("probe warn message")
+
+	str = buf2.ResetGet()
+	fmt.Println(str)
+	assert.StrContains(t, str, "[probe] [INFO")
+	assert.StrContains(t, str, "[probe] [WARN")
 }

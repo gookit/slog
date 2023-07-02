@@ -32,7 +32,7 @@ type TextFormatter struct {
 	// eg: ["level", "}}"}
 	fields []string
 
-	// TimeFormat the time format layout. default is time.RFC3339
+	// TimeFormat the time format layout. default is DefaultTimeFormat
 	TimeFormat string
 	// Enable color on print log to terminal
 	EnableColor bool

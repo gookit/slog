@@ -207,8 +207,8 @@ var (
 		PanicLevel:  "PANIC",
 		FatalLevel:  "FATAL",
 		ErrorLevel:  "ERROR",
+		WarnLevel:   "WARN",
 		NoticeLevel: "NOTICE",
-		WarnLevel:   "WARNING",
 		InfoLevel:   "INFO",
 		DebugLevel:  "DEBUG",
 		TraceLevel:  "TRACE",
@@ -248,7 +248,7 @@ func Name2Level(ln string) (Level, error) {
 		return ErrorLevel, nil
 	case "warn", "warning":
 		return WarnLevel, nil
-	case "notice":
+	case "note", "notice":
 		return NoticeLevel, nil
 	case "info", "": // make the zero value useful
 		return InfoLevel, nil
@@ -301,36 +301,4 @@ func ResetExitHandlers(applyToStd bool) {
 	if applyToStd {
 		std.ResetExitHandlers()
 	}
-}
-
-func (l *Logger) runExitHandlers() {
-	defer func() {
-		if err := recover(); err != nil {
-			printlnStderr("slog: run exit handler error:", err)
-		}
-	}()
-
-	for _, handler := range l.exitHandlers {
-		handler()
-	}
-}
-
-// RegisterExitHandler register an exit-handler on global exitHandlers
-func (l *Logger) RegisterExitHandler(handler func()) {
-	l.exitHandlers = append(l.exitHandlers, handler)
-}
-
-// PrependExitHandler prepend register an exit-handler on global exitHandlers
-func (l *Logger) PrependExitHandler(handler func()) {
-	l.exitHandlers = append([]func(){handler}, l.exitHandlers...)
-}
-
-// ResetExitHandlers reset logger exitHandlers
-func (l *Logger) ResetExitHandlers() {
-	l.exitHandlers = make([]func(), 0)
-}
-
-// ExitHandlers get all exitHandlers of the logger
-func (l *Logger) ExitHandlers() []func() {
-	return l.exitHandlers
 }

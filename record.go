@@ -6,6 +6,8 @@ import (
 	"runtime"
 	"strconv"
 	"time"
+
+	"github.com/gookit/goutil/strutil"
 )
 
 // Record a log record definition
@@ -58,7 +60,7 @@ type Record struct {
 func newRecord(logger *Logger) *Record {
 	return &Record{
 		logger:  logger,
-		Channel: DefaultChannelName,
+		Channel: strutil.OrElse(logger.ChannelName, DefaultChannelName),
 		// with some options
 		CallerFlag: logger.CallerFlag,
 		CallerSkip: logger.CallerSkip,

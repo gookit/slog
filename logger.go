@@ -29,6 +29,8 @@ type Logger struct {
 	// logger options
 	//
 
+	// ChannelName log channel name, default is DefaultChannelName
+	ChannelName string
 	// LowerLevelName use lower level name
 	LowerLevelName bool
 	// ReportCaller on write log record
@@ -70,6 +72,7 @@ func NewWithName(name string, fns ...LoggerFn) *Logger {
 		PanicFunc:    DefaultPanicFn,
 		exitHandlers: []func(){},
 		// options
+		ChannelName:  DefaultChannelName,
 		ReportCaller: true,
 		CallerSkip:   6,
 		TimeClock:    DefaultClockFn,
@@ -99,11 +102,9 @@ func (l *Logger) releaseRecord(r *Record) {
 
 //
 // ---------------------------------------------------------------------------
-// Management logger
+// Configure logger
 // ---------------------------------------------------------------------------
 //
-
-const flushInterval = 30 * time.Second
 
 // Config current logger
 func (l *Logger) Config(fns ...LoggerFn) *Logger {
@@ -117,6 +118,40 @@ func (l *Logger) Config(fns ...LoggerFn) *Logger {
 //
 // Deprecated: use Config()
 func (l *Logger) Configure(fn LoggerFn) *Logger { return l.Config(fn) }
+
+// RegisterExitHandler register an exit-handler on global exitHandlers
+func (l *Logger) RegisterExitHandler(handler func()) {
+	l.exitHandlers = append(l.exitHandlers, handler)
+}
+
+// PrependExitHandler prepend register an exit-handler on global exitHandlers
+func (l *Logger) PrependExitHandler(handler func()) {
+	l.exitHandlers = append([]func(){handler}, l.exitHandlers...)
+}
+
+// ResetExitHandlers reset logger exitHandlers
+func (l *Logger) ResetExitHandlers() {
+	l.exitHandlers = make([]func(), 0)
+}
+
+// ExitHandlers get all exitHandlers of the logger
+func (l *Logger) ExitHandlers() []func() {
+	return l.exitHandlers
+}
+
+// SetName for logger
+func (l *Logger) SetName(name string) { l.name = name }
+
+// Name of the logger
+func (l *Logger) Name() string { return l.name }
+
+//
+// ---------------------------------------------------------------------------
+// Management logger
+// ---------------------------------------------------------------------------
+//
+
+const flushInterval = 30 * time.Second
 
 // FlushDaemon run flush handle on daemon
 //
@@ -243,11 +278,17 @@ func (l *Logger) Exit(code int) {
 	}
 }
 
-// SetName for logger
-func (l *Logger) SetName(name string) { l.name = name }
+func (l *Logger) runExitHandlers() {
+	defer func() {
+		if err := recover(); err != nil {
+			printlnStderr("slog: run exit handler error:", err)
+		}
+	}()
 
-// Name of the logger
-func (l *Logger) Name() string { return l.name }
+	for _, handler := range l.exitHandlers {
+		handler()
+	}
+}
 
 // DoNothingOnPanicFatal do nothing on panic or fatal level.
 // useful on testing.
