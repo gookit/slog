@@ -21,8 +21,10 @@ package slog
 // r.Buffer = nil
 // }
 
-// Init something for record.
+// Init something for record(eg: time, level name).
 func (r *Record) Init(lowerLevelName bool) {
+	r.inited = true
+
 	// use lower level name
 	if lowerLevelName {
 		r.levelName = r.Level.LowerName()
@@ -54,22 +56,22 @@ func (r *Record) beforeHandle(l *Logger) {
 	}
 }
 
-// do write log record
+// do write record to handlers, will add lock.
 func (l *Logger) writeRecord(level Level, r *Record) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+	// reset init flag, useful for repeat use Record
+	r.inited = false
 
-	// do write log message
-	var inited bool
 	for _, handler := range l.handlers {
 		if handler.IsHandling(level) {
-			if !inited {
-				// init, call processors
+			// init record, call processors
+			if !r.inited {
 				r.Init(l.LowerLevelName)
 				r.beforeHandle(l)
-				inited = true
 			}
 
+			// do write log message by handler
 			if err := handler.Handle(r); err != nil {
 				l.err = err
 				printlnStderr("slog: failed to handle log, error:", err)
@@ -78,6 +80,7 @@ func (l *Logger) writeRecord(level Level, r *Record) {
 	}
 
 	// ---- after write log ----
+	r.Time = emptyTime
 
 	// flush logs on level <= error level.
 	if level <= ErrorLevel {

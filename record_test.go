@@ -3,8 +3,12 @@ package slog_test
 import (
 	"context"
 	"fmt"
+	"os"
+	"sync"
 	"testing"
+	"time"
 
+	"github.com/gookit/goutil/byteutil"
 	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/goutil/timex"
@@ -187,7 +191,7 @@ func TestRecord_allLevel(t *testing.T) {
 	})
 
 	r := l.Record()
-	r.WithContext(context.Background())
+	r = r.WithContext(context.Background())
 	printAllLevelLogs(r, "a message use record.XX()")
 	r.Log(slog.InfoLevel, "a message use record.XX()")
 	r.Notice("a message use record.XX()")
@@ -209,4 +213,34 @@ func TestRecord_allLevel(t *testing.T) {
 	assert.Contains(t, s, "a message use record.XXf()")
 	assert.Contains(t, s, "[NOTICE]")
 	assert.Contains(t, s, "[TRACE]")
+}
+
+func TestRecord_useMultiTimes(t *testing.T) {
+	buf := byteutil.NewBuffer()
+	l := slog.NewWithHandlers(
+		handler.NewSimple(buf, slog.DebugLevel),
+		handler.NewSimple(os.Stdout, slog.DebugLevel),
+	)
+
+	r := l.Record()
+	t.Run("simple", func(t *testing.T) {
+		for i := 0; i < 10; i++ {
+			r.Error("simple error log", i)
+			time.Sleep(time.Millisecond * 100)
+		}
+	})
+
+	// test concurrent write
+	t.Run("concurrent", func(t *testing.T) {
+		wg := sync.WaitGroup{}
+		for i := 0; i < 100; i++ {
+			wg.Add(1)
+			go func(i int) {
+				r.Error("concurrent error log", i)
+				time.Sleep(time.Millisecond * 100)
+				wg.Done()
+			}(i)
+		}
+		wg.Wait()
+	})
 }

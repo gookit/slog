@@ -2,6 +2,7 @@ package slog_test
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -66,4 +67,28 @@ func TestIssues_75(t *testing.T) {
 	slog.Error("Error message 2")
 	slog.Reset()
 	// dump.P(slog.GetFormatter())
+}
+
+// https://github.com/gookit/slog/issues/105
+func TestIssues_105(t *testing.T) {
+	t.Run("simple write", func(t *testing.T) {
+		for i := 0; i < 10; i++ {
+			slog.Error("simple error log", i)
+			time.Sleep(time.Millisecond * 100)
+		}
+	})
+
+	// test concurrent write
+	t.Run("concurrent write", func(t *testing.T) {
+		wg := sync.WaitGroup{}
+		for i := 0; i < 100; i++ {
+			wg.Add(1)
+			go func(i int) {
+				slog.Error("concurrent error log", i)
+				time.Sleep(time.Millisecond * 100)
+				wg.Done()
+			}(i)
+		}
+		wg.Wait()
+	})
 }

@@ -11,8 +11,14 @@ import (
 // Record a log record definition
 type Record struct {
 	logger *Logger
+	// release flag for record. TODO
+	unreleased bool
+	// inited flag for record
+	inited bool
 
-	// Time for record log
+	// Time for record log, if is empty will use now.
+	//
+	// TIP: Will be emptied after each use (write)
 	Time time.Time
 	// Level log level for record
 	Level Level
@@ -134,9 +140,9 @@ func (r *Record) Copy() *Record {
 	}
 
 	return &Record{
-		logger:     r.logger,
-		Channel:    r.Channel,
-		Time:       r.Time,
+		logger:  r.logger,
+		Channel: r.Channel,
+		// Time:       r.Time,
 		Level:      r.Level,
 		levelName:  r.levelName,
 		CallerFlag: r.CallerFlag,
