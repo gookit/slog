@@ -1,9 +1,12 @@
 package slog_test
 
 import (
+	"fmt"
+	"runtime"
 	"strings"
 	"testing"
 
+	"github.com/gookit/goutil/byteutil"
 	"github.com/gookit/goutil/dump"
 	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/slog"
@@ -59,6 +62,23 @@ func TestNewTextFormatter(t *testing.T) {
 	dump.Println(f.Fields())
 	assert.Contains(t, f.Fields(), "datetime")
 	assert.Len(t, f.Fields(), strings.Count(slog.NamedTemplate, "{{"))
+
+	f.WithEnableColor(true)
+	assert.True(t, f.EnableColor)
+
+	t.Run("CallerFormatFunc", func(t *testing.T) {
+		buf := byteutil.NewBuffer()
+		h := handler.IOWriterWithMaxLevel(buf, slog.DebugLevel)
+		h.SetFormatter(slog.NewTextFormatter().Configure(func(f *slog.TextFormatter) {
+			f.CallerFormatFunc = func(rf *runtime.Frame) string {
+				return "custom_caller"
+			}
+		}))
+
+		l := slog.NewWithHandlers(h)
+		l.Debug("test message")
+		assert.Contains(t, buf.String(), "custom_caller")
+	})
 }
 
 func TestTextFormatter_Format(t *testing.T) {
@@ -67,7 +87,7 @@ func TestTextFormatter_Format(t *testing.T) {
 
 	bs, err := f.Format(r)
 	logTxt := string(bs)
-	dump.Println(f.Template(), logTxt)
+	fmt.Println(f.Template(), logTxt)
 
 	assert.NoErr(t, err)
 	assert.NotEmpty(t, logTxt)
@@ -76,39 +96,49 @@ func TestTextFormatter_Format(t *testing.T) {
 }
 
 func TestJSONFormatter(t *testing.T) {
-	l := slog.New()
-
 	f := slog.NewJSONFormatter()
 	f.AddField(slog.FieldKeyTimestamp)
 
-	h := handler.NewConsoleHandler(slog.AllLevels)
+	h := handler.ConsoleWithLevels(slog.AllLevels)
 	h.SetFormatter(f)
 
-	l.AddHandler(h)
+	l := slog.NewWithHandlers(h)
 
 	fields := slog.M{
-		"field1": 123,
-		"field2": "abc",
+		"field1":  123,
+		"field2":  "abc",
+		"message": "field name is same of message", // will be as fields.message
 	}
 
 	l.WithFields(fields).Info("info", "message")
 
-	// PrettyPrint=true
-
-	l = slog.New()
-	h = handler.NewConsoleHandler(slog.AllLevels)
-	f = slog.NewJSONFormatter(func(f *slog.JSONFormatter) {
-		f.Aliases = slog.StringMap{
-			"level": "levelName",
-		}
-		f.PrettyPrint = true
+	t.Run("CallerFormatFunc", func(t *testing.T) {
+		h.SetFormatter(slog.NewJSONFormatter(func(f *slog.JSONFormatter) {
+			f.CallerFormatFunc = func(rf *runtime.Frame) string {
+				return rf.Function
+			}
+		}))
+		l.WithFields(fields).Info("info", "message")
 	})
 
-	h.SetFormatter(f)
+	// PrettyPrint=true
+	t.Run("PrettyPrint", func(t *testing.T) {
+		l = slog.New()
+		h = handler.ConsoleWithMaxLevel(slog.DebugLevel)
+		f = slog.NewJSONFormatter(func(f *slog.JSONFormatter) {
+			f.Aliases = slog.StringMap{
+				"level": "levelName",
+			}
+			f.PrettyPrint = true
+		})
 
-	l.AddHandler(h)
-	l.WithFields(fields).
-		SetData(slog.M{"key1": "val1"}).
-		SetExtra(slog.M{"ext1": "val1"}).
-		Info("info message and PrettyPrint is TRUE")
+		h.SetFormatter(f)
+
+		l.AddHandler(h)
+		l.WithFields(fields).
+			SetData(slog.M{"key1": "val1"}).
+			SetExtra(slog.M{"ext1": "val1"}).
+			Info("info message and PrettyPrint is TRUE")
+
+	})
 }

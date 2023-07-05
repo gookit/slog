@@ -198,7 +198,10 @@ func main() {
 ```text
           Processors
 Logger --{
-          Handlers --{ With Formatter
+          Handlers --|- Handler0 With Formatter0
+                     |- Handler1 With Formatter1
+                     |- Handler2 (can also without Formatter)
+                     |- ... more
 ```
 
 > Note: Be sure to remember to add `Handler`, `Processor` to the logger instance and log records will be processed by `Handler`.

@@ -155,7 +155,7 @@ func (h *LevelHandling) IsHandling(level Level) bool {
 // LevelFormatting wrap level handling and log formatter
 type LevelFormatting struct {
 	LevelHandling
-	RecordFormatter
+	FormatterWrapper
 }
 
 // NewMaxLevelFormatting create new instance with max level

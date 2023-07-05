@@ -28,13 +28,17 @@ type Formattable interface {
 	SetFormatter(Formatter)
 }
 
-// FormattableTrait definition
-type FormattableTrait struct {
+// FormattableTrait alias of FormatterWrapper
+type FormattableTrait = FormatterWrapper
+
+// FormatterWrapper use for format log record.
+type FormatterWrapper struct {
+	// if not set, default use the TextFormatter
 	formatter Formatter
 }
 
 // Formatter get formatter. if not set, will return TextFormatter
-func (f *FormattableTrait) Formatter() Formatter {
+func (f *FormatterWrapper) Formatter() Formatter {
 	if f.formatter == nil {
 		f.formatter = NewTextFormatter()
 	}
@@ -42,12 +46,12 @@ func (f *FormattableTrait) Formatter() Formatter {
 }
 
 // SetFormatter to handler
-func (f *FormattableTrait) SetFormatter(formatter Formatter) {
+func (f *FormatterWrapper) SetFormatter(formatter Formatter) {
 	f.formatter = formatter
 }
 
 // Format log record to bytes
-func (f *FormattableTrait) Format(record *Record) ([]byte, error) {
+func (f *FormatterWrapper) Format(record *Record) ([]byte, error) {
 	return f.Formatter().Format(record)
 }
 

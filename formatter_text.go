@@ -71,6 +71,12 @@ func NewTextFormatter(template ...string) *TextFormatter {
 	return f
 }
 
+// Configure the formatter
+func (f *TextFormatter) Configure(fn func(*TextFormatter)) *TextFormatter {
+	fn(f)
+	return f
+}
+
 // SetTemplate set the log format template and update field-map
 func (f *TextFormatter) SetTemplate(fmtTpl string) {
 	f.template = fmtTpl
@@ -80,6 +86,12 @@ func (f *TextFormatter) SetTemplate(fmtTpl string) {
 // Template get
 func (f *TextFormatter) Template() string {
 	return f.template
+}
+
+// WithEnableColor enable color on print log to terminal
+func (f *TextFormatter) WithEnableColor(enable bool) *TextFormatter {
+	f.EnableColor = enable
+	return f
 }
 
 // Fields get export field list

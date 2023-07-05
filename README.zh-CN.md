@@ -202,7 +202,10 @@ func main() {
 ```text
           Processors
 Logger --{
-          Handlers --{ With Formatter
+          Handlers --|- Handler0 With Formatter0
+                     |- Handler1 With Formatter1
+                     |- Handler2 (can also without Formatter)
+                     |- ... more
 ```
 
 > 注意：一定要记得将 `Handler`, `Processor` 添加注册到 logger 实例上，日志记录才会经过 `Handler` 处理。

@@ -114,9 +114,7 @@ func (l *Logger) Config(fns ...LoggerFn) *Logger {
 	return l
 }
 
-// Configure current logger.
-//
-// Deprecated: use Config()
+// Configure current logger. alias of Config()
 func (l *Logger) Configure(fn LoggerFn) *Logger { return l.Config(fn) }
 
 // RegisterExitHandler register an exit-handler on global exitHandlers
