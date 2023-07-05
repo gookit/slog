@@ -97,9 +97,7 @@ func (r *FilesClear) CleanDaemon() {
 
 	t := time.NewTicker(flushInterval)
 	for range t.C {
-		if err := r.Clean(); err != nil {
-			printErrln("files-clear: clean old files error:", err)
-		}
+		printErrln("files-clear: clean old files error:", r.Clean())
 	}
 }
 

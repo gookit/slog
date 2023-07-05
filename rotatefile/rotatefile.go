@@ -59,6 +59,8 @@ const (
 	DefaultBackTime uint = 24 * 7
 )
 
-func printErrln(args ...any) {
-	_, _ = fmt.Fprintln(os.Stderr, args...)
+func printErrln(pfx string, err error) {
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, pfx, err)
+	}
 }

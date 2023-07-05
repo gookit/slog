@@ -265,10 +265,7 @@ func (d *Writer) asyncCleanBackups() {
 
 	// TODO pref: only start once
 	go func() {
-		err := d.Clean()
-		if err != nil {
-			printErrln("rotatefile: clean backup files error:", err)
-		}
+		printErrln("rotatefile: clean backup files error:", d.Clean())
 	}()
 }
 
@@ -373,11 +370,7 @@ func (d *Writer) buildFilterFns(fileName string) []filterFunc {
 			}
 
 			// remove expired files
-			err := os.Remove(fPath)
-			if err != nil {
-				printErrln("rotatefile: remove expired file error:", err)
-			}
-
+			printErrln("rotatefile: remove expired file error:", os.Remove(fPath))
 			return false
 		})
 	}
