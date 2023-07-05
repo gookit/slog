@@ -1,26 +1,11 @@
 package handler
 
 import (
-	"github.com/gookit/slog"
+	"github.com/gookit/goutil/basefn"
 	"github.com/gookit/slog/rotatefile"
 )
 
-// MustRotateFile handler instance, will panic on error
-func MustRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) *SyncCloseHandler {
-	h, err := NewRotateFileHandler(logfile, rt, fns...)
-	if err != nil {
-		panic(err)
-	}
-	return h
-}
-
-// NewRotateFile instance. alias of NewRotateFileHandler()
-func NewRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error) {
-	return NewRotateFileHandler(logfile, rt, fns...)
-}
-
-// NewRotateFileHandler instance
-// It supports splitting log files by time and size
+// NewRotateFileHandler instance. It supports splitting log files by time and size
 func NewRotateFileHandler(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error) {
 	cfg := NewConfig(fns...).With(WithLogfile(logfile), WithRotateTime(rt))
 
@@ -29,13 +14,18 @@ func NewRotateFileHandler(logfile string, rt rotatefile.RotateTime, fns ...Confi
 		return nil, err
 	}
 
-	h := &SyncCloseHandler{
-		Output: writer,
-		// with log levels and formatter
-		LevelFormattable: slog.NewLvsFormatter(cfg.Levels),
-	}
-
+	h := NewSyncCloseHandler(writer, cfg.Levels)
 	return h, nil
+}
+
+// MustRotateFile handler instance, will panic on create error
+func MustRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) *SyncCloseHandler {
+	return basefn.Must(NewRotateFileHandler(logfile, rt, fns...))
+}
+
+// NewRotateFile instance. alias of NewRotateFileHandler()
+func NewRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error) {
+	return NewRotateFileHandler(logfile, rt, fns...)
 }
 
 //
@@ -46,11 +36,7 @@ func NewRotateFileHandler(logfile string, rt rotatefile.RotateTime, fns ...Confi
 
 // MustSizeRotateFile instance
 func MustSizeRotateFile(logfile string, size int, fns ...ConfigFn) *SyncCloseHandler {
-	h, err := NewSizeRotateFileHandler(logfile, size, fns...)
-	if err != nil {
-		panic(err)
-	}
-	return h
+	return basefn.Must(NewSizeRotateFileHandler(logfile, size, fns...))
 }
 
 // NewSizeRotateFile instance
@@ -58,11 +44,10 @@ func NewSizeRotateFile(logfile string, maxSize int, fns ...ConfigFn) (*SyncClose
 	return NewSizeRotateFileHandler(logfile, maxSize, fns...)
 }
 
-// NewSizeRotateFileHandler instance
+// NewSizeRotateFileHandler instance, default close rotate by time.
 func NewSizeRotateFileHandler(logfile string, maxSize int, fns ...ConfigFn) (*SyncCloseHandler, error) {
 	// close rotate by time.
 	fns = append(fns, WithMaxSize(uint64(maxSize)))
-
 	return NewRotateFileHandler(logfile, 0, fns...)
 }
 
@@ -99,11 +84,7 @@ const (
 
 // MustTimeRotateFile instance
 func MustTimeRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) *SyncCloseHandler {
-	h, err := NewTimeRotateFileHandler(logfile, rt, fns...)
-	if err != nil {
-		panic(err)
-	}
-	return h
+	return basefn.Must(NewTimeRotateFileHandler(logfile, rt, fns...))
 }
 
 // NewTimeRotateFile instance
@@ -111,10 +92,8 @@ func NewTimeRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn
 	return NewTimeRotateFileHandler(logfile, rt, fns...)
 }
 
-// NewTimeRotateFileHandler instance
+// NewTimeRotateFileHandler instance, default close rotate by size
 func NewTimeRotateFileHandler(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*SyncCloseHandler, error) {
-	// close rotate by size.
-	fns = append(fns, WithMaxSize(0))
-
-	return NewRotateFileHandler(logfile, rt, fns...)
+	// default close rotate by size: WithMaxSize(0)
+	return NewRotateFileHandler(logfile, rt, append(fns, WithMaxSize(0))...)
 }

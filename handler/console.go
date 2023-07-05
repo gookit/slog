@@ -12,31 +12,45 @@ import (
  ********************************************************************************/
 
 // ConsoleHandler definition
-type ConsoleHandler struct {
-	IOWriterHandler
-}
+type ConsoleHandler = IOWriterHandler
 
-// NewConsole create new ConsoleHandler
-func NewConsole(levels []slog.Level) *ConsoleHandler {
-	return NewConsoleHandler(levels)
-}
+// NewConsoleWithLF create new ConsoleHandler and with custom slog.LevelFormattable
+func NewConsoleWithLF(lf slog.LevelFormattable) *ConsoleHandler {
+	h := NewIOWriterWithLF(os.Stdout, lf)
 
-// NewConsoleHandler create new ConsoleHandler
-func NewConsoleHandler(levels []slog.Level) *ConsoleHandler {
-	h := &ConsoleHandler{
-		IOWriterHandler: *NewIOWriterHandler(os.Stdout, levels),
-	}
-
-	// create new formatter
+	// default use text formatter
 	f := slog.NewTextFormatter()
-	// enable color on console
-	f.EnableColor = color.SupportColor()
+	// default enable color on console
+	f.WithEnableColor(color.SupportColor())
 
 	h.SetFormatter(f)
 	return h
 }
 
-// TextFormatter get the formatter
-func (h *ConsoleHandler) TextFormatter() *slog.TextFormatter {
-	return h.Formatter().(*slog.TextFormatter)
+//
+// ------------- Use max log level -------------
+//
+
+// ConsoleWithMaxLevel create new ConsoleHandler and with max log level
+func ConsoleWithMaxLevel(level slog.Level) *ConsoleHandler {
+	return NewConsoleWithLF(slog.NewLvFormatter(level))
+}
+
+//
+// ------------- Use multi log levels -------------
+//
+
+// NewConsole create new ConsoleHandler, alias of NewConsoleHandler
+func NewConsole(levels []slog.Level) *ConsoleHandler {
+	return NewConsoleHandler(levels)
+}
+
+// ConsoleWithLevels create new ConsoleHandler and with limited log levels
+func ConsoleWithLevels(levels []slog.Level) *ConsoleHandler {
+	return NewConsoleHandler(levels)
+}
+
+// NewConsoleHandler create new ConsoleHandler with limited log levels
+func NewConsoleHandler(levels []slog.Level) *ConsoleHandler {
+	return NewConsoleWithLF(slog.NewLvsFormatter(levels))
 }

@@ -78,9 +78,23 @@ func TestNewFlushCloser(t *testing.T) {
 	r := newLogRecord("TestNewFlushCloser")
 	assert.NoErr(t, h.Handle(r))
 
-	str := w.String()
+	str := w.ResetGet()
 	assert.Contains(t, str, "TestNewFlushCloser")
 
 	assert.NoErr(t, h.Flush())
 	assert.NoErr(t, h.Close())
+
+	h = handler.FlushCloserWithMaxLevel(w, slog.WarnLevel)
+	r = newLogRecord("test max level")
+	assert.False(t, h.IsHandling(r.Level))
+	assert.Empty(t, w.String())
+
+	r.Level = slog.ErrorLevel
+	assert.True(t, h.IsHandling(r.Level))
+	assert.NoErr(t, h.Handle(r))
+	assert.NotEmpty(t, w.String())
+
+	// test handle error
+	h.SetFormatter(newTestFormatter(true))
+	assert.Err(t, h.Handle(r))
 }

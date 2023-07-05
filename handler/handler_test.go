@@ -69,7 +69,7 @@ func TestConfig_RotateWriter(t *testing.T) {
 }
 
 func TestConsoleHandlerWithColor(t *testing.T) {
-	l := slog.NewWithHandlers(handler.NewConsoleHandler(slog.AllLevels))
+	l := slog.NewWithHandlers(handler.ConsoleWithLevels(slog.AllLevels))
 	l.DoNothingOnPanicFatal()
 	l.Configure(func(l *slog.Logger) {
 		l.ReportCaller = true
@@ -103,6 +103,10 @@ func TestNewEmailHandler(t *testing.T) {
 	})
 
 	assert.Eq(t, slog.InfoLevel, h.Level)
+
+	// handle error
+	h.SetFormatter(newTestFormatter(true))
+	assert.Err(t, h.Handle(newLogRecord("test email handler")))
 }
 
 func TestLevelWithFormatter(t *testing.T) {
@@ -191,6 +195,47 @@ func newLogRecord(msg string) *slog.Record {
 
 	r.Init(false)
 	return r
+}
+
+type testHandler struct {
+	errOnHandle bool
+	errOnFlush  bool
+	errOnClose  bool
+}
+
+func newTestHandler() *testHandler {
+	return &testHandler{}
+}
+
+// func (h testHandler) Reset() {
+// 	h.errOnHandle = false
+// 	h.errOnFlush = false
+// 	h.errOnClose = false
+// }
+
+func (h testHandler) IsHandling(_ slog.Level) bool {
+	return true
+}
+
+func (h testHandler) Close() error {
+	if h.errOnClose {
+		return errorx.Raw("close error")
+	}
+	return nil
+}
+
+func (h testHandler) Flush() error {
+	if h.errOnFlush {
+		return errorx.Raw("flush error")
+	}
+	return nil
+}
+
+func (h testHandler) Handle(_ *slog.Record) error {
+	if h.errOnHandle {
+		return errorx.Raw("handle error")
+	}
+	return nil
 }
 
 type testFormatter struct {

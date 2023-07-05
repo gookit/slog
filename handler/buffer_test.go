@@ -53,21 +53,22 @@ func TestBufferWrapper(t *testing.T) {
 	l := slog.NewWithHandlers(bw)
 	l.Info("buffered info message")
 
-	bts, err := ioutil.ReadFile(logfile)
-	assert.NoErr(t, err)
+	bts := fsutil.ReadFile(logfile)
 	assert.Empty(t, bts)
 
 	l.Warn("buffered warn message")
-	bts, err = ioutil.ReadFile(logfile)
-	assert.NoErr(t, err)
-
+	bts = fsutil.ReadFile(logfile)
 	str := string(bts)
 	assert.Contains(t, str, "[INFO]")
 
 	err = l.FlushAll()
 	assert.NoErr(t, err)
-
 	assert.NoErr(t, l.Close())
+
+	// test error
+	h.SetFormatter(newTestFormatter(true))
+	bw = handler.BufferWrapper(h, 128)
+	assert.Err(t, bw.Handle(newLogRecord("test error")))
 }
 
 func TestLineBufferedFile(t *testing.T) {

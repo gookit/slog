@@ -12,23 +12,46 @@ type SyncCloseHandler struct {
 	Output SyncCloseWriter
 }
 
-// NewSyncCloser create new SyncCloseHandler
+// NewSyncCloserWithLF create new SyncCloseHandler, with custom slog.LevelFormattable
+func NewSyncCloserWithLF(out SyncCloseWriter, lf slog.LevelFormattable) *SyncCloseHandler {
+	return &SyncCloseHandler{
+		Output: out,
+		// init formatter and level handle
+		LevelFormattable: lf,
+	}
+}
+
+//
+// ------------- Use max log level -------------
+//
+
+// SyncCloserWithMaxLevel create new SyncCloseHandler, with max log level
+func SyncCloserWithMaxLevel(out SyncCloseWriter, maxLevel slog.Level) *SyncCloseHandler {
+	return NewSyncCloserWithLF(out, slog.NewLvFormatter(maxLevel))
+}
+
+//
+// ------------- Use multi log levels -------------
+//
+
+// NewSyncCloser create new SyncCloseHandler, alias of NewSyncCloseHandler()
 func NewSyncCloser(out SyncCloseWriter, levels []slog.Level) *SyncCloseHandler {
 	return NewSyncCloseHandler(out, levels)
 }
 
-// NewSyncCloseHandler create new SyncCloseHandler
+// SyncCloserWithLevels create new SyncCloseHandler, alias of NewSyncCloseHandler()
+func SyncCloserWithLevels(out SyncCloseWriter, levels []slog.Level) *SyncCloseHandler {
+	return NewSyncCloseHandler(out, levels)
+}
+
+// NewSyncCloseHandler create new SyncCloseHandler with limited log levels
 //
 // Usage:
 //
 //	f, err := os.OpenFile("my.log", ...)
 //	h := handler.NewSyncCloseHandler(f, slog.AllLevels)
 func NewSyncCloseHandler(out SyncCloseWriter, levels []slog.Level) *SyncCloseHandler {
-	return &SyncCloseHandler{
-		Output: out,
-		// init log levels
-		LevelFormattable: slog.NewLvsFormatter(levels),
-	}
+	return NewSyncCloserWithLF(out, slog.NewLvsFormatter(levels))
 }
 
 // Close the handler
@@ -55,9 +78,6 @@ func (h *SyncCloseHandler) Handle(record *slog.Record) error {
 	if err != nil {
 		return err
 	}
-
-	// h.Lock()
-	// defer h.Unlock()
 
 	_, err = h.Output.Write(bts)
 	return err

@@ -8,17 +8,37 @@ import (
 
 // WriteCloserHandler definition
 type WriteCloserHandler struct {
-	// LockWrapper
 	slog.LevelFormattable
 	Output io.WriteCloser
 }
 
-// NewWriteCloser create a new instance
-func NewWriteCloser(out io.WriteCloser, levels []slog.Level) *WriteCloserHandler {
-	return NewIOWriteCloserHandler(out, levels)
+// NewWriteCloserWithLF create new WriteCloserHandler and with custom slog.LevelFormattable
+func NewWriteCloserWithLF(out io.WriteCloser, lf slog.LevelFormattable) *WriteCloserHandler {
+	return &WriteCloserHandler{
+		Output: out,
+		// init formatter and level handle
+		LevelFormattable: lf,
+	}
 }
 
-// NewIOWriteCloserHandler create new WriteCloserHandler
+// WriteCloserWithMaxLevel create new WriteCloserHandler and with max log level
+func WriteCloserWithMaxLevel(out io.WriteCloser, maxLevel slog.Level) *WriteCloserHandler {
+	return NewWriteCloserWithLF(out, slog.NewLvFormatter(maxLevel))
+}
+
+// WriteCloserWithLevels create a new instance and with limited log levels
+func WriteCloserWithLevels(out io.WriteCloser, levels []slog.Level) *WriteCloserHandler {
+	// h := &WriteCloserHandler{Output: out}
+	// h.LimitLevels(levels)
+	return NewWriteCloserHandler(out, levels)
+}
+
+// NewWriteCloser create a new instance
+func NewWriteCloser(out io.WriteCloser, levels []slog.Level) *WriteCloserHandler {
+	return NewWriteCloserHandler(out, levels)
+}
+
+// NewWriteCloserHandler create new WriteCloserHandler
 //
 // Usage:
 //
@@ -27,12 +47,8 @@ func NewWriteCloser(out io.WriteCloser, levels []slog.Level) *WriteCloserHandler
 //
 //	f, err := os.OpenFile("my.log", ...)
 //	h := handler.NewIOWriteCloserHandler(f, slog.AllLevels)
-func NewIOWriteCloserHandler(out io.WriteCloser, levels []slog.Level) *WriteCloserHandler {
-	return &WriteCloserHandler{
-		Output: out,
-		// init log levels
-		LevelFormattable: slog.NewLvsFormatter(levels),
-	}
+func NewWriteCloserHandler(out io.WriteCloser, levels []slog.Level) *WriteCloserHandler {
+	return NewWriteCloserWithLF(out, slog.NewLvsFormatter(levels))
 }
 
 // Close the handler
@@ -51,9 +67,6 @@ func (h *WriteCloserHandler) Handle(record *slog.Record) error {
 	if err != nil {
 		return err
 	}
-
-	// h.Lock()
-	// defer h.Unlock()
 
 	_, err = h.Output.Write(bts)
 	return err
