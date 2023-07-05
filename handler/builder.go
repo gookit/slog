@@ -52,7 +52,7 @@ func (b *Builder) WithLogfile(logfile string) *Builder {
 }
 
 // WithLevelMode setting
-func (b *Builder) WithLevelMode(mode uint8) *Builder {
+func (b *Builder) WithLevelMode(mode slog.LevelMode) *Builder {
 	b.LevelMode = mode
 	return b
 }
@@ -133,41 +133,25 @@ func (b *Builder) buildFromWriter(w io.Writer) (h slog.FormattableHandler) {
 			scw = b.wrapBuffer(scw)
 		}
 
-		h = &SyncCloseHandler{
-			Output: scw,
-			// with log level and formatter
-			LevelFormattable: lf,
-		}
+		h = NewSyncCloserWithLF(scw, lf)
 	} else if fcw, ok := w.(FlushCloseWriter); ok {
 		if bufSize > 0 {
 			fcw = b.wrapBuffer(fcw)
 		}
 
-		h = &FlushCloseHandler{
-			Output: fcw,
-			// with log level and formatter
-			LevelFormattable: lf,
-		}
+		h = NewFlushCloserWithLF(fcw, lf)
 	} else if wc, ok := w.(io.WriteCloser); ok {
 		if bufSize > 0 {
 			wc = b.wrapBuffer(wc)
 		}
 
-		h = &WriteCloserHandler{
-			Output: wc,
-			// with log level and formatter
-			LevelFormattable: lf,
-		}
+		h = NewWriteCloserWithLF(wc, lf)
 	} else {
 		if bufSize > 0 {
 			w = b.wrapBuffer(w)
 		}
 
-		h = &IOWriterHandler{
-			Output: w,
-			// with log level and formatter
-			LevelFormattable: lf,
-		}
+		h = NewIOWriterWithLF(w, lf)
 	}
 
 	// use json format.

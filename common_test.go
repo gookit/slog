@@ -82,14 +82,6 @@ func TestLevels_Contains(t *testing.T) {
 	assert.False(t, slog.NormalLevels.Contains(slog.PanicLevel))
 }
 
-func TestNewLvFormatter(t *testing.T) {
-	lf := slog.NewLvFormatter(slog.InfoLevel)
-
-	assert.True(t, lf.IsHandling(slog.ErrorLevel))
-	assert.True(t, lf.IsHandling(slog.InfoLevel))
-	assert.False(t, lf.IsHandling(slog.DebugLevel))
-}
-
 func newLogRecord(msg string) *slog.Record {
 	r := &slog.Record{
 		Channel: slog.DefaultChannelName,
@@ -138,12 +130,6 @@ type testHandler struct {
 func newTestHandler() *testHandler {
 	return &testHandler{}
 }
-
-// func (h testHandler) Reset() {
-// 	h.errOnHandle = false
-// 	h.errOnFlush = false
-// 	h.errOnClose = false
-// }
 
 func (h testHandler) IsHandling(_ slog.Level) bool {
 	return true

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/fmtutil"
 	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/goutil/testutil/assert"
@@ -73,5 +74,85 @@ func TestNewBuilder(t *testing.T) {
 
 	assert.Panics(t, func() {
 		handler.NewBuilder().Build()
+	})
+}
+
+type simpleWriter struct {
+	errOnWrite bool
+}
+
+func (w *simpleWriter) Write(p []byte) (n int, err error) {
+	if w.errOnWrite {
+		return 0, errorx.Raw("write error")
+	}
+	return len(p), nil
+}
+
+type closeWriter struct {
+	errOnWrite bool
+	errOnClose bool
+}
+
+func (w *closeWriter) Close() error {
+	if w.errOnClose {
+		return errorx.Raw("close error")
+	}
+	return nil
+}
+
+func (w *closeWriter) Write(p []byte) (n int, err error) {
+	if w.errOnWrite {
+		return 0, errorx.Raw("write error")
+	}
+	return len(p), nil
+}
+
+type flushCloseWriter struct {
+	closeWriter
+	errOnFlush bool
+}
+
+// Flush implement stdio.Flusher
+func (w *flushCloseWriter) Flush() error {
+	if w.errOnFlush {
+		return errorx.Raw("flush error")
+	}
+	return nil
+}
+
+func TestNewBuilder_buildFromWriter(t *testing.T) {
+	t.Run("FlushCloseWriter", func(t *testing.T) {
+		out := &flushCloseWriter{}
+		out.errOnFlush = true
+		h := handler.NewBuilder().
+			WithOutput(out).
+			Build()
+		assert.Err(t, h.Flush())
+
+		// wrap buffer
+		h = handler.NewBuilder().
+			WithOutput(out).
+			WithBuffSize(128).
+			Build()
+		assert.NoErr(t, h.Close())
+		assert.NoErr(t, h.Flush())
+	})
+
+	t.Run("CloseWriter", func(t *testing.T) {
+		h := handler.NewBuilder().
+			WithOutput(&closeWriter{errOnClose: true}).
+			WithBuffSize(128).
+			Build()
+		assert.NotNil(t, h)
+		assert.Err(t, h.Close())
+	})
+
+	t.Run("SimpleWriter", func(t *testing.T) {
+		h := handler.NewBuilder().
+			WithOutput(&simpleWriter{errOnWrite: true}).
+			WithBuffSize(128).
+			Build()
+		assert.NotNil(t, h)
+		assert.NoErr(t, h.Close())
 	})
 }

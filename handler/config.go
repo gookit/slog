@@ -18,10 +18,10 @@ const (
 )
 
 const (
-	// LevelModeList use level list for filter record write
-	LevelModeList uint8 = iota
-	// LevelModeValue use level value compare for filter record write
-	LevelModeValue
+	// LevelModeList use level list for limit record write
+	LevelModeList = slog.LevelModeList
+	// LevelModeValue use max level limit log record write
+	LevelModeValue = slog.LevelModeMax
 )
 
 // ConfigFn for config some settings
@@ -35,13 +35,13 @@ type Config struct {
 	// FilePerm for create log file. default rotatefile.DefaultFilePerm
 	FilePerm fs.FileMode `json:"file_perm" yaml:"file_perm"`
 
-	// LevelMode for filter log record. default LevelModeList
-	LevelMode uint8 `json:"level_mode" yaml:"level_mode"`
+	// LevelMode for limit log records. default LevelModeList
+	LevelMode slog.LevelMode `json:"level_mode" yaml:"level_mode"`
 
-	// Level value. use on LevelMode = LevelModeValue
+	// Level max value. valid on LevelMode = LevelModeValue
 	Level slog.Level `json:"level" yaml:"level"`
 
-	// Levels list for write. use on LevelMode = LevelModeList
+	// Levels list for write. valid on LevelMode = LevelModeList
 	Levels []slog.Level `json:"levels" yaml:"levels"`
 
 	// UseJSON for format logs
@@ -205,9 +205,9 @@ type flushSyncCloseWriter interface {
 
 // wrap buffer for the writer
 func (c *Config) wrapBuffer(w io.Writer) (bw flushSyncCloseWriter) {
-	if c.BuffSize == 0 {
-		panic("slog: buff size cannot be zero on wrap buffer")
-	}
+	// if c.BuffSize == 0 {
+	// 	panic("slog: buff size cannot be zero on wrap buffer")
+	// }
 
 	if c.BuffMode == BuffModeLine {
 		bw = bufwrite.NewLineWriterSize(w, c.BuffSize)
@@ -234,7 +234,7 @@ func WithFilePerm(filePerm fs.FileMode) ConfigFn {
 }
 
 // WithLevelMode setting
-func WithLevelMode(mode uint8) ConfigFn {
+func WithLevelMode(mode slog.LevelMode) ConfigFn {
 	return func(c *Config) { c.LevelMode = mode }
 }
 
