@@ -2,10 +2,14 @@ package rotatefile
 
 import (
 	"os"
+	"sort"
 	"time"
 
+	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/fsutil"
 )
+
+const defaultCheckInterval = 60 * time.Second
 
 // CConfig struct for clean files
 type CConfig struct {
@@ -13,31 +17,65 @@ type CConfig struct {
 	// 0 is not limit, default is 20.
 	BackupNum uint `json:"backup_num" yaml:"backup_num"`
 
-	// BackupTime max time for keep old files, unit is hours.
+	// BackupTime max time for keep old files, unit is TimeUnit.
 	//
 	// 0 is not limit, default is a week.
 	BackupTime uint `json:"backup_time" yaml:"backup_time"`
 
-	// Compress determines if the rotated log files should be compressed
-	// using gzip. The default is not to perform compression.
+	// Compress determines if the rotated log files should be compressed using gzip.
+	// The default is not to perform compression.
 	Compress bool `json:"compress" yaml:"compress"`
 
-	// FileDirs list
-	FileDirs []string `json:"file_dirs" yaml:"file_dirs"`
-
-	// Patterns list. filename match patterns. eg: error.log.*
+	// Patterns dir path with filename match patterns.
+	//
+	// eg: ["/tmp/error.log.*", "/path/to/info.log.*", "/path/to/dir/*"]
 	Patterns []string `json:"patterns" yaml:"patterns"`
 
 	// TimeClock for clean files
 	TimeClock Clocker
 
-	// ignore error
-	// TODO ignoreError bool
+	// TimeUnit for BackupTime. default is hours: time.Hour
+	TimeUnit time.Duration `json:"time_unit" yaml:"time_unit"`
+
+	// CheckInterval for clean files on daemon run. default is 60s.
+	CheckInterval time.Duration `json:"check_interval" yaml:"check_interval"`
+
+	// IgnoreError ignore remove error
+	// TODO IgnoreError bool
+
+	// RotateMode for rotate split files TODO
+	//  - copy+cut: copy contents then truncate file
+	//	- rename : rename file(use for like PHP-FPM app)
+	// RotateMode RotateMode `json:"rotate_mode" yaml:"rotate_mode"`
 }
 
-// AddFileDir for clean
-func (c *CConfig) AddFileDir(dirs ...string) *CConfig {
-	c.FileDirs = append(c.FileDirs, dirs...)
+// CConfigFunc for clean config
+type CConfigFunc func(c *CConfig)
+
+// AddDirPath for clean, will auto append * for match all files
+func (c *CConfig) AddDirPath(dirPaths ...string) *CConfig {
+	for _, dirPath := range dirPaths {
+		if !fsutil.IsDir(dirPath) {
+			continue
+		}
+		c.Patterns = append(c.Patterns, dirPath+"/*")
+	}
+	return c
+}
+
+// AddPattern for clean. eg: "/tmp/error.log.*"
+func (c *CConfig) AddPattern(patterns ...string) *CConfig {
+	c.Patterns = append(c.Patterns, patterns...)
+	return c
+}
+
+// WithConfigFn for custom settings
+func (c *CConfig) WithConfigFn(fns ...CConfigFunc) *CConfig {
+	for _, fn := range fns {
+		if fn != nil {
+			fn(c)
+		}
+	}
 	return c
 }
 
@@ -47,37 +85,45 @@ func NewCConfig() *CConfig {
 		BackupNum:  DefaultBackNum,
 		BackupTime: DefaultBackTime,
 		TimeClock:  DefaultTimeClockFn,
+		TimeUnit:   time.Hour,
+		// check interval time
+		CheckInterval: defaultCheckInterval,
 	}
 }
 
 // FilesClear multi files by time. TODO
 // use for rotate and clear other program produce log files
 type FilesClear struct {
-	// mu  sync.Mutex
+	// mu sync.Mutex
 	cfg *CConfig
+	// inited mark
+	inited bool
 
-	namePattern  string
-	filepathDirs []string
-	// full file path glob patterns
-	filePatterns []string
-	// file max backup time. equals CConfig.BackupTime * time.Hour
-	backupDur time.Duration
+	// file max backup time. equals CConfig.BackupTime * CConfig.TimeUnit
+	backupDur  time.Duration
+	quitDaemon chan struct{}
 }
 
 // NewFilesClear instance
-func NewFilesClear(cfg *CConfig) *FilesClear {
-	if cfg == nil {
-		cfg = NewCConfig()
-	}
+func NewFilesClear(fns ...CConfigFunc) *FilesClear {
+	cfg := NewCConfig().WithConfigFn(fns...)
+	return &FilesClear{cfg: cfg}
+}
 
-	return &FilesClear{
-		cfg: cfg,
-	}
+// Config get
+func (r *FilesClear) Config() *CConfig {
+	return r.cfg
+}
+
+// WithConfig for custom set config
+func (r *FilesClear) WithConfig(cfg *CConfig) *FilesClear {
+	r.cfg = cfg
+	return r
 }
 
 // WithConfigFn for custom settings
-func (r *FilesClear) WithConfigFn(fn func(c *CConfig)) *FilesClear {
-	fn(r.cfg)
+func (r *FilesClear) WithConfigFn(fns ...CConfigFunc) *FilesClear {
+	r.cfg.WithConfigFn(fns...)
 	return r
 }
 
@@ -87,119 +133,136 @@ func (r *FilesClear) WithConfigFn(fn func(c *CConfig)) *FilesClear {
 // ---------------------------------------------------------------------------
 //
 
-const flushInterval = 60 * time.Second
+// QuitDaemon for stop daemon clean
+func (r *FilesClear) QuitDaemon() {
+	if r.quitDaemon == nil {
+		panic("cannot quit daemon, please call DaemonClean() first")
+	}
+	close(r.quitDaemon)
+}
 
-// CleanDaemon daemon clean old files by config
-func (r *FilesClear) CleanDaemon() {
+// DaemonClean daemon clean old files by config
+//
+// NOTE: this method will block current goroutine
+//
+// Usage:
+//
+//	fc := rotatefile.NewFilesClear(nil)
+//	fc.WithConfigFn(func(c *rotatefile.CConfig) {
+//		c.AddDirPath("./testdata")
+//	})
+//
+//	wg := sync.WaitGroup{}
+//	wg.Add(1)
+//
+//	// start daemon
+//	go fc.DaemonClean(func() {
+//		wg.Done()
+//	})
+//
+//	// wait for stop
+//	wg.Wait()
+func (r *FilesClear) DaemonClean(onStop func()) {
 	if r.cfg.BackupNum == 0 && r.cfg.BackupTime == 0 {
-		return
+		panic("clean: backupNum and backupTime are both 0")
 	}
 
-	t := time.NewTicker(flushInterval)
-	for range t.C {
-		printErrln("files-clear: clean old files error:", r.Clean())
+	r.quitDaemon = make(chan struct{})
+	tk := time.NewTicker(r.cfg.CheckInterval)
+	defer tk.Stop()
+
+	for {
+		select {
+		case <-r.quitDaemon:
+			if onStop != nil {
+				onStop()
+			}
+			return
+		case <-tk.C: // do cleaning
+			printErrln("files-clear: cleanup old files error:", r.Clean())
+		}
 	}
 }
 
 // Clean old files by config
-func (r *FilesClear) Clean() (err error) {
-	// clear by time, can also clean by number
-	if r.cfg.BackupTime > 0 {
-		cutTime := r.cfg.TimeClock.Now().Add(-r.backupDur)
-		for _, fileDir := range r.filepathDirs {
-			// eg: /tmp/ + error.log.* => /tmp/error.log.*
-			filePattern := fileDir + r.namePattern
-
-			err = r.cleanByBackupTime(filePattern, cutTime)
-			if err != nil {
-				return err
-			}
-		}
-
-		for _, pattern := range r.filePatterns {
-			err = r.cleanByBackupTime(pattern, cutTime)
-			if err != nil {
-				break
-			}
-		}
+func (r *FilesClear) prepare() {
+	if r.inited {
 		return
 	}
+	r.inited = true
 
-	if r.cfg.BackupNum == 0 {
-		return nil
+	// check backup time
+	if r.cfg.BackupTime > 0 {
+		r.backupDur = time.Duration(r.cfg.BackupTime) * r.cfg.TimeUnit
+	}
+}
+
+// Clean old files by config
+func (r *FilesClear) Clean() error {
+	if r.cfg.BackupNum == 0 && r.cfg.BackupTime == 0 {
+		return errorx.Err("clean: backupNum and backupTime are both 0")
 	}
 
-	// clear by number.
-	bckNum := int(r.cfg.BackupNum)
-	for _, fileDir := range r.filepathDirs {
-		pattern := fileDir + r.namePattern
-		if err = r.cleanByBackupNum(pattern, bckNum); err != nil {
+	// clear by time, can also clean by number
+	for _, filePattern := range r.cfg.Patterns {
+		if err := r.cleanByPattern(filePattern); err != nil {
 			return err
 		}
 	}
-
-	for _, pattern := range r.filePatterns {
-		if err = r.cleanByBackupNum(pattern, bckNum); err != nil {
-			break
-		}
-	}
-	return
+	return nil
 }
 
-func (r *FilesClear) cleanByBackupNum(filePattern string, bckNum int) (err error) {
-	keepNum := 0
-	return fsutil.GlobWithFunc(filePattern, func(oldFile string) error {
-		stat, err := os.Stat(oldFile)
-		if err != nil {
-			return err
-		}
+// CleanByPattern clean files by pattern
+func (r *FilesClear) cleanByPattern(filePattern string) (err error) {
+	r.prepare()
 
-		if stat.IsDir() {
-			return nil
-		}
+	oldFiles := make([]fileInfo, 0, 8)
+	cutTime := r.cfg.TimeClock.Now().Add(-r.backupDur)
 
-		if keepNum < bckNum {
-			keepNum++
-		}
-
-		// remove expired files
-		return os.Remove(oldFile)
-	})
-}
-
-func (r *FilesClear) cleanByBackupTime(filePattern string, cutTime time.Time) (err error) {
-	oldFiles := make([]string, 0, 8)
-
-	// match all old rotate files. eg: /tmp/error.log.*
+	// find and clean expired files
 	err = fsutil.GlobWithFunc(filePattern, func(filePath string) error {
 		stat, err := os.Stat(filePath)
 		if err != nil {
 			return err
 		}
 
+		// not handle subdir
 		if stat.IsDir() {
 			return nil
 		}
 
+		// collect not expired
 		if stat.ModTime().After(cutTime) {
-			oldFiles = append(oldFiles, filePath)
+			oldFiles = append(oldFiles, newFileInfo(filePath, stat))
 			return nil
 		}
 
-		// remove expired files
-		return os.Remove(filePath)
+		// remove expired file
+		return r.remove(filePath)
 	})
 
-	// clear by number.
-	maxNum := int(r.cfg.BackupNum)
-	if maxNum > 0 && len(oldFiles) > maxNum {
-		for idx := 0; len(oldFiles) > maxNum; idx++ {
-			err = os.Remove(oldFiles[idx])
-			if err != nil {
+	// clear by backup number.
+	backNum := int(r.cfg.BackupNum)
+	remNum := len(oldFiles) - backNum
+
+	if backNum > 0 && remNum > 0 {
+		// sort by mod-time, oldest at first.
+		sort.Sort(modTimeFInfos(oldFiles))
+
+		for idx := 0; idx < len(oldFiles); idx++ {
+			if err = r.remove(oldFiles[idx].Path()); err != nil {
+				break
+			}
+
+			remNum--
+			if remNum == 0 {
 				break
 			}
 		}
 	}
-
 	return
+}
+
+func (r *FilesClear) remove(filePath string) (err error) {
+	return os.Remove(filePath)
 }

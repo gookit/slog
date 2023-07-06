@@ -29,7 +29,7 @@ func ExampleNewWriter_on_other_logger() {
 }
 
 func TestNewWriter(t *testing.T) {
-	testFile := "testdata/test.log"
+	testFile := "testdata/test_writer.log"
 	assert.NoErr(t, fsutil.DeleteIfExist(testFile))
 
 	w, err := rotatefile.NewConfig(testFile).Create()
@@ -83,7 +83,7 @@ func TestWriter_Rotate_modeCreate(t *testing.T) {
 }
 
 func TestWriter_Clean(t *testing.T) {
-	logfile := "testdata/test_clean.log"
+	logfile := "testdata/writer_clean.log"
 
 	c := rotatefile.NewConfig(logfile)
 	c.MaxSize = 128

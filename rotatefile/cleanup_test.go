@@ -1,18 +1,127 @@
 package rotatefile_test
 
 import (
+	"fmt"
+	"os"
+	"sync"
 	"testing"
+	"time"
 
+	"github.com/gookit/goutil"
+	"github.com/gookit/goutil/dump"
+	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/slog/rotatefile"
 )
 
-func TestNewFilesClear(t *testing.T) {
-	fc := rotatefile.NewFilesClear(nil)
+func TestFilesClear_Clean(t *testing.T) {
+	fc := rotatefile.NewFilesClear()
+	fc.WithConfig(rotatefile.NewCConfig())
 	fc.WithConfigFn(func(c *rotatefile.CConfig) {
-		c.AddFileDir("./testdata")
+		c.AddDirPath("testdata", "not-exist-dir")
+		c.BackupNum = 1
+		c.BackupTime = 2
+		c.TimeUnit = time.Second // for test
 	})
 
-	err := fc.Clean()
+	cfg := fc.Config()
+	assert.Eq(t, uint(1), cfg.BackupNum)
+	dump.P(cfg)
+
+	// make files for clean
+	makeNum := 5
+	makeWaitCleanFiles("file_clean.log", makeNum)
+
+	// do clean
+	assert.NoErr(t, fc.Clean())
+
+	files := fsutil.Glob("testdata/file_clean.log.*")
+	dump.P(files)
+	assert.NotEmpty(t, files)
+	assert.Lt(t, len(files), makeNum)
+
+	t.Run("error", func(t *testing.T) {
+		fc := rotatefile.NewFilesClear(func(c *rotatefile.CConfig) {
+			c.BackupNum = 0
+			c.BackupTime = 0
+		})
+		assert.Err(t, fc.Clean())
+	})
+}
+
+func TestFilesClear_DaemonClean(t *testing.T) {
+	t.Run("panic", func(t *testing.T) {
+		fc := rotatefile.NewFilesClear(func(c *rotatefile.CConfig) {
+			c.BackupNum = 0
+			c.BackupTime = 0
+		})
+		assert.Panics(t, func() {
+			fc.QuitDaemon()
+		})
+		assert.Panics(t, func() {
+			fc.DaemonClean(nil)
+		})
+	})
+
+	fc := rotatefile.NewFilesClear(func(c *rotatefile.CConfig) {
+		c.AddPattern("testdata/file_daemon_clean.*")
+		c.BackupNum = 2
+		c.BackupTime = 3
+		c.TimeUnit = time.Second      // for test
+		c.CheckInterval = time.Second // for test
+	})
+
+	cfg := fc.Config()
+	dump.P(cfg)
+
+	// make files for clean
+	makeNum := 5
+	_, err := fsutil.PutContents("testdata/subdir/some.txt", "test data")
 	assert.NoErr(t, err)
+	makeWaitCleanFiles("file_daemon_clean.log", makeNum)
+
+	// test daemon clean
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+
+	// start daemon
+	go fc.DaemonClean(func() {
+		fmt.Println("daemon clean stopped")
+		wg.Done()
+	})
+
+	// stop daemon
+	go func() {
+		time.Sleep(time.Second * 1)
+		fmt.Println("stop daemon clean")
+		fc.QuitDaemon()
+	}()
+
+	// wait for stop
+	wg.Wait()
+
+	files := fsutil.Glob("testdata/file_daemon_clean.log.*")
+	dump.P(files)
+	assert.NotEmpty(t, files)
+	assert.Lt(t, len(files), makeNum)
+}
+
+func makeWaitCleanFiles(nameTpl string, makeNum int) {
+	for i := 0; i < makeNum; i++ {
+		fpath := fmt.Sprintf("testdata/%s.%03d", nameTpl, i)
+		fmt.Println("make file:", fpath)
+		_, err := fsutil.PutContents(fpath, []byte("test contents ..."))
+		goutil.PanicErr(err)
+		time.Sleep(time.Second)
+	}
+
+	fmt.Println("wait clean files:")
+	err := fsutil.GlobWithFunc("./testdata/"+nameTpl+".*", func(fpath string) error {
+		fi, err := os.Stat(fpath)
+		goutil.PanicErr(err)
+
+		fmt.Printf("  %s => mtime: %s\n", fpath, fi.ModTime().Format("060102T15:04:05"))
+		return nil
+	})
+	goutil.PanicErr(err)
 }

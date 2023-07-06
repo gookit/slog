@@ -2,6 +2,7 @@ package rotatefile
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
@@ -132,6 +133,7 @@ func (d *Writer) Write(p []byte) (n int, err error) {
 		return
 	}
 
+	// update written size
 	d.written += uint64(n)
 
 	// rotate file
@@ -272,7 +274,7 @@ func (d *Writer) asyncCleanBackups() {
 // Clean old files by config
 func (d *Writer) Clean() (err error) {
 	if d.cfg.BackupNum == 0 && d.cfg.BackupTime == 0 {
-		return
+		return errorx.Err("clean: backupNum and backupTime are both 0")
 	}
 
 	// oldFiles: old xx.log.xx files, no gz file
@@ -293,9 +295,9 @@ func (d *Writer) Clean() (err error) {
 	gzNum := len(gzFiles)
 	oldNum := len(oldFiles)
 	maxNum := int(d.cfg.BackupNum)
-	rmNum := gzNum + oldNum - maxNum
+	remNum := gzNum + oldNum - maxNum
 
-	if rmNum > 0 {
+	if remNum > 0 {
 		// remove old gz files
 		if gzNum > 0 {
 			sort.Sort(modTimeFInfos(gzFiles)) // sort by mod-time
@@ -305,20 +307,21 @@ func (d *Writer) Clean() (err error) {
 					break
 				}
 
-				rmNum--
-				if rmNum == 0 {
+				remNum--
+				if remNum == 0 {
 					break
 				}
 			}
 
 			if err != nil {
-				return errorx.Wrap(err, "")
+				return errorx.Wrap(err, "remove old gz file error")
 			}
 		}
 
 		// remove old log files
-		if rmNum > 0 && oldNum > 0 {
-			sort.Sort(modTimeFInfos(oldFiles)) // sort by mod-time
+		if remNum > 0 && oldNum > 0 {
+			// sort by mod-time, oldest at first.
+			sort.Sort(modTimeFInfos(oldFiles))
 
 			var idx int
 			for idx = 0; idx < oldNum; idx++ {
@@ -326,8 +329,8 @@ func (d *Writer) Clean() (err error) {
 					break
 				}
 
-				rmNum--
-				if rmNum == 0 {
+				remNum--
+				if remNum == 0 {
 					break
 				}
 			}
@@ -393,12 +396,18 @@ func (d *Writer) compressFiles(oldFiles []fileInfo) error {
 	return nil
 }
 
+// TODO replace to fsutil.FileInfo
 type fileInfo struct {
-	os.FileInfo
+	fs.FileInfo
 	filePath string
 }
 
-func newFileInfo(filePath string, fi os.FileInfo) fileInfo {
+// Path get file full path. eg: "/path/to/file.go"
+func (fi *fileInfo) Path() string {
+	return fi.filePath
+}
+
+func newFileInfo(filePath string, fi fs.FileInfo) fileInfo {
 	return fileInfo{filePath: filePath, FileInfo: fi}
 }
 

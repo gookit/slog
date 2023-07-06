@@ -39,4 +39,9 @@ func TestLevelFormatting(t *testing.T) {
 	assert.True(t, lf.IsHandling(slog.InfoLevel))
 	assert.True(t, lf.IsHandling(slog.ErrorLevel))
 	assert.False(t, lf.IsHandling(slog.TraceLevel))
+
+	// test level mode
+	assert.Eq(t, "list", slog.LevelModeList.String())
+	assert.Eq(t, "max", slog.LevelModeMax.String())
+	assert.Eq(t, "unknown", slog.LevelMode(9).String())
 }
