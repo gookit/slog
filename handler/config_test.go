@@ -22,6 +22,9 @@ func TestNewConfig(t *testing.T) {
 		handler.WithRotateMode(rotatefile.ModeCreate),
 		func(c *handler.Config) {
 			c.BackupTime = 23
+			c.RenameFunc = func(fpath string, num uint) string {
+				return fpath + ".bak"
+			}
 		},
 	).
 		With(handler.WithBuffSize(129)).
@@ -120,12 +123,30 @@ func (w *flushCloseWriter) Flush() error {
 	return nil
 }
 
+type syncCloseWriter struct {
+	closeWriter
+	errOnSync bool
+}
+
+// Sync implement stdio.Syncer
+func (w *syncCloseWriter) Sync() error {
+	if w.errOnSync {
+		return errorx.Raw("sync error")
+	}
+	return nil
+}
+
 func TestNewBuilder_buildFromWriter(t *testing.T) {
 	t.Run("FlushCloseWriter", func(t *testing.T) {
 		out := &flushCloseWriter{}
 		out.errOnFlush = true
 		h := handler.NewBuilder().
 			WithOutput(out).
+			WithConfigFn(func(c *handler.Config) {
+				c.RenameFunc = func(fpath string, num uint) string {
+					return fpath + ".bak"
+				}
+			}).
 			Build()
 		assert.Err(t, h.Flush())
 

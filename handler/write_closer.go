@@ -26,6 +26,10 @@ func WriteCloserWithMaxLevel(out io.WriteCloser, maxLevel slog.Level) *WriteClos
 	return NewWriteCloserWithLF(out, slog.NewLvFormatter(maxLevel))
 }
 
+//
+// ------------- Use multi log levels -------------
+//
+
 // WriteCloserWithLevels create a new instance and with limited log levels
 func WriteCloserWithLevels(out io.WriteCloser, levels []slog.Level) *WriteCloserHandler {
 	// h := &WriteCloserHandler{Output: out}

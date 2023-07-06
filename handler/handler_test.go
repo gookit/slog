@@ -1,14 +1,14 @@
 package handler_test
 
 import (
-	"fmt"
+	"log/syslog"
 	"testing"
 
 	"github.com/gookit/goutil"
 	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/fsutil"
+	"github.com/gookit/goutil/sysutil"
 	"github.com/gookit/goutil/testutil/assert"
-	"github.com/gookit/goutil/testutil/fakeobj"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
 )
@@ -125,33 +125,6 @@ func TestLevelsWithFormatter(t *testing.T) {
 	assert.True(t, lsf.IsHandling(slog.DebugLevel))
 }
 
-func TestNewSimpleHandler(t *testing.T) {
-	buf := fakeobj.NewWriter()
-
-	h := handler.NewSimple(buf, slog.InfoLevel)
-	r := newLogRecord("test simple handler")
-	assert.NoErr(t, h.Handle(r))
-
-	s := buf.String()
-	buf.Reset()
-	fmt.Print(s)
-	assert.Contains(t, s, "test simple handler")
-
-	assert.NoErr(t, h.Flush())
-	assert.NoErr(t, h.Close())
-
-	h = handler.NewHandler(buf, slog.InfoLevel)
-	r = newLogRecord("test simple handler2")
-	assert.NoErr(t, h.Handle(r))
-
-	s = buf.ResetGet()
-	fmt.Print(s)
-	assert.Contains(t, s, "test simple handler2")
-
-	assert.NoErr(t, h.Flush())
-	assert.NoErr(t, h.Close())
-}
-
 func TestNopFlushClose_Flush(t *testing.T) {
 	nfc := handler.NopFlushClose{}
 
@@ -171,6 +144,21 @@ func TestLockWrapper_Lock(t *testing.T) {
 	a++
 	lw.Unlock()
 	assert.Eq(t, 2, a)
+}
+
+func TestNewSysLogHandler(t *testing.T) {
+	if sysutil.IsWin() {
+		t.Skip("skip test on windows")
+	}
+
+	h, err := handler.NewSysLogHandler(syslog.LOG_INFO, "slog")
+	assert.NoErr(t, err)
+
+	err = h.Handle(newLogRecord("test syslog handler"))
+	assert.NoErr(t, err)
+
+	assert.NoErr(t, h.Flush())
+	assert.NoErr(t, h.Close())
 }
 
 func logAllLevel(log slog.SLogger, msg string) {

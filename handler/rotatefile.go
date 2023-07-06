@@ -35,8 +35,8 @@ func NewRotateFile(logfile string, rt rotatefile.RotateTime, fns ...ConfigFn) (*
 //
 
 // MustSizeRotateFile instance
-func MustSizeRotateFile(logfile string, size int, fns ...ConfigFn) *SyncCloseHandler {
-	return basefn.Must(NewSizeRotateFileHandler(logfile, size, fns...))
+func MustSizeRotateFile(logfile string, maxSize int, fns ...ConfigFn) *SyncCloseHandler {
+	return basefn.Must(NewSizeRotateFileHandler(logfile, maxSize, fns...))
 }
 
 // NewSizeRotateFile instance

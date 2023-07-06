@@ -2,7 +2,7 @@ package handler_test
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -36,8 +36,7 @@ func TestNewRotateFileHandler(t *testing.T) {
 	logfile = "./testdata/both-rotate-bytime.log"
 	assert.NoErr(t, fsutil.DeleteIfFileExist(logfile))
 
-	h, err = handler.NewRotateFileHandler(logfile, handler.EverySecond)
-	assert.NoErr(t, err)
+	h = handler.MustRotateFile(logfile, handler.EverySecond)
 	assert.True(t, fsutil.IsFile(logfile))
 
 	l = slog.NewWithHandlers(h)
@@ -54,24 +53,37 @@ func TestNewRotateFileHandler(t *testing.T) {
 }
 
 func TestNewSizeRotateFileHandler(t *testing.T) {
-	logfile := "./testdata/size-rotate-file.log"
-	assert.NoErr(t, fsutil.DeleteIfFileExist(logfile))
+	t.Run("NewSizeRotateFile", func(t *testing.T) {
+		logfile := "./testdata/size-rotate-file.log"
+		assert.NoErr(t, fsutil.DeleteIfFileExist(logfile))
 
-	h, err := handler.NewSizeRotateFileHandler(logfile, 468, handler.WithBuffSize(256))
-	assert.NoErr(t, err)
-	assert.True(t, fsutil.IsFile(logfile))
+		h, err := handler.NewSizeRotateFile(logfile, 468, handler.WithBuffSize(256))
+		assert.NoErr(t, err)
+		assert.True(t, fsutil.IsFile(logfile))
 
-	l := slog.NewWithHandlers(h)
-	l.ReportCaller = true
-	l.CallerFlag = slog.CallerFlagFull
+		l := slog.NewWithHandlers(h)
+		l.ReportCaller = true
+		l.CallerFlag = slog.CallerFlagFull
 
-	for i := 0; i < 4; i++ {
-		l.Info("this is a info", "message, index=", i)
-		l.Warn("this is a warn message, index=", i)
-	}
+		for i := 0; i < 4; i++ {
+			l.Info("this is a info", "message, index=", i)
+			l.Warn("this is a warn message, index=", i)
+		}
 
-	assert.NoErr(t, l.Close())
-	checkLogFileContents(t, logfile)
+		assert.NoErr(t, l.Close())
+		checkLogFileContents(t, logfile)
+	})
+
+	t.Run("MustSizeRotateFile", func(t *testing.T) {
+		logfile := "./testdata/must-size-rotate-file.log"
+		h := handler.MustSizeRotateFile(logfile, 128, handler.WithBuffSize(128))
+		h.SetFormatter(slog.NewJSONFormatter())
+		err := h.Handle(newLogRecord("this is a info message"))
+		assert.NoErr(t, err)
+
+		files := fsutil.Glob(logfile + "*")
+		assert.Len(t, files, 2)
+	})
 }
 
 func TestNewTimeRotateFileHandler_EveryDay(t *testing.T) {
@@ -188,7 +200,7 @@ func TestNewTimeRotateFileHandler_someSeconds(t *testing.T) {
 func checkLogFileContents(t *testing.T, logfile string) {
 	assert.True(t, fsutil.IsFile(logfile))
 
-	bts, err := ioutil.ReadFile(logfile)
+	bts, err := os.ReadFile(logfile)
 	assert.NoErr(t, err)
 
 	str := string(bts)
