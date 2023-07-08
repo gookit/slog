@@ -56,7 +56,7 @@ func main() {
 }
 ```
 
-## Available config options
+### Available config options
 
 ```go
 // Config struct for rotate dispatcher
@@ -106,4 +106,26 @@ type Config struct {
     // TimeClock for rotate
     TimeClock Clocker
 }
+```
+
+## Files clear
+
+```go
+	fc := rotatefile.NewFilesClear(func(c *rotatefile.CConfig) {
+		c.AddPattern("/path/to/some*.log")
+		c.BackupNum = 2
+		c.BackupTime = 12 // 12 hours
+	})
+	
+	// clear files on daemon
+	go fc.DaemonClean()
+	
+	// NOTE: stop daemon before exit
+	// fc.QuitDaemon()
+```
+
+### Configs
+
+```go
+
 ```

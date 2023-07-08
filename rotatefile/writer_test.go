@@ -103,6 +103,8 @@ func TestWriter_Clean(t *testing.T) {
 	_, err = wr.WriteString("hi\n")
 	assert.NoErr(t, err)
 
+	assert.Err(t, wr.Clean())
+
 	// test clean and backup
 	c.BackupNum = 2
 	c.Compress = true

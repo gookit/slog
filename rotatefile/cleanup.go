@@ -133,8 +133,8 @@ func (r *FilesClear) WithConfigFn(fns ...CConfigFunc) *FilesClear {
 // ---------------------------------------------------------------------------
 //
 
-// QuitDaemon for stop daemon clean
-func (r *FilesClear) QuitDaemon() {
+// StopDaemon for stop daemon clean
+func (r *FilesClear) StopDaemon() {
 	if r.quitDaemon == nil {
 		panic("cannot quit daemon, please call DaemonClean() first")
 	}

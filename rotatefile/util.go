@@ -3,6 +3,7 @@ package rotatefile
 import (
 	"compress/gzip"
 	"io"
+	"io/fs"
 	"os"
 
 	"github.com/gookit/goutil/fsutil"
@@ -88,4 +89,38 @@ func findFilesInDir(dir string, handleFn handleFunc, filters ...filterFunc) (err
 		}
 	}
 	return nil
+}
+
+// TODO replace to fsutil.FileInfo
+type fileInfo struct {
+	fs.FileInfo
+	filePath string
+}
+
+// Path get file full path. eg: "/path/to/file.go"
+func (fi *fileInfo) Path() string {
+	return fi.filePath
+}
+
+func newFileInfo(filePath string, fi fs.FileInfo) fileInfo {
+	return fileInfo{filePath: filePath, FileInfo: fi}
+}
+
+// modTimeFInfos sorts by oldest time modified in the fileInfo.
+// eg: [old_220211, old_220212, old_220213]
+type modTimeFInfos []fileInfo
+
+// Less check
+func (fis modTimeFInfos) Less(i, j int) bool {
+	return fis[j].ModTime().After(fis[i].ModTime())
+}
+
+// Swap value
+func (fis modTimeFInfos) Swap(i, j int) {
+	fis[i], fis[j] = fis[j], fis[i]
+}
+
+// Len get
+func (fis modTimeFInfos) Len() int {
+	return len(fis)
 }

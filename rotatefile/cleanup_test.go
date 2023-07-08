@@ -20,7 +20,7 @@ func TestFilesClear_Clean(t *testing.T) {
 	fc.WithConfigFn(func(c *rotatefile.CConfig) {
 		c.AddDirPath("testdata", "not-exist-dir")
 		c.BackupNum = 1
-		c.BackupTime = 2
+		c.BackupTime = 3
 		c.TimeUnit = time.Second // for test
 	})
 
@@ -31,6 +31,8 @@ func TestFilesClear_Clean(t *testing.T) {
 	// make files for clean
 	makeNum := 5
 	makeWaitCleanFiles("file_clean.log", makeNum)
+	_, err := fsutil.PutContents("testdata/subdir/some.txt", "test data")
+	assert.NoErr(t, err)
 
 	// do clean
 	assert.NoErr(t, fc.Clean())
@@ -56,7 +58,7 @@ func TestFilesClear_DaemonClean(t *testing.T) {
 			c.BackupTime = 0
 		})
 		assert.Panics(t, func() {
-			fc.QuitDaemon()
+			fc.StopDaemon()
 		})
 		assert.Panics(t, func() {
 			fc.DaemonClean(nil)
@@ -65,7 +67,7 @@ func TestFilesClear_DaemonClean(t *testing.T) {
 
 	fc := rotatefile.NewFilesClear(func(c *rotatefile.CConfig) {
 		c.AddPattern("testdata/file_daemon_clean.*")
-		c.BackupNum = 2
+		c.BackupNum = 1
 		c.BackupTime = 3
 		c.TimeUnit = time.Second      // for test
 		c.CheckInterval = time.Second // for test
@@ -76,8 +78,6 @@ func TestFilesClear_DaemonClean(t *testing.T) {
 
 	// make files for clean
 	makeNum := 5
-	_, err := fsutil.PutContents("testdata/subdir/some.txt", "test data")
-	assert.NoErr(t, err)
 	makeWaitCleanFiles("file_daemon_clean.log", makeNum)
 
 	// test daemon clean
@@ -94,7 +94,7 @@ func TestFilesClear_DaemonClean(t *testing.T) {
 	go func() {
 		time.Sleep(time.Second * 1)
 		fmt.Println("stop daemon clean")
-		fc.QuitDaemon()
+		fc.StopDaemon()
 	}()
 
 	// wait for stop
