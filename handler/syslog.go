@@ -1,4 +1,4 @@
-//go:build !windows && !nacl && !plan9
+//go:build !windows && !plan9
 
 package handler
 
