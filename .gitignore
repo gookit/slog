@@ -26,6 +26,6 @@
 /*.sh
 /*.zsh
 /*.pid
-#go.sum
 go.work
 changelog.md
+testdata
