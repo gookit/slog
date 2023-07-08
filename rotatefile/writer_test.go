@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/gookit/goutil"
+	"github.com/gookit/goutil/dump"
 	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/goutil/mathutil"
 	"github.com/gookit/goutil/testutil/assert"
@@ -86,9 +87,7 @@ func TestWriter_Clean(t *testing.T) {
 	logfile := "testdata/writer_clean.log"
 
 	c := rotatefile.NewConfig(logfile)
-	c.MaxSize = 128
-	c.BackupNum = 0
-	c.BackupTime = 0
+	c.MaxSize = 128 // will rotate by size
 
 	wr, err := c.Create()
 	assert.NoErr(t, err)
@@ -99,15 +98,24 @@ func TestWriter_Clean(t *testing.T) {
 	}
 
 	assert.True(t, fsutil.IsFile(logfile))
-
 	_, err = wr.WriteString("hi\n")
 	assert.NoErr(t, err)
 
-	assert.Err(t, wr.Clean())
+	files := fsutil.Glob("testdata/writer_clean.log.*")
+	dump.P(files)
 
-	// test clean and backup
-	c.BackupNum = 2
-	c.Compress = true
-	err = wr.Clean()
-	assert.NoErr(t, err)
+	// test clean error
+	t.Run("clean error", func(t *testing.T) {
+		c.BackupNum = 0
+		c.BackupTime = 0
+		assert.Err(t, wr.Clean())
+	})
+
+	// test clean and compress backup
+	t.Run("clean and compress", func(t *testing.T) {
+		c.BackupNum = 2
+		c.Compress = true
+		err = wr.Clean()
+		assert.NoErr(t, err)
+	})
 }

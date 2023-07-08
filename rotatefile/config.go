@@ -188,7 +188,7 @@ type Config struct {
 	// default see DefaultFilenameFn
 	RenameFunc func(filePath string, rotateNum uint) string
 
-	// TimeClock for rotate
+	// TimeClock for rotate file by time.
 	TimeClock Clocker
 }
 

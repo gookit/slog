@@ -91,7 +91,8 @@ func NewCConfig() *CConfig {
 	}
 }
 
-// FilesClear multi files by time. TODO
+// FilesClear multi files by time.
+//
 // use for rotate and clear other program produce log files
 type FilesClear struct {
 	// mu sync.Mutex
@@ -226,7 +227,7 @@ func (r *FilesClear) cleanByPattern(filePattern string) (err error) {
 			return err
 		}
 
-		// not handle subdir
+		// not handle subdir TODO: support subdir
 		if stat.IsDir() {
 			return nil
 		}

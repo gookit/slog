@@ -15,6 +15,13 @@ import (
 )
 
 func TestFilesClear_Clean(t *testing.T) {
+	// make files for clean
+	makeNum := 5
+	makeWaitCleanFiles("file_clean.log", makeNum)
+	_, err := fsutil.PutContents("testdata/subdir/some.txt", "test data")
+	assert.NoErr(t, err)
+
+	// create clear
 	fc := rotatefile.NewFilesClear()
 	fc.WithConfig(rotatefile.NewCConfig())
 	fc.WithConfigFn(func(c *rotatefile.CConfig) {
@@ -27,12 +34,6 @@ func TestFilesClear_Clean(t *testing.T) {
 	cfg := fc.Config()
 	assert.Eq(t, uint(1), cfg.BackupNum)
 	dump.P(cfg)
-
-	// make files for clean
-	makeNum := 5
-	makeWaitCleanFiles("file_clean.log", makeNum)
-	_, err := fsutil.PutContents("testdata/subdir/some.txt", "test data")
-	assert.NoErr(t, err)
 
 	// do clean
 	assert.NoErr(t, fc.Clean())

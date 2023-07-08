@@ -149,6 +149,7 @@ func TestLockWrapper_Lock(t *testing.T) {
 func TestNewSysLogHandler(t *testing.T) {
 	if sysutil.IsWin() {
 		t.Skip("skip test on windows")
+		return
 	}
 
 	h, err := handler.NewSysLogHandler(syslog.LOG_INFO, "slog")

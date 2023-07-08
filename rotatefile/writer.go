@@ -2,9 +2,9 @@ package rotatefile
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path"
-	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -24,11 +24,14 @@ type Writer struct {
 	// current opened logfile
 	file *os.File
 	path string
-	// file dir path for the Config.Filepath
+	// logfile dir path for the Config.Filepath
 	fileDir string
-	// file max backup time. equals Config.BackupTime * time.Hour
+
+	// logfile max backup time. equals Config.BackupTime * time.Hour
 	backupDur time.Duration
 	// oldFiles []string
+	cleanCh chan struct{}
+	stopCh  chan struct{}
 
 	// context use for rotating file by size
 	written   uint64 // written size
@@ -101,9 +104,14 @@ func (d *Writer) Sync() error {
 // Close the writer.
 // will sync data to disk, then close the file handle
 func (d *Writer) Close() error {
-	err := d.file.Sync()
-	if err != nil {
+	if err := d.file.Sync(); err != nil {
 		return err
+	}
+
+	// stop the async clean backups
+	if d.stopCh != nil {
+		close(d.stopCh)
+		d.stopCh = nil
 	}
 	return d.file.Close()
 }
@@ -140,12 +148,10 @@ func (d *Writer) Write(p []byte) (n int, err error) {
 	return
 }
 
-// Rotate the file by config.
-func (d *Writer) Rotate() (err error) {
-	return d.doRotate()
-}
+// Rotate the file by config and async clean backups
+func (d *Writer) Rotate() error { return d.doRotate() }
 
-// Rotate the file by config.
+// do rotate the logfile by config and async clean backups
 func (d *Writer) doRotate() (err error) {
 	// do rotate file by size
 	if d.cfg.MaxSize > 0 && d.written >= d.cfg.MaxSize {
@@ -160,12 +166,12 @@ func (d *Writer) doRotate() (err error) {
 		err = d.rotatingByTime()
 	}
 
-	// clean backup files
-	d.asyncCleanBackups()
+	// async clean backup files
+	d.asyncClean()
 	return
 }
 
-// TIP: only called on d.checkInterval > 0
+// TIP: should only call on d.checkInterval > 0
 func (d *Writer) rotatingByTime() error {
 	now := d.cfg.TimeClock.Now()
 	if d.nextRotatingAt > now.Unix() {
@@ -232,14 +238,6 @@ func (d *Writer) rotatingFile(bakFile string, rename bool) error {
 	return nil
 }
 
-// ReopenFile the log file
-func (d *Writer) ReopenFile() error {
-	if d.file != nil {
-		d.file.Close()
-	}
-	return d.openFile(d.path)
-}
-
 // open the log file. and set the d.file, d.path
 func (d *Writer) openFile(logfile string) error {
 	file, err := fsutil.OpenFile(logfile, DefaultFileFlags, d.cfg.FilePerm)
@@ -258,15 +256,37 @@ func (d *Writer) openFile(logfile string) error {
 // ---------------------------------------------------------------------------
 //
 
-// async clean old files by config
-func (d *Writer) asyncCleanBackups() {
+// async clean old files by config. should be in lock.
+func (d *Writer) asyncClean() {
 	if d.cfg.BackupNum == 0 && d.cfg.BackupTime == 0 {
 		return
 	}
 
-	// TODO pref: only start once
+	// if already running, send a signal
+	if d.cleanCh != nil {
+		select {
+		case d.cleanCh <- struct{}{}:
+		// case <-d.stopCh:
+		// 	return // stop clean
+		default: // skip on blocking
+		}
+		return
+	}
+
+	// init clean channel
+	d.cleanCh = make(chan struct{}, 1)
+	d.stopCh = make(chan struct{})
+
+	// start a goroutine to clean backups
 	go func() {
-		printErrln("rotatefile: clean backup files error:", d.Clean())
+		// consume the signal until stop
+		select {
+		case <-d.cleanCh:
+			printErrln("rotatefile: clean backup files error:", d.Clean())
+		case <-d.stopCh:
+			d.cleanCh = nil
+			return // stop clean
+		}
 	}()
 }
 
@@ -276,25 +296,28 @@ func (d *Writer) Clean() (err error) {
 		return errorx.Err("clean: backupNum and backupTime are both 0")
 	}
 
-	// oldFiles: old xx.log.xx files, no gz file
+	// oldFiles: xx.log.yy files, no gz file
 	var oldFiles, gzFiles []fileInfo
 	fileDir, fileName := path.Split(d.cfg.Filepath)
 
 	// find and clean old files
-	err = findFilesInDir(fileDir, func(fPath string, fi os.FileInfo) error {
-		if strings.HasSuffix(fi.Name(), compressSuffix) {
+	err = fsutil.FindInDir(fileDir, func(fPath string, ent fs.DirEntry) error {
+		fi, err := ent.Info()
+		if err != nil {
+			return err
+		}
+
+		if strings.HasSuffix(ent.Name(), compressSuffix) {
 			gzFiles = append(gzFiles, newFileInfo(fPath, fi))
 		} else {
 			oldFiles = append(oldFiles, newFileInfo(fPath, fi))
 		}
-
 		return nil
 	}, d.buildFilterFns(fileName)...)
 
 	gzNum := len(gzFiles)
 	oldNum := len(oldFiles)
-	maxNum := int(d.cfg.BackupNum)
-	remNum := gzNum + oldNum - maxNum
+	remNum := gzNum + oldNum - int(d.cfg.BackupNum)
 
 	if remNum > 0 {
 		// remove old gz files
@@ -347,17 +370,17 @@ func (d *Writer) Clean() (err error) {
 	return
 }
 
-func (d *Writer) buildFilterFns(fileName string) []filterFunc {
-	filterFns := []filterFunc{
+func (d *Writer) buildFilterFns(fileName string) []fsutil.FilterFunc {
+	filterFns := []fsutil.FilterFunc{
+		fsutil.OnlyFindFile,
 		// filter by name. should match like error.log.*
 		// eg: error.log.xx, error.log.xx.gz
-		func(fPath string, fi os.FileInfo) bool {
-			ok, err := filepath.Match(fileName+".*", fi.Name())
+		func(fPath string, ent fs.DirEntry) bool {
+			ok, err := path.Match(fileName+".*", ent.Name())
 			if err != nil {
 				printErrln("rotatefile: match old file error:", err)
 				return false // skip, not handle
 			}
-
 			return ok
 		},
 	}
@@ -365,7 +388,12 @@ func (d *Writer) buildFilterFns(fileName string) []filterFunc {
 	// filter by mod-time, clear expired files
 	if d.cfg.BackupTime > 0 {
 		cutTime := d.cfg.TimeClock.Now().Add(-d.backupDur)
-		filterFns = append(filterFns, func(fPath string, fi os.FileInfo) bool {
+		filterFns = append(filterFns, func(fPath string, ent fs.DirEntry) bool {
+			fi, err := ent.Info()
+			if err != nil {
+				return false // skip, not handle
+			}
+
 			// collect un-expired
 			if fi.ModTime().After(cutTime) {
 				return true
