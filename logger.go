@@ -24,6 +24,7 @@ type Logger struct {
 	recordPool sync.Pool
 	// handlers on exit.
 	exitHandlers []func()
+	quitDaemon   chan struct{}
 
 	//
 	// logger options
@@ -31,6 +32,8 @@ type Logger struct {
 
 	// ChannelName log channel name, default is DefaultChannelName
 	ChannelName string
+	// FlushInterval flush interval time. default is defaultFlushInterval=30s
+	FlushInterval time.Duration
 	// LowerLevelName use lower level name
 	LowerLevelName bool
 	// ReportCaller on write log record
@@ -76,6 +79,8 @@ func NewWithName(name string, fns ...LoggerFn) *Logger {
 		ReportCaller: true,
 		CallerSkip:   6,
 		TimeClock:    DefaultClockFn,
+		// flush interval time
+		FlushInterval: defaultFlushInterval,
 	}
 
 	logger.recordPool.New = func() any {
@@ -149,19 +154,42 @@ func (l *Logger) Name() string { return l.name }
 // ---------------------------------------------------------------------------
 //
 
-const flushInterval = 30 * time.Second
+const defaultFlushInterval = 30 * time.Second
 
 // FlushDaemon run flush handle on daemon
 //
-// Usage:
-//
-//	go slog.FlushDaemon()
-func (l *Logger) FlushDaemon() {
-	for range time.NewTicker(flushInterval).C {
-		if err := l.lockAndFlushAll(); err != nil {
-			printlnStderr("slog.FlushDaemon: daemon flush logs error: ", err)
+// Usage please refer to the FlushDaemon() on package.
+func (l *Logger) FlushDaemon(onStops ...func()) {
+	l.quitDaemon = make(chan struct{})
+	if l.FlushInterval <= 0 {
+		l.FlushInterval = defaultFlushInterval
+	}
+
+	// create a ticker
+	tk := time.NewTicker(l.FlushInterval)
+	defer tk.Stop()
+
+	for {
+		select {
+		case <-tk.C:
+			if err := l.lockAndFlushAll(); err != nil {
+				printlnStderr("slog.FlushDaemon: daemon flush logs error: ", err)
+			}
+		case <-l.quitDaemon:
+			for _, fn := range onStops {
+				fn()
+			}
+			return
 		}
 	}
+}
+
+// StopDaemon stop flush daemon
+func (l *Logger) StopDaemon() {
+	if l.quitDaemon == nil {
+		panic("cannot quit daemon, please call FlushDaemon() first")
+	}
+	close(l.quitDaemon)
 }
 
 // FlushTimeout flush logs on limit time.

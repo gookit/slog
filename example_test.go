@@ -1,6 +1,10 @@
 package slog_test
 
 import (
+	"fmt"
+	"sync"
+	"time"
+
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
 )
@@ -55,4 +59,26 @@ func ExampleNew() {
 	mylog.Info("info log message")
 	mylog.Warn("warning log message")
 	mylog.Infof("info log %s", "message")
+}
+
+func ExampleFlushDaemon() {
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+
+	go slog.FlushDaemon(func() {
+		fmt.Println("flush daemon stopped")
+		wg.Done()
+	})
+
+	go func() {
+		// mock app running
+		time.Sleep(time.Second * 2)
+
+		// stop daemon
+		fmt.Println("stop flush daemon")
+		slog.StopDaemon()
+	}()
+
+	// wait for stop
+	wg.Wait()
 }

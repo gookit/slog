@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/gookit/goutil/byteutil"
 	"github.com/gookit/goutil/errorx"
@@ -63,6 +65,39 @@ func TestTextFormatNoColor(t *testing.T) {
 }
 
 func TestFlushDaemon(t *testing.T) {
+	defer slog.Reset()
+
+	buf := byteutil.NewBuffer()
+	slog.Configure(func(l *slog.SugaredLogger) {
+		l.FlushInterval = timex.Millisecond * 100
+		l.Output = buf
+	})
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+
+	go slog.FlushDaemon(func() {
+		fmt.Println("flush daemon stopped")
+		wg.Done()
+	})
+
+	go func() {
+		// mock app running
+		time.Sleep(time.Second * 1)
+
+		// stop daemon
+		fmt.Println("stop flush daemon")
+		slog.StopDaemon()
+	}()
+
+	slog.Info("print log message")
+
+	wg.Wait()
+
+	fmt.Print(buf.ResetGet())
+}
+
+func TestFlushTimeout(t *testing.T) {
 	defer slog.Reset()
 	slog.Info("print log message")
 	slog.FlushTimeout(timex.Second * 1)

@@ -80,14 +80,17 @@ func MustFlush() { goutil.PanicErr(Flush()) }
 // FlushTimeout flush logs with timeout.
 func FlushTimeout(timeout time.Duration) { std.FlushTimeout(timeout) }
 
-// FlushDaemon run flush handle on daemon
+// FlushDaemon run flush handle on daemon.
 //
-// Usage:
-//
-//	go slog.FlushDaemon()
-func FlushDaemon() { std.FlushDaemon() }
+// Usage please see ExampleFlushDaemon()
+func FlushDaemon(onStops ...func()) {
+	std.FlushDaemon(onStops...)
+}
 
-// SetLogLevel for the std logger
+// StopDaemon stop flush daemon
+func StopDaemon() { std.StopDaemon() }
+
+// SetLogLevel max level for the std logger
 func SetLogLevel(l Level) { std.Level = l }
 
 // SetFormatter to std logger
