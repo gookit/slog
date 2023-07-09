@@ -39,11 +39,13 @@
 - 支持按时间、按大小自动分割文件
 - 支持配置通过 `gzip` 压缩日志文件
 - 支持清理旧日志文件 配置: `BackupNum` `BackupTime`
-- `rotatefile` 包也可以用在其他日志库。例如：`log`、`glog`、`zap` 等等。
 
-> NEW: `v0.3.0` 废弃原来实现的纷乱的各种handler,统一抽象为
-> `FlushCloseHandler` `SyncCloseHandler` `WriteCloserHandler` `IOWriterHandler` 
-> 几个支持不同类型writer的处理器。让构建自定义 Handler 更加简单，内置的handlers也基本上由它们组成。
+### `rotatefile` 子包
+
+- `rotatefile` 子包是一个拥有文件分割,清理,压缩备份的独立工具库
+- `rotatefile.Writer` 也可以直接包装使用用在其他日志库。例如：`log`、`glog`、`zap` 等等
+- `rotatefile.FilesClear` 是一个独立的文件清理备份工具, 可以用在其他地方(如 PHP等其他程序日志清理)
+- 更多使用请查看 [rotatefile](rotatefile/README.md)
 
 ## [English](README.md)
 

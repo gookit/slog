@@ -11,6 +11,7 @@ import (
 	"github.com/gookit/goutil/dump"
 	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/goutil/testutil/assert"
+	"github.com/gookit/goutil/timex"
 	"github.com/gookit/slog/rotatefile"
 )
 
@@ -87,14 +88,14 @@ func TestFilesClear_DaemonClean(t *testing.T) {
 
 	// start daemon
 	go fc.DaemonClean(func() {
-		fmt.Println("daemon clean stopped")
+		fmt.Println("daemon clean stopped, at", timex.Now().DateFormat("ymdTH:i:s.v"))
 		wg.Done()
 	})
 
 	// stop daemon
 	go func() {
-		time.Sleep(time.Second * 1)
-		fmt.Println("stop daemon clean")
+		time.Sleep(time.Millisecond * 1200)
+		fmt.Println("stop daemon clean, at", timex.Now().DateFormat("ymdTH:i:s.v"))
 		fc.StopDaemon()
 	}()
 

@@ -118,7 +118,7 @@ type Config struct {
 	})
 	
 	// clear files on daemon
-	go fc.DaemonClean()
+	go fc.DaemonClean(nil)
 	
 	// NOTE: stop daemon before exit
 	// fc.QuitDaemon()
@@ -128,4 +128,41 @@ type Config struct {
 
 ```go
 
+// CConfig struct for clean files
+type CConfig struct {
+	// BackupNum max number for keep old files.
+	// 0 is not limit, default is 20.
+	BackupNum uint `json:"backup_num" yaml:"backup_num"`
+
+	// BackupTime max time for keep old files, unit is TimeUnit.
+	//
+	// 0 is not limit, default is a week.
+	BackupTime uint `json:"backup_time" yaml:"backup_time"`
+
+	// Compress determines if the rotated log files should be compressed using gzip.
+	// The default is not to perform compression.
+	Compress bool `json:"compress" yaml:"compress"`
+
+	// Patterns dir path with filename match patterns.
+	//
+	// eg: ["/tmp/error.log.*", "/path/to/info.log.*", "/path/to/dir/*"]
+	Patterns []string `json:"patterns" yaml:"patterns"`
+
+	// TimeClock for clean files
+	TimeClock Clocker
+
+	// TimeUnit for BackupTime. default is hours: time.Hour
+	TimeUnit time.Duration `json:"time_unit" yaml:"time_unit"`
+
+	// CheckInterval for clean files on daemon run. default is 60s.
+	CheckInterval time.Duration `json:"check_interval" yaml:"check_interval"`
+
+	// IgnoreError ignore remove error
+	// TODO IgnoreError bool
+
+	// RotateMode for rotate split files TODO
+	//  - copy+cut: copy contents then truncate file
+	//	- rename : rename file(use for like PHP-FPM app)
+	// RotateMode RotateMode `json:"rotate_mode" yaml:"rotate_mode"`
+}
 ```
