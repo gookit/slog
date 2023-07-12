@@ -39,7 +39,13 @@
 - Support splitting log files by `time` and `size`
 - Support configuration to compress log files via `gzip`
 - Support clean old log files by `BackupNum` `BackupTime`
-- The `rotatefile` package can also be used with other logging libraries. For example: `log`, `glog`, `zap`, etc.
+
+### `rotatefile` subpackage
+
+- The `rotatefile` subpackage is a stand-alone tool library with file splitting, cleaning, and compressing backups
+- `rotatefile.Writer` can also be directly wrapped and used in other logging libraries. For example: `log`, `glog`, `zap`, etc.
+- `rotatefile.FilesClear` is an independent file cleaning backup tool, which can be used in other places (such as other program log cleaning such as PHP)
+- For more usage, please see [rotatefile](rotatefile/README.md)
 
 ## [中文说明](README.zh-CN.md)
 
