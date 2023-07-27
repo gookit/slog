@@ -101,15 +101,20 @@ func (d *Writer) Sync() error {
 	return d.file.Sync()
 }
 
-// Close the writer.
-// will sync data to disk, then close the file handle
+// Close the writer. will sync data to disk, then close the file handle.
+// and will stop the async clean backups.
 func (d *Writer) Close() error {
+	return d.close(true)
+}
+
+func (d *Writer) close(closeStopCh bool) error {
 	if err := d.file.Sync(); err != nil {
 		return err
 	}
 
 	// stop the async clean backups
-	if d.stopCh != nil {
+	if closeStopCh && d.stopCh != nil {
+		d.cfg.Debug("close stopCh for stop async clean old files")
 		close(d.stopCh)
 		d.stopCh = nil
 	}
@@ -208,7 +213,7 @@ func (d *Writer) rotatingBySize() error {
 // rotateFile closes the syncBuffer's file and starts a new one.
 func (d *Writer) rotatingFile(bakFile string, rename bool) error {
 	// close the current file
-	if err := d.Close(); err != nil {
+	if err := d.close(false); err != nil {
 		return err
 	}
 
@@ -266,26 +271,33 @@ func (d *Writer) asyncClean() {
 	if d.cleanCh != nil {
 		select {
 		case d.cleanCh <- struct{}{}:
-		// case <-d.stopCh:
-		// 	return // stop clean
+			d.cfg.Debug("clean old files signal sent")
 		default: // skip on blocking
+			d.cfg.Debug("clean old files signal blocked, skip")
 		}
 		return
 	}
 
 	// init clean channel
-	d.cleanCh = make(chan struct{}, 1)
+	d.cfg.Debug("init clean/stop channel for clean old files")
+	d.cleanCh = make(chan struct{})
 	d.stopCh = make(chan struct{})
 
 	// start a goroutine to clean backups
 	go func() {
+		d.cfg.Debug("start a goroutine consumer for clean old files")
+
 		// consume the signal until stop
-		select {
-		case <-d.cleanCh:
-			printErrln("rotatefile: clean backup files error:", d.Clean())
-		case <-d.stopCh:
-			d.cleanCh = nil
-			return // stop clean
+		for {
+			select {
+			case <-d.cleanCh:
+				d.cfg.Debug("clean old files handling ...")
+				printErrln("rotatefile: clean old files error:", d.Clean())
+			case <-d.stopCh:
+				d.cleanCh = nil
+				d.cfg.Debug("stop consumer for clean old files")
+				return // stop clean
+			}
 		}
 	}()
 }
@@ -318,11 +330,13 @@ func (d *Writer) Clean() (err error) {
 	gzNum := len(gzFiles)
 	oldNum := len(oldFiles)
 	remNum := gzNum + oldNum - int(d.cfg.BackupNum)
+	d.cfg.Debug("clean old files, gzNum:", gzNum, "oldNum:", oldNum, "remNum:", remNum)
 
 	if remNum > 0 {
 		// remove old gz files
 		if gzNum > 0 {
 			sort.Sort(modTimeFInfos(gzFiles)) // sort by mod-time
+			d.cfg.Debug("remove old gz files ...")
 
 			for idx := 0; idx < gzNum; idx++ {
 				if err = os.Remove(gzFiles[idx].filePath); err != nil {
@@ -344,6 +358,7 @@ func (d *Writer) Clean() (err error) {
 		if remNum > 0 && oldNum > 0 {
 			// sort by mod-time, oldest at first.
 			sort.Sort(modTimeFInfos(oldFiles))
+			d.cfg.Debug("remove old normal files ...")
 
 			var idx int
 			for idx = 0; idx < oldNum; idx++ {
@@ -365,6 +380,7 @@ func (d *Writer) Clean() (err error) {
 	}
 
 	if d.cfg.Compress && len(oldFiles) > 0 {
+		d.cfg.Debug("compress old normal files to gz files")
 		err = d.compressFiles(oldFiles)
 	}
 	return
