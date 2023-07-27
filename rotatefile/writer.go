@@ -171,7 +171,7 @@ func (d *Writer) doRotate() (err error) {
 		err = d.rotatingByTime()
 	}
 
-	// async clean backup files
+	// async clean backup files. TODO only call on file rotated.
 	d.asyncClean()
 	return
 }
@@ -271,7 +271,7 @@ func (d *Writer) asyncClean() {
 	if d.cleanCh != nil {
 		select {
 		case d.cleanCh <- struct{}{}:
-			d.cfg.Debug("clean old files signal sent")
+			d.cfg.Debug("signal sent start clean old files ")
 		default: // skip on blocking
 			d.cfg.Debug("clean old files signal blocked, skip")
 		}
@@ -389,14 +389,10 @@ func (d *Writer) Clean() (err error) {
 func (d *Writer) buildFilterFns(fileName string) []fsutil.FilterFunc {
 	filterFns := []fsutil.FilterFunc{
 		fsutil.OnlyFindFile,
-		// filter by name. should match like error.log.*
+		// filter by name. match pattern like: error.log.*
 		// eg: error.log.xx, error.log.xx.gz
 		func(fPath string, ent fs.DirEntry) bool {
-			ok, err := path.Match(fileName+".*", ent.Name())
-			if err != nil {
-				printErrln("rotatefile: match old file error:", err)
-				return false // skip, not handle
-			}
+			ok, _ := path.Match(fileName+".*", ent.Name())
 			return ok
 		},
 	}

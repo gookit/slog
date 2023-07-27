@@ -135,5 +135,5 @@ func TestSlog(t *testing.T) {
 	}
 	end = time.Now().UnixNano()
 	fmt.Printf("\n slog format \n total cost %d ns\n  avg  cost %d ns \n count %d \n", end-start, (end-start)/int64(count), count)
-	logs.MustFlush()
+	logs.MustClose()
 }

@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/gookit/goutil/stdio"
 	"github.com/gookit/goutil/timex"
 )
 
@@ -190,6 +191,9 @@ type Config struct {
 
 	// TimeClock for rotate file by time.
 	TimeClock Clocker
+
+	// DebugMode for debug on development.
+	DebugMode bool
 }
 
 func (c *Config) backupDuration() time.Duration {
@@ -212,6 +216,13 @@ func (c *Config) Create() (*Writer, error) { return NewWriter(c) }
 
 // IsMode check rotate mode
 func (c *Config) IsMode(m RotateMode) bool { return c.RotateMode == m }
+
+// Debug print debug message on development
+func (c *Config) Debug(vs ...any) {
+	if c.DebugMode {
+		stdio.WriteString("[rotate-file.DEBUG] " + fmt.Sprintln(vs...))
+	}
+}
 
 var (
 	// DefaultFilePerm perm and flags for create log file

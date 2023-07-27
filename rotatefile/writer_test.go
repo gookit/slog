@@ -1,33 +1,16 @@
 package rotatefile_test
 
 import (
-	"log"
 	"path/filepath"
 	"testing"
+	"time"
 
-	"github.com/gookit/goutil"
 	"github.com/gookit/goutil/dump"
 	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/goutil/mathutil"
 	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/slog/rotatefile"
 )
-
-func TestMain(m *testing.M) {
-	goutil.PanicErr(fsutil.RemoveSub("./testdata", fsutil.ExcludeNames(".keep")))
-	m.Run()
-}
-
-func ExampleNewWriter_on_other_logger() {
-	logFile := "testdata/another_logger.log"
-	writer, err := rotatefile.NewConfig(logFile).Create()
-	if err != nil {
-		panic(err)
-	}
-
-	log.SetOutput(writer)
-	log.Println("log message")
-}
 
 func TestNewWriter(t *testing.T) {
 	testFile := "testdata/test_writer.log"
@@ -83,6 +66,31 @@ func TestWriter_Rotate_modeCreate(t *testing.T) {
 	assert.NoErr(t, err)
 }
 
+func TestWriter_rotateByTime(t *testing.T) {
+	logfile := "testdata/rotate-by-time.log"
+	c := rotatefile.NewConfig(logfile).With(func(c *rotatefile.Config) {
+		c.DebugMode = true
+		c.Compress = true
+		c.RotateTime = rotatefile.EverySecond * 2
+	})
+
+	w, err := c.Create()
+	assert.NoErr(t, err)
+	defer func() {
+		_ = w.Close()
+	}()
+
+	for i := 0; i < 5; i++ {
+		_, err = w.WriteString("[INFO] this is a log message, idx=" + mathutil.String(i) + "\n")
+		assert.NoErr(t, err)
+		time.Sleep(time.Second)
+	}
+
+	files := fsutil.Glob(logfile + ".*")
+	dump.P(files)
+
+}
+
 func TestWriter_Clean(t *testing.T) {
 	logfile := "testdata/writer_clean.log"
 
@@ -91,6 +99,9 @@ func TestWriter_Clean(t *testing.T) {
 
 	wr, err := c.Create()
 	assert.NoErr(t, err)
+	defer func() {
+		_ = wr.Close()
+	}()
 
 	for i := 0; i < 20; i++ {
 		_, err = wr.WriteString("[INFO] this is a log message, idx=" + mathutil.String(i) + "\n")
@@ -101,7 +112,7 @@ func TestWriter_Clean(t *testing.T) {
 	_, err = wr.WriteString("hi\n")
 	assert.NoErr(t, err)
 
-	files := fsutil.Glob("testdata/writer_clean.log.*")
+	files := fsutil.Glob(logfile + ".*")
 	dump.P(files)
 
 	// test clean error
