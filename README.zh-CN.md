@@ -467,7 +467,7 @@ import (
 )
 
 func main() {
-	defer slog.MustFlush()
+	defer slog.MustClose()
 
 	// DangerLevels 包含： slog.PanicLevel, slog.ErrorLevel, slog.WarnLevel
 	h1 := handler.MustFileHandler("/tmp/error.log", handler.WithLogLevels(slog.DangerLevels))
@@ -489,7 +489,7 @@ func main() {
 }
 ```
 
-> 提示: 如果启用了写入缓冲 `buffer`，一定要在程序结束时调用 `logger.Flush()` 刷出缓冲区的内容到文件。
+> 提示: 如果启用了写入缓冲 `buffer`，一定要在程序结束时调用 `logger.Close()/MustClose()` 刷出缓冲区的内容到文件并关闭句柄。
 
 ### 带自动切割的日志处理器
 

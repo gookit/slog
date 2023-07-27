@@ -30,7 +30,7 @@ func TestNewRotateFileHandler(t *testing.T) {
 		l.Info("info", "message", i)
 		l.Warn("warn message", i)
 	}
-	l.MustFlush()
+	l.MustClose()
 
 	// by time
 	logfile = "./testdata/both-rotate-bytime.log"
@@ -124,7 +124,7 @@ func TestNewTimeRotateFileHandler_EveryDay(t *testing.T) {
 		// time.Sleep(time.Second * 1)
 	}
 
-	l.MustFlush()
+	l.MustClose()
 	checkLogFileContents(t, logfile)
 	checkLogFileContents(t, newFile)
 }
@@ -170,7 +170,7 @@ func TestNewTimeRotateFileHandler_EveryHour(t *testing.T) {
 		sec++
 		fmt.Println("log number ", (i+1)*2)
 	}
-	l.MustFlush()
+	l.MustClose()
 
 	checkLogFileContents(t, logfile)
 	checkLogFileContents(t, newFile)
@@ -193,7 +193,7 @@ func TestNewTimeRotateFileHandler_someSeconds(t *testing.T) {
 		fmt.Println("second ", i+1)
 		time.Sleep(time.Second * 1)
 	}
-	l.MustFlush()
+	l.MustClose()
 	// assert.NoErr(t, os.Remove(fpath))
 }
 

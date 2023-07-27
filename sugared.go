@@ -10,8 +10,7 @@ import (
 // SugaredLoggerFn func type.
 type SugaredLoggerFn func(sl *SugaredLogger)
 
-// SugaredLogger definition.
-// Is a fast and usable Logger, which already contains
+// SugaredLogger Is a fast and usable Logger, which already contains
 // the default formatting and handling capabilities
 type SugaredLogger struct {
 	*Logger
@@ -109,10 +108,14 @@ func (sl *SugaredLogger) Handle(record *Record) error {
 	return err
 }
 
-// Close all log handlers
+// Close all log handlers, will flush and close all handlers.
+//
+// IMPORTANT:
+//
+//	if enable async/buffer mode, please call the Close() before exit.
 func (sl *SugaredLogger) Close() error {
 	_ = sl.Logger.VisitAll(func(handler Handler) error {
-		// TIP: must exclude self
+		// TIP: must exclude self, because self is a handler
 		if _, ok := handler.(*SugaredLogger); !ok {
 			if err := handler.Close(); err != nil {
 				sl.err = err

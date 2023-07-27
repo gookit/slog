@@ -1,6 +1,7 @@
 package handler_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/gookit/goutil"
@@ -20,6 +21,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
+	fmt.Println("TestMain: remove all test files in ./testdata")
 	goutil.PanicErr(fsutil.RemoveSub("./testdata", fsutil.ExcludeNames(".keep")))
 	m.Run()
 }

@@ -340,9 +340,10 @@ f.SetTemplate(myTemplate)
 Custom `Processor` and `Formatter` are relatively simple, just implement a corresponding method.
 
 ### Create new logger
+
 `slog.Info, slog.Warn` and other methods use the default logger and output logs to the console by default.
 
-You can create a brand new instance of `slog.Logger`:
+You can create a brand-new instance of `slog.Logger`:
 
 **Method 1**：
 
@@ -468,7 +469,7 @@ import (
 )
 
 func main() {
-	defer slog.MustFlush()
+	defer slog.MustClose()
 
 	// DangerLevels contains: slog.PanicLevel, slog.ErrorLevel, slog.WarnLevel
 	h1 := handler.MustFileHandler("/tmp/error.log", handler.WithLogLevels(slog.DangerLevels))
@@ -490,7 +491,7 @@ func main() {
 }
 ```
 
-> Tip: If write buffering `buffer` is enabled, be sure to call `logger.Flush()` at the end of the program to flush the contents of the buffer to the file.
+> **Note**: If write buffering `buffer` is enabled, be sure to call `logger.Close()` at the end of the program to flush the contents of the buffer to the file.
 
 ### Log to file with automatic rotating
 

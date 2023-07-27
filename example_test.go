@@ -67,6 +67,7 @@ func ExampleFlushDaemon() {
 
 	go slog.FlushDaemon(func() {
 		fmt.Println("flush daemon stopped")
+		slog.MustClose()
 		wg.Done()
 	})
 

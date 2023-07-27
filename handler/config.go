@@ -78,6 +78,9 @@ type Config struct {
 
 	// RenameFunc build filename for rotate file
 	RenameFunc func(filepath string, rotateNum uint) string
+
+	// DebugMode for debug on development.
+	DebugMode bool
 }
 
 // NewEmptyConfig new config instance
@@ -168,6 +171,7 @@ func (c *Config) CreateWriter() (output SyncCloseWriter, err error) {
 		rc.CloseLock = true
 		rc.Filepath = c.Logfile
 		rc.FilePerm = c.FilePerm
+		rc.DebugMode = c.DebugMode
 
 		// copy settings
 		rc.MaxSize = c.MaxSize
