@@ -3,8 +3,8 @@ module github.com/gookit/slog
 go 1.18
 
 require (
-	github.com/gookit/color v1.5.3
-	github.com/gookit/goutil v0.6.11
+	github.com/gookit/color v1.5.4
+	github.com/gookit/goutil v0.6.12
 	github.com/gookit/gsr v0.1.0
 	github.com/valyala/bytebufferpool v1.0.0
 )

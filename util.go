@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/gookit/goutil/byteutil"
-	"github.com/gookit/goutil/stdutil"
 	"github.com/gookit/goutil/strutil"
 	"github.com/valyala/bytebufferpool"
 )
@@ -110,7 +109,7 @@ func EncodeToString(v any) string {
 	if mp, ok := v.(map[string]any); ok {
 		return mapToString(mp)
 	}
-	return stdutil.ToString(v)
+	return strutil.SafeString(v)
 }
 
 func mapToString(mp map[string]any) string {

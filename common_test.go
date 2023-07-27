@@ -96,7 +96,7 @@ func newLogRecord(msg string) *slog.Record {
 			"source":     "linux",
 			"extra_key0": "hello",
 		},
-		// Caller: stdutil.GetCallerInfo(),
+		// Caller: goinfo.GetCallerInfo(),
 	}
 
 	r.Init(true)
