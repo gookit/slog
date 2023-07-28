@@ -19,23 +19,24 @@ func compressFile(srcPath, dstPath string) error {
 	defer srcFile.Close()
 
 	// create and open a gz file
-	gzFile, err := fsutil.QuickOpenFile(dstPath)
+	gzFile, err := fsutil.OpenTruncFile(dstPath)
 	if err != nil {
 		return err
 	}
 	defer gzFile.Close()
 
-	zw := gzip.NewWriter(gzFile)
-
-	fileSt, err := srcFile.Stat()
+	srcSt, err := srcFile.Stat()
 	if err != nil {
 		return err
 	}
 
-	zw.Name = fileSt.Name()
-	zw.ModTime = fileSt.ModTime()
+	zw := gzip.NewWriter(gzFile)
+	zw.Name = srcSt.Name()
+	zw.ModTime = srcSt.ModTime()
 
+	// do copy
 	if _, err = io.Copy(zw, srcFile); err != nil {
+		_ = zw.Close()
 		return err
 	}
 	return zw.Close()

@@ -374,7 +374,7 @@ func (d *Writer) Clean() (err error) {
 
 			oldFiles = oldFiles[idx+1:]
 			if err != nil {
-				return err
+				return errorx.Wrap(err, "remove old file error")
 			}
 		}
 	}
@@ -427,9 +427,9 @@ func (d *Writer) compressFiles(oldFiles []fileInfo) error {
 			return errorx.Wrap(err, "compress old file error")
 		}
 
-		// remove raw log file
+		// remove old log file
 		if err = os.Remove(fi.filePath); err != nil {
-			return err
+			return errorx.Wrap(err, "remove file error after compress")
 		}
 	}
 	return nil
