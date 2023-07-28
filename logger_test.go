@@ -47,6 +47,7 @@ func TestLogger_PushHandler(t *testing.T) {
 	l.MustFlush()
 
 	assert.NoErr(t, l.Close())
+	l.MustClose()
 	l.Reset()
 }
 
@@ -111,6 +112,15 @@ func TestLogger_panic(t *testing.T) {
 	err := l.LastErr()
 	assert.Err(t, err)
 	assert.Eq(t, "flush error", err.Error())
+
+	h.errOnClose = true
+	assert.Panics(t, func() {
+		l.MustClose()
+	})
+
+	err = l.LastErr()
+	assert.Err(t, err)
+	assert.Eq(t, "close error", err.Error())
 }
 
 func TestLogger_error(t *testing.T) {

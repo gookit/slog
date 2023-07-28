@@ -55,7 +55,7 @@ var std = NewStdLogger()
 // Std get std logger
 func Std() *SugaredLogger { return std }
 
-// Reset the std logger
+// Reset the std logger and reset exit handlers
 func Reset() {
 	ResetExitHandlers(true)
 	// new std
@@ -68,8 +68,18 @@ func Configure(fn func(l *SugaredLogger)) { std.Config(fn) }
 // SetExitFunc to the std logger
 func SetExitFunc(fn func(code int)) { std.ExitFunc = fn }
 
-// Exit runs all the logger exit handlers and then terminates the program using os.Exit(code)
+// Exit runs all exit handlers and then terminates the program using os.Exit(code)
 func Exit(code int) { std.Exit(code) }
+
+// Close logger, flush and close all handlers.
+//
+// IMPORTANT: please call Close() before app exit.
+func Close() error { return std.Close() }
+
+// MustClose logger, flush and close all handlers.
+//
+// IMPORTANT: please call Close() before app exit.
+func MustClose() { goutil.PanicErr(Close()) }
 
 // Flush log messages
 func Flush() error { return std.Flush() }
@@ -82,7 +92,7 @@ func FlushTimeout(timeout time.Duration) { std.FlushTimeout(timeout) }
 
 // FlushDaemon run flush handle on daemon.
 //
-// Usage please see ExampleFlushDaemon()
+// Usage please see slog_test.ExampleFlushDaemon()
 func FlushDaemon(onStops ...func()) {
 	std.FlushDaemon(onStops...)
 }

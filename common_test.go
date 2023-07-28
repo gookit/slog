@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/gookit/goutil/byteutil"
 	"github.com/gookit/goutil/dump"
 	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/testutil/assert"
@@ -122,6 +123,8 @@ func (w *closedBuffer) StringReset() string {
 }
 
 type testHandler struct {
+	slog.FormatterWrapper
+	byteutil.Buffer
 	errOnHandle bool
 	errOnFlush  bool
 	errOnClose  bool
@@ -131,28 +134,38 @@ func newTestHandler() *testHandler {
 	return &testHandler{}
 }
 
-func (h testHandler) IsHandling(_ slog.Level) bool {
+func (h *testHandler) IsHandling(_ slog.Level) bool {
 	return true
 }
 
-func (h testHandler) Close() error {
+func (h *testHandler) Close() error {
 	if h.errOnClose {
 		return errorx.Raw("close error")
 	}
+
+	h.Reset()
 	return nil
 }
 
-func (h testHandler) Flush() error {
+func (h *testHandler) Flush() error {
 	if h.errOnFlush {
 		return errorx.Raw("flush error")
 	}
+
+	h.Reset()
 	return nil
 }
 
-func (h testHandler) Handle(_ *slog.Record) error {
+func (h *testHandler) Handle(r *slog.Record) error {
 	if h.errOnHandle {
 		return errorx.Raw("handle error")
 	}
+
+	bs, err := h.Format(r)
+	if err != nil {
+		return err
+	}
+	h.Write(bs)
 	return nil
 }
 

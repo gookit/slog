@@ -270,7 +270,7 @@ var exitHandlers = make([]func(), 0)
 func runExitHandlers() {
 	defer func() {
 		if err := recover(); err != nil {
-			printlnStderr("slog: run exit handler error:", err)
+			printlnStderr("slog: run exit handler(global) recovered, error:", err)
 		}
 	}()
 

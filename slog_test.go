@@ -2,6 +2,7 @@ package slog_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"strconv"
@@ -101,6 +102,7 @@ func TestFlushTimeout(t *testing.T) {
 	defer slog.Reset()
 	slog.Info("print log message")
 	slog.FlushTimeout(timex.Second * 1)
+	slog.MustFlush()
 }
 
 func TestNewSugaredLogger(t *testing.T) {
@@ -191,16 +193,32 @@ func printfLogs(msg string, args ...any) {
 	slog.Fatalf(msg, args...)
 }
 
-func TestUseJSONFormat(t *testing.T) {
+func TestSetFormatter_jsonFormat(t *testing.T) {
 	defer slog.Reset()
+	slog.SetLogLevel(slog.TraceLevel)
 	slog.SetFormatter(slog.NewJSONFormatter())
 
-	slog.Info("info log message")
-	slog.Warn("warning log message")
+	th := newTestHandler()
+	th.SetFormatter(slog.NewJSONFormatter().Configure(func(f *slog.JSONFormatter) {
+		f.Fields = slog.NoTimeFields
+	}))
+	slog.PushHandler(th)
+
+	assert.Eq(t, 2, slog.Std().HandlersNum())
+
+	slog.Info("info log message1")
+	slog.Warn("warning log message2")
+	s := th.ResetGet()
+	assert.StrContains(t, s, `"level":"INFO"`)
+	assert.StrContains(t, s, `info log message1`)
+	assert.StrContains(t, s, `"level":"WARN"`)
+	assert.StrContains(t, s, `warning log message2`)
+
 	slog.WithData(slog.M{
 		"key0": 134,
 		"key1": "abc",
 	}).Infof("info log %s", "message")
+	s = th.ResetGet()
 
 	r := slog.WithFields(slog.M{
 		"category": "service",
@@ -208,6 +226,17 @@ func TestUseJSONFormat(t *testing.T) {
 	})
 	r.Infof("info %s", "message")
 	r.Debugf("debug %s", "message")
+	s = th.ResetGet()
+
+	r = slog.WithField("app", "order")
+	r.Trace("trace message")
+	r.Println("print message")
+	s = th.ResetGet()
+	assert.StrContains(t, s, `"app":"order"`)
+	assert.StrCount(t, s, `"app":"order"`, 2)
+
+	slog.WithContext(context.Background()).Print("print message with ctx")
+	assert.StrContains(t, th.ResetGet(), "print message with ctx")
 }
 
 func TestAddHandler(t *testing.T) {
@@ -344,7 +373,7 @@ func TestExitHandlerWithError(t *testing.T) {
 	testutil.RewriteStderr()
 	slog.Exit(23)
 	str := testutil.RestoreStderr()
-	assert.Eq(t, "slog: run exit handler error: test error\n", str)
+	assert.Eq(t, "slog: run exit handler(global) recovered, error: test error\n", str)
 }
 
 func TestLogger_ExitHandlerWithError(t *testing.T) {
@@ -361,7 +390,7 @@ func TestLogger_ExitHandlerWithError(t *testing.T) {
 	testutil.RewriteStderr()
 	l.Exit(23)
 	str := testutil.RestoreStderr()
-	assert.Eq(t, "slog: run exit handler error: test error\n", str)
+	assert.Eq(t, "slog: run exit handler recovered, error: test error\n", str)
 }
 
 func TestLogger_PrependExitHandler(t *testing.T) {
@@ -378,7 +407,7 @@ func TestLogger_PrependExitHandler(t *testing.T) {
 	testutil.RewriteStderr()
 	l.Exit(23)
 	str := testutil.RestoreStderr()
-	assert.Eq(t, "slog: run exit handler error: test error2\n", str)
+	assert.Eq(t, "slog: run exit handler recovered, error: test error2\n", str)
 }
 
 func TestSugaredLogger_Close(t *testing.T) {

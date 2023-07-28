@@ -4,6 +4,8 @@ import (
 	"context"
 	"sync"
 	"time"
+
+	"github.com/gookit/goutil"
 )
 
 // Logger log dispatcher definition.
@@ -15,6 +17,8 @@ type Logger struct {
 	mu sync.Mutex
 	// logger latest error
 	err error
+	// mark logger is closed
+	closed bool
 
 	// log handlers for logger
 	handlers   []Handler
@@ -220,9 +224,7 @@ func (l *Logger) Flush() error { return l.lockAndFlushAll() }
 
 // MustFlush flush logs. will panic on error
 func (l *Logger) MustFlush() {
-	if err := l.lockAndFlushAll(); err != nil {
-		panic(err)
-	}
+	goutil.PanicErr(l.lockAndFlushAll())
 }
 
 // FlushAll flushes all the logs and attempts to "sync" their data to disk.
@@ -251,10 +253,22 @@ func (l *Logger) flushAll() {
 	})
 }
 
-// Close the logger
+// MustClose close logger. will panic on error
+func (l *Logger) MustClose() {
+	goutil.PanicErr(l.Close())
+}
+
+// Close the logger, will flush all logs and close all handlers
+//
+// IMPORTANT:
+//
+//	if enable async/buffer mode, please call the Close() before exit.
 func (l *Logger) Close() error {
+	if l.closed {
+		return nil
+	}
+
 	_ = l.VisitAll(func(handler Handler) error {
-		// flush logs and then close
 		if err := handler.Close(); err != nil {
 			l.err = err
 			printlnStderr("slog: call handler.Close() error:", err)
@@ -262,13 +276,14 @@ func (l *Logger) Close() error {
 		return nil
 	})
 
+	l.closed = true
 	return l.err
 }
 
 // VisitAll logger handlers
 func (l *Logger) VisitAll(fn func(handler Handler) error) error {
 	for _, handler := range l.handlers {
-		// you can return nil for ignore error
+		// TIP: you can return nil for ignore error
 		if err := fn(handler); err != nil {
 			return err
 		}
@@ -276,8 +291,9 @@ func (l *Logger) VisitAll(fn func(handler Handler) error) error {
 	return nil
 }
 
-// Reset the logger
+// Reset the logger. will reset: handlers, processors, closed=false
 func (l *Logger) Reset() {
+	l.closed = false
 	l.ResetHandlers()
 	l.ResetProcessors()
 }
@@ -307,7 +323,7 @@ func (l *Logger) Exit(code int) {
 func (l *Logger) runExitHandlers() {
 	defer func() {
 		if err := recover(); err != nil {
-			printlnStderr("slog: run exit handler error:", err)
+			printlnStderr("slog: run exit handler recovered, error:", err)
 		}
 	}()
 
@@ -316,14 +332,18 @@ func (l *Logger) runExitHandlers() {
 	}
 }
 
-// DoNothingOnPanicFatal do nothing on panic or fatal level.
-// useful on testing.
+// DoNothingOnPanicFatal do nothing on panic or fatal level. useful on testing.
 func (l *Logger) DoNothingOnPanicFatal() {
 	l.PanicFunc = DoNothingOnPanic
 	l.ExitFunc = DoNothingOnExit
 }
 
-// LastErr fetch, will clear after read.
+// HandlersNum returns the number of handlers
+func (l *Logger) HandlersNum() int {
+	return len(l.handlers)
+}
+
+// LastErr fetch, will clear it after read.
 func (l *Logger) LastErr() error {
 	err := l.err
 	l.err = nil

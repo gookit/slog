@@ -95,7 +95,7 @@ func TestTextFormatter_Format(t *testing.T) {
 	assert.NotContains(t, logTxt, "}}")
 }
 
-func TestJSONFormatter(t *testing.T) {
+func TestNewJSONFormatter(t *testing.T) {
 	f := slog.NewJSONFormatter()
 	f.AddField(slog.FieldKeyTimestamp)
 
