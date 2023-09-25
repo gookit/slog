@@ -8,6 +8,18 @@ import (
 	"github.com/gookit/slog"
 )
 
+// SysLogOpt for syslog handler
+type SysLogOpt struct {
+	// Tag syslog tag
+	Tag string
+	// Priority syslog priority
+	Priority syslog.Priority
+	// Network syslog network
+	Network string
+	// Raddr syslog address
+	Raddr string
+}
+
 // SysLogHandler struct
 type SysLogHandler struct {
 	slog.LevelWithFormatter
@@ -16,7 +28,15 @@ type SysLogHandler struct {
 
 // NewSysLogHandler instance
 func NewSysLogHandler(priority syslog.Priority, tag string) (*SysLogHandler, error) {
-	slWriter, err := syslog.New(priority, tag)
+	return NewSysLog(&SysLogOpt{
+		Priority: priority,
+		Tag:      tag,
+	})
+}
+
+// NewSysLog handler instance with all custom options.
+func NewSysLog(opt *SysLogOpt) (*SysLogHandler, error) {
+	slWriter, err := syslog.Dial(opt.Network, opt.Raddr, opt.Priority, opt.Tag)
 	if err != nil {
 		return nil, err
 	}
