@@ -107,11 +107,15 @@ func (r *Record) WithData(data M) *Record {
 }
 
 // WithField with a new field to record
+//
+// Note: add field need config Formatter template fields.
 func (r *Record) WithField(name string, val any) *Record {
 	return r.WithFields(M{name: val})
 }
 
 // WithFields with new fields to record
+//
+// Note: add field need config Formatter template fields.
 func (r *Record) WithFields(fields M) *Record {
 	nr := r.Copy()
 	if nr.Fields == nil {

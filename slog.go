@@ -129,17 +129,31 @@ func AddProcessors(ps ...Processor) { std.AddProcessors(ps...) }
 
 // -------------------------- New record with log data, fields -----------------------------
 
+// WithExtra new record with extra data
+func WithExtra(ext M) *Record {
+	return std.WithExtra(ext)
+}
+
 // WithData new record with data
 func WithData(data M) *Record {
 	return std.WithData(data)
 }
 
-// WithField new record with field
+// WithValue new record with data value
+func WithValue(key string, value any) *Record {
+	return std.WithValue(key, value)
+}
+
+// WithField new record with field.
+//
+// TIP: add field need config Formatter template fields.
 func WithField(name string, value any) *Record {
 	return std.WithField(name, value)
 }
 
 // WithFields new record with fields
+//
+// TIP: add field need config Formatter template fields.
 func WithFields(fields M) *Record {
 	return std.WithFields(fields)
 }

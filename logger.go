@@ -399,6 +399,8 @@ func (l *Logger) Record() *Record {
 }
 
 // WithField new record with field
+//
+// TIP: add field need config Formatter template fields.
 func (l *Logger) WithField(name string, value any) *Record {
 	r := l.newRecord()
 	defer l.releaseRecord(r)
@@ -406,6 +408,8 @@ func (l *Logger) WithField(name string, value any) *Record {
 }
 
 // WithFields new record with fields
+//
+// TIP: add field need config Formatter template fields.
 func (l *Logger) WithFields(fields M) *Record {
 	r := l.newRecord()
 	defer l.releaseRecord(r)
@@ -417,6 +421,20 @@ func (l *Logger) WithData(data M) *Record {
 	r := l.newRecord()
 	defer l.releaseRecord(r)
 	return r.WithData(data)
+}
+
+// WithValue new record with data value
+func (l *Logger) WithValue(key string, value any) *Record {
+	r := l.newRecord()
+	defer l.releaseRecord(r)
+	return r.AddValue(key, value)
+}
+
+// WithExtra new record with extra data
+func (l *Logger) WithExtra(ext M) *Record {
+	r := l.newRecord()
+	defer l.releaseRecord(r)
+	return r.SetExtra(ext)
 }
 
 // WithTime new record with time.Time
