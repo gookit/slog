@@ -128,7 +128,7 @@ func main() {
 
 ```go
 h := handler.NewConsoleHandler(slog.AllLevels)
-l := slog.NewWithHandlers()
+l := slog.NewWithHandlers(h)
 
 l.Trace("this is a simple log message")
 l.Debug("this is a simple log message")
@@ -137,7 +137,7 @@ l.Debug("this is a simple log message")
 更改默认的logger日志输出样式:
 
 ```go
-h.GetFormatter().(*slog.TextFormatter).SetTemplate(slog.NamedTemplate)
+h.Formatter().(*slog.TextFormatter).SetTemplate(slog.NamedTemplate)
 ```
 
 **输出预览:**

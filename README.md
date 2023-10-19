@@ -128,7 +128,7 @@ Above is the `Formatter` setting that changed the default logger.
 
 ```go
 h := handler.NewConsoleHandler(slog.AllLevels)
-l := slog.NewWithHandlers()
+l := slog.NewWithHandlers(h)
 
 l.Trace("this is a simple log message")
 l.Debug("this is a simple log message")
@@ -137,7 +137,7 @@ l.Debug("this is a simple log message")
 Change the default logger log output style:
 
 ```go
-h.GetFormatter().(*slog.TextFormatter).SetTemplate(slog.NamedTemplate)
+h.Formatter().(*slog.TextFormatter).SetTemplate(slog.NamedTemplate)
 ```
 
 **Output:**
