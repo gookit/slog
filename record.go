@@ -13,8 +13,12 @@ import (
 // Record a log record definition
 type Record struct {
 	logger *Logger
-	// release flag for record. TODO
-	unreleased bool
+	// reuse flag for reuse a record, will not be released on after write.
+	// so, if you want reuse a record, you must call Reused() method.
+	// release a record need call Release() method.
+	reuse bool
+	// Mark whether the current record is released to the pool. TODO
+	freed bool
 	// inited flag for record
 	inited bool
 
@@ -48,6 +52,8 @@ type Record struct {
 	CallerFlag uint8
 	// CallerSkip value. default is equals to Logger.CallerSkip
 	CallerSkip int
+	// EnableStack enable stack info, default is false. TODO
+	EnableStack bool
 
 	// Buffer Can use Buffer on formatter
 	// Buffer *bytes.Buffer
@@ -68,6 +74,20 @@ func newRecord(logger *Logger) *Record {
 		// Data:   make(M, 2),
 		// Extra:  make(M, 0),
 		// Fields: make(M, 0),
+	}
+}
+
+// Reused set record is reused, will not be released on after write.
+func (r *Record) Reused() *Record {
+	r.reuse = true
+	return r
+}
+
+// Release manual release record to pool
+func (r *Record) Release() {
+	if r.reuse {
+		r.reuse = false
+		r.logger.releaseRecord(r)
 	}
 }
 
@@ -146,6 +166,7 @@ func (r *Record) Copy() *Record {
 	}
 
 	return &Record{
+		// reuse: true, // copy record is reused
 		logger:  r.logger,
 		Channel: r.Channel,
 		// Time:       r.Time,
@@ -323,20 +344,21 @@ func (r *Record) log(level Level, args []any) {
 
 	// r.Message = strutil.Byte2str(formatArgsWithSpaces(args)) // will reduce memory allocation once
 	r.Message = formatArgsWithSpaces(args)
-	// r.logWrite(level)
+	// do write log, then release record
 	r.logger.writeRecord(level, r)
+	r.logger.releaseRecord(r)
 }
 
 func (r *Record) logf(level Level, format string, args []any) {
 	if r.logger.BackupArgs {
-		r.Fmt = format
-		r.Args = args
+		r.Fmt, r.Args = format, args
 	}
 
 	r.Level = level
 	r.Message = fmt.Sprintf(format, args...)
-	// r.logWrite(level)
+	// do write log, then release record
 	r.logger.writeRecord(level, r)
+	r.logger.releaseRecord(r)
 }
 
 // Log a message with level

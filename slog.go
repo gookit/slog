@@ -211,6 +211,12 @@ func ErrorT(err error) {
 	}
 }
 
+// EStack logs a error message and with call stack.
+// func EStack(args ...any) {
+// 	std.WithExtra(map[string]any{"stack": goinfo.GetCallerInfo(2)}).
+// 		log(ErrorLevel, args)
+// }
+
 // Debug logs a message at level Debug
 func Debug(args ...any) { std.log(DebugLevel, args) }
 

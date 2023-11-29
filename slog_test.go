@@ -266,7 +266,11 @@ func TestWithExtra(t *testing.T) {
 		AddValue("key1", "val2").
 		Info("info message")
 	s := th.ResetGet()
-	assert.StrContains(t, s, `"ext1":"val1"`)
+	assert.StrContains(t, s, `ext1:val1`)
+	assert.StrContains(t, s, `{key1:val2}`)
+
+	slog.WithValue("key1", "val2").Info("info message")
+	s = th.ResetGet()
 	assert.StrContains(t, s, `{key1:val2}`)
 }
 

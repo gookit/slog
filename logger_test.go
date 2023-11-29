@@ -5,7 +5,9 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/gookit/goutil/dump"
 	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/goutil/timex"
@@ -221,4 +223,39 @@ func TestLogger_option_BackupArgs(t *testing.T) {
 	assert.StrContains(t, s, "str message1")
 	assert.StrContains(t, s, "fmt message2")
 	assert.StrContains(t, s, "field message3")
+}
+
+func TestLogger_rewrite_record(t *testing.T) {
+	h := newTestHandler()
+	l := slog.NewWithHandlers(h)
+
+	t.Run("Record rewrite", func(t *testing.T) {
+		r := l.Record()
+		r.Info("a message1")
+		fmt.Printf("%+v\n", r)
+
+		time.Sleep(time.Millisecond * 2)
+		r.Warn("a message2")
+		fmt.Printf("%+v\n", r)
+
+		time.Sleep(time.Millisecond * 2)
+		r.Warn("a message3")
+		fmt.Printf("%+v\n", r)
+
+		r.Release()
+		dump.P(h.ResetGet())
+	})
+
+	t.Run("Reused rewrite", func(t *testing.T) {
+		r := l.Reused()
+		r.Info("A message1")
+		fmt.Printf("%+v\n", r)
+
+		time.Sleep(time.Millisecond * 2)
+		r.Warn("A message2")
+		fmt.Printf("%+v\n", r)
+
+		r.Release()
+		dump.P(h.ResetGet())
+	})
 }
