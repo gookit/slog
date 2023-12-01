@@ -82,11 +82,6 @@ func (sl *SugaredLogger) Config(fns ...SugaredLoggerFn) *SugaredLogger {
 	return sl
 }
 
-// Configure current logger
-//
-// Deprecated: please use SugaredLogger.Config()
-func (sl *SugaredLogger) Configure(fn SugaredLoggerFn) *SugaredLogger { return sl.Config(fn) }
-
 // Reset the logger
 func (sl *SugaredLogger) Reset() {
 	*sl = *NewSugaredLogger(os.Stdout, DebugLevel)
