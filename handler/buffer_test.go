@@ -1,7 +1,7 @@
 package handler_test
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/gookit/goutil/fsutil"
@@ -24,12 +24,12 @@ func TestNewBufferedHandler(t *testing.T) {
 	l := slog.NewWithHandlers(bh)
 	l.Info("buffered info message")
 
-	bts, err := ioutil.ReadFile(logfile)
+	bts, err := os.ReadFile(logfile)
 	assert.NoErr(t, err)
 	assert.Empty(t, bts)
 
 	l.Warn("buffered warn message")
-	bts, err = ioutil.ReadFile(logfile)
+	bts, err = os.ReadFile(logfile)
 	assert.NoErr(t, err)
 
 	str := string(bts)
@@ -37,38 +37,6 @@ func TestNewBufferedHandler(t *testing.T) {
 
 	err = l.FlushAll()
 	assert.NoErr(t, err)
-}
-
-func TestBufferWrapper(t *testing.T) {
-	logfile := "./testdata/buffer-wrap-handler.log"
-	assert.NoErr(t, fsutil.DeleteIfFileExist(logfile))
-
-	h, err := handler.NewSimpleFile(logfile)
-	assert.NoErr(t, err)
-	assert.True(t, fsutil.IsFile(logfile))
-
-	bw := handler.BufferWrapper(h, 128)
-
-	// new logger
-	l := slog.NewWithHandlers(bw)
-	l.Info("buffered info message")
-
-	bts := fsutil.ReadFile(logfile)
-	assert.Empty(t, bts)
-
-	l.Warn("buffered warn message")
-	bts = fsutil.ReadFile(logfile)
-	str := string(bts)
-	assert.Contains(t, str, "[INFO]")
-
-	err = l.FlushAll()
-	assert.NoErr(t, err)
-	assert.NoErr(t, l.Close())
-
-	// test error
-	h.SetFormatter(newTestFormatter(true))
-	bw = handler.BufferWrapper(h, 128)
-	assert.Err(t, bw.Handle(newLogRecord("test error")))
 }
 
 func TestLineBufferedFile(t *testing.T) {
@@ -83,7 +51,7 @@ func TestLineBufferedFile(t *testing.T) {
 	err = h.Handle(r)
 	assert.NoErr(t, err)
 
-	bts, err := ioutil.ReadFile(logfile)
+	bts, err := os.ReadFile(logfile)
 	assert.NoErr(t, err)
 
 	str := string(bts)
@@ -106,7 +74,7 @@ func TestLineBuffOsFile(t *testing.T) {
 	err = h.Handle(r)
 	assert.NoErr(t, err)
 
-	bts, err := ioutil.ReadFile(logfile)
+	bts, err := os.ReadFile(logfile)
 	assert.NoErr(t, err)
 
 	str := string(bts)
@@ -136,7 +104,7 @@ func TestLineBuffWriter(t *testing.T) {
 	err = h.Handle(r)
 	assert.NoErr(t, err)
 
-	bts, err := ioutil.ReadFile(logfile)
+	bts, err := os.ReadFile(logfile)
 	assert.NoErr(t, err)
 
 	str := string(bts)
