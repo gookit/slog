@@ -44,6 +44,10 @@ func TestInner_parseTemplateToFields(t *testing.T) {
 	// dump.P(ss, str)
 }
 
+func TestUtil_EncodeToString(t *testing.T) {
+	assert.Eq(t, "{a:1}", EncodeToString(map[string]any{"a": 1}))
+}
+
 func TestUtil_formatArgsWithSpaces(t *testing.T) {
 	// tests for formatArgsWithSpaces
 	tests := []struct {

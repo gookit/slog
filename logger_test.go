@@ -225,6 +225,26 @@ func TestLogger_option_BackupArgs(t *testing.T) {
 	assert.StrContains(t, s, "field message3")
 }
 
+func TestLogger_FlushTimeout(t *testing.T) {
+	h := newTestHandler()
+	l := slog.NewWithHandlers(h)
+
+	// test flush error
+	h.errOnFlush = true
+	l.FlushTimeout(time.Millisecond * 2)
+
+	// test flush timeout
+	h.errOnFlush = false
+	h.callOnFlush = func() {
+		time.Sleep(time.Millisecond * 25)
+	}
+	l.FlushTimeout(time.Millisecond * 20)
+
+	assert.Panics(t, func() {
+		l.StopDaemon()
+	})
+}
+
 func TestLogger_rewrite_record(t *testing.T) {
 	h := newTestHandler()
 	l := slog.NewWithHandlers(h)

@@ -128,6 +128,8 @@ type testHandler struct {
 	errOnHandle bool
 	errOnFlush  bool
 	errOnClose  bool
+	// hooks
+	callOnFlush func()
 }
 
 func newTestHandler() *testHandler {
@@ -150,6 +152,9 @@ func (h *testHandler) Close() error {
 func (h *testHandler) Flush() error {
 	if h.errOnFlush {
 		return errorx.Raw("flush error")
+	}
+	if h.callOnFlush != nil {
+		h.callOnFlush()
 	}
 
 	h.Reset()
