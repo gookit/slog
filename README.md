@@ -712,7 +712,7 @@ BenchmarkPhusLogNegative-4              27456256               451.2 ns/op      
 BenchmarkLogrusNegative
 BenchmarkLogrusNegative-4                2550771              4784 ns/op             608 B/op         17 allocs/op
 BenchmarkGookitSlogNegative
->>>> BenchmarkGookitSlogNegative-4            8798220              1375 ns/op             120 B/op          3 allocs/op
+>>>> BenchmarkGookitSlogNegative-4       8798220              1375 ns/op             120 B/op          3 allocs/op
 BenchmarkZapPositive
 BenchmarkZapPositive-4                  10302483              1167 ns/op             192 B/op          1 allocs/op
 BenchmarkZapSugarPositive

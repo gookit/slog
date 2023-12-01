@@ -4,6 +4,40 @@ Run benchmark: `make test-bench`
 
 > **Note**: on each test will update all package to latest.
 
+## v0.5.5 - 2023.11.30
+
+```shell
+goos: darwin
+goarch: amd64
+cpu: Intel(R) Core(TM) i9-9880H CPU @ 2.30GHz
+BenchmarkZapNegative
+BenchmarkZapNegative-4                  14441875               821.2 ns/op           216 B/op          3 allocs/op
+BenchmarkZapSugarNegative
+BenchmarkZapSugarNegative-4             13870006               916.1 ns/op           104 B/op          4 allocs/op
+BenchmarkZeroLogNegative
+BenchmarkZeroLogNegative-4              34721730               359.2 ns/op             0 B/op          0 allocs/op
+BenchmarkPhusLogNegative
+BenchmarkPhusLogNegative-4              39690291               314.4 ns/op             0 B/op          0 allocs/op
+BenchmarkLogrusNegative
+BenchmarkLogrusNegative-4                5605184              2161 ns/op             608 B/op         17 allocs/op
+BenchmarkGookitSlogNegative
+BenchmarkGookitSlogNegative-4           14375598               819.2 ns/op           256 B/op          4 allocs/op
+BenchmarkZapPositive
+BenchmarkZapPositive-4                  15237236               788.5 ns/op           192 B/op          1 allocs/op
+BenchmarkZapSugarPositive
+BenchmarkZapSugarPositive-4              6592038              1910 ns/op             344 B/op          7 allocs/op
+BenchmarkZeroLogPositive
+BenchmarkZeroLogPositive-4              33931623               366.1 ns/op             0 B/op          0 allocs/op
+BenchmarkPhusLogPositive
+BenchmarkPhusLogPositive-4              38740174               309.4 ns/op             0 B/op          0 allocs/op
+BenchmarkLogrusPositive
+BenchmarkLogrusPositive-4                5697038              2197 ns/op             608 B/op         17 allocs/op
+BenchmarkGookitSlogPositive
+BenchmarkGookitSlogPositive-4           14531062               814.6 ns/op           256 B/op          4 allocs/op
+PASS
+ok      command-line-arguments  159.849s
+```
+
 ## v0.5.1 - 2023.04.13
 
 > **Note**: test and record ad 2023.04.13
