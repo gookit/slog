@@ -398,7 +398,7 @@ func (r *Record) Warn(args ...any) { r.log(WarnLevel, args) }
 
 // Warnf logs a message at level Warn
 func (r *Record) Warnf(format string, args ...any) {
-	r.logf(ErrorLevel, format, args)
+	r.logf(WarnLevel, format, args)
 }
 
 // Notice logs a message at level Notice
