@@ -96,6 +96,7 @@ func NewWithName(name string, fns ...LoggerFn) *Logger {
 // NewRecord get new logger record
 func (l *Logger) newRecord() *Record {
 	r := l.recordPool.Get().(*Record)
+	r.reuse = false
 	r.freed = false
 	r.Fields = nil
 	return r
@@ -429,6 +430,7 @@ func (l *Logger) Reused() *Record {
 // TIP: add field need config Formatter template fields.
 func (l *Logger) WithField(name string, value any) *Record {
 	r := l.newRecord()
+	defer l.releaseRecord(r)
 	return r.WithField(name, value)
 }
 
@@ -437,12 +439,14 @@ func (l *Logger) WithField(name string, value any) *Record {
 // TIP: add field need config Formatter template fields.
 func (l *Logger) WithFields(fields M) *Record {
 	r := l.newRecord()
+	defer l.releaseRecord(r)
 	return r.WithFields(fields)
 }
 
 // WithData new record with data
 func (l *Logger) WithData(data M) *Record {
 	r := l.newRecord()
+	defer l.releaseRecord(r)
 	return r.WithData(data)
 }
 
@@ -461,6 +465,7 @@ func (l *Logger) WithExtra(ext M) *Record {
 // WithTime new record with time.Time
 func (l *Logger) WithTime(t time.Time) *Record {
 	r := l.newRecord()
+	defer l.releaseRecord(r)
 	return r.WithTime(t)
 }
 
@@ -470,6 +475,7 @@ func (l *Logger) WithCtx(ctx context.Context) *Record { return l.WithContext(ctx
 // WithContext new record with context.Context
 func (l *Logger) WithContext(ctx context.Context) *Record {
 	r := l.newRecord()
+	defer l.releaseRecord(r)
 	return r.WithContext(ctx)
 }
 
