@@ -41,6 +41,7 @@ type TextFormatter struct {
 	// FullDisplay Whether to display when record.Data, record.Extra, etc. are empty
 	FullDisplay bool
 	// EncodeFunc data encode for Record.Data, Record.Extra, etc.
+	//
 	// Default is encode by EncodeToString()
 	EncodeFunc func(v any) string
 	// CallerFormatFunc the caller format layout. default is defined by CallerFlag
@@ -157,15 +158,15 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 			}
 		case field == FieldKeyData:
 			if f.FullDisplay || len(r.Data) > 0 {
-				buf.WriteString(f.EncodeFunc(r.Data))
+				buf.WriteString(f.encodeVal(r.Data))
 			}
 		case field == FieldKeyExtra:
 			if f.FullDisplay || len(r.Extra) > 0 {
-				buf.WriteString(f.EncodeFunc(r.Extra))
+				buf.WriteString(f.encodeVal(r.Extra))
 			}
 		default:
 			if _, ok := r.Fields[field]; ok {
-				buf.WriteString(f.EncodeFunc(r.Fields[field]))
+				buf.WriteString(f.encodeVal(r.Fields[field]))
 			} else {
 				buf.WriteString(field)
 			}
@@ -176,7 +177,18 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 	return buf.B, nil
 }
 
+func (f *TextFormatter) encodeVal(v any) string {
+	if f.EncodeFunc != nil {
+		return f.EncodeFunc(v)
+	}
+	return EncodeToString(v)
+}
+
 func (f *TextFormatter) renderColorByLevel(text string, level Level) string {
+	if f.ColorTheme == nil {
+		f.ColorTheme = ColorTheme
+	}
+
 	if theme, ok := f.ColorTheme[level]; ok {
 		return theme.Render(text)
 	}

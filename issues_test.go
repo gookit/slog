@@ -1,6 +1,7 @@
 package slog_test
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"testing"
@@ -122,4 +123,27 @@ func TestIssues_108(t *testing.T) {
 	fmt.Println(str)
 	assert.StrContains(t, str, "[probe] [INFO")
 	assert.StrContains(t, str, "[probe] [WARN")
+}
+
+// https://github.com/gookit/slog/issues/139
+// 自定义模板报 invalid memory address or nil pointer dereference #139
+func TestIssues_139(t *testing.T) {
+	myTemplate := "[{{datetime}}] [{{requestid}}] [{{level}}] {{message}}\n"
+	textFormatter := &slog.TextFormatter{TimeFormat: "2006-01-02 15:04:05.000"}
+	textFormatter.SetTemplate(myTemplate)
+	// use func create
+	// textFormatter := slog.NewTextFormatter(myTemplate).Configure(func(f *slog.TextFormatter) {
+	// 	f.TimeFormat = "2006-01-02 15:04:05.000"
+	// })
+	h1 := handler.NewConsoleHandler(slog.AllLevels)
+	h1.SetFormatter(textFormatter)
+	ctx := context.WithValue(context.Background(), "requestid", "111111")
+
+	L := slog.New()
+	L.AddHandlers(h1)
+	// add processor <====
+	L.AddProcessor(slog.ProcessorFunc(func(r *slog.Record) {
+		r.Fields["requestid"] = r.Ctx.Value("requestid")
+	}))
+	L.WithCtx(ctx).Info("test")
 }
