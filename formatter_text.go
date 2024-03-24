@@ -46,7 +46,13 @@ type TextFormatter struct {
 	EncodeFunc func(v any) string
 	// CallerFormatFunc the caller format layout. default is defined by CallerFlag
 	CallerFormatFunc CallerFormatFn
+
+	// TODO BeforeFunc call it before format, update fields or other
+	// BeforeFunc func(r *Record)
 }
+
+// TextFormatterFn definition
+type TextFormatterFn func(*TextFormatter)
 
 // NewTextFormatter create new TextFormatter
 func NewTextFormatter(template ...string) *TextFormatter {
@@ -59,8 +65,8 @@ func NewTextFormatter(template ...string) *TextFormatter {
 
 	f := &TextFormatter{
 		// default options
-		TimeFormat: DefaultTimeFormat,
 		ColorTheme: ColorTheme,
+		TimeFormat: DefaultTimeFormat,
 		// EnableColor: color.SupportColor(),
 		// EncodeFunc: func(v any) string {
 		// 	return fmt.Sprint(v)
@@ -72,9 +78,21 @@ func NewTextFormatter(template ...string) *TextFormatter {
 	return f
 }
 
+// TextFormatterWith create new TextFormatter with options
+func TextFormatterWith(fns ...TextFormatterFn) *TextFormatter {
+	return NewTextFormatter().WithOptions(fns...)
+}
+
 // Configure the formatter
-func (f *TextFormatter) Configure(fn func(*TextFormatter)) *TextFormatter {
-	fn(f)
+func (f *TextFormatter) Configure(fn TextFormatterFn) *TextFormatter {
+	return f.WithOptions(fn)
+}
+
+// WithOptions func on the formatter
+func (f *TextFormatter) WithOptions(fns ...TextFormatterFn) *TextFormatter {
+	for _, fn := range fns {
+		fn(f)
+	}
 	return f
 }
 
@@ -112,6 +130,7 @@ var textPool bytebufferpool.Pool
 //
 //goland:noinspection GoUnhandledErrorResult
 func (f *TextFormatter) Format(r *Record) ([]byte, error) {
+	f.beforeFormat()
 	buf := textPool.Get()
 	defer textPool.Put(buf)
 
@@ -158,15 +177,15 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 			}
 		case field == FieldKeyData:
 			if f.FullDisplay || len(r.Data) > 0 {
-				buf.WriteString(f.encodeVal(r.Data))
+				buf.WriteString(f.EncodeFunc(r.Data))
 			}
 		case field == FieldKeyExtra:
 			if f.FullDisplay || len(r.Extra) > 0 {
-				buf.WriteString(f.encodeVal(r.Extra))
+				buf.WriteString(f.EncodeFunc(r.Extra))
 			}
 		default:
 			if _, ok := r.Fields[field]; ok {
-				buf.WriteString(f.encodeVal(r.Fields[field]))
+				buf.WriteString(f.EncodeFunc(r.Fields[field]))
 			} else {
 				buf.WriteString(field)
 			}
@@ -177,20 +196,19 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 	return buf.B, nil
 }
 
-func (f *TextFormatter) encodeVal(v any) string {
-	if f.EncodeFunc != nil {
-		return f.EncodeFunc(v)
+func (f *TextFormatter) beforeFormat() {
+	// if f.BeforeFunc == nil {}
+	if f.EncodeFunc == nil {
+		f.EncodeFunc = EncodeToString
 	}
-	return EncodeToString(v)
-}
-
-func (f *TextFormatter) renderColorByLevel(text string, level Level) string {
 	if f.ColorTheme == nil {
 		f.ColorTheme = ColorTheme
 	}
+}
 
-	if theme, ok := f.ColorTheme[level]; ok {
-		return theme.Render(text)
+func (f *TextFormatter) renderColorByLevel(s string, l Level) string {
+	if theme, ok := f.ColorTheme[l]; ok {
+		return theme.Render(s)
 	}
-	return text
+	return s
 }

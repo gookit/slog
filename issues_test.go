@@ -137,13 +137,15 @@ func TestIssues_139(t *testing.T) {
 	// })
 	h1 := handler.NewConsoleHandler(slog.AllLevels)
 	h1.SetFormatter(textFormatter)
-	ctx := context.WithValue(context.Background(), "requestid", "111111")
 
 	L := slog.New()
 	L.AddHandlers(h1)
 	// add processor <====
-	L.AddProcessor(slog.ProcessorFunc(func(r *slog.Record) {
-		r.Fields["requestid"] = r.Ctx.Value("requestid")
-	}))
+	// L.AddProcessor(slog.ProcessorFunc(func(r *slog.Record) {
+	// 	r.Fields["requestid"] = r.Ctx.Value("requestid")
+	// }))
+	L.AddProcessor(slog.AppendCtxKeys("requestid"))
+
+	ctx := context.WithValue(context.Background(), "requestid", "111111")
 	L.WithCtx(ctx).Info("test")
 }

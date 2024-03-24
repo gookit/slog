@@ -69,7 +69,7 @@ func TestNewTextFormatter(t *testing.T) {
 	t.Run("CallerFormatFunc", func(t *testing.T) {
 		buf := byteutil.NewBuffer()
 		h := handler.IOWriterWithMaxLevel(buf, slog.DebugLevel)
-		h.SetFormatter(slog.NewTextFormatter().Configure(func(f *slog.TextFormatter) {
+		h.SetFormatter(slog.TextFormatterWith(func(f *slog.TextFormatter) {
 			f.CallerFormatFunc = func(rf *runtime.Frame) string {
 				return "custom_caller"
 			}
