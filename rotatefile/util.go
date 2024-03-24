@@ -2,6 +2,7 @@ package rotatefile
 
 import (
 	"compress/gzip"
+	"fmt"
 	"io"
 	"io/fs"
 	"os"
@@ -10,6 +11,12 @@ import (
 )
 
 const compressSuffix = ".gz"
+
+func printErrln(pfx string, err error) {
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, pfx, err)
+	}
+}
 
 func compressFile(srcPath, dstPath string) error {
 	srcFile, err := os.OpenFile(srcPath, os.O_RDONLY, 0)

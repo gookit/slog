@@ -3,6 +3,7 @@ package rotatefile
 import (
 	"fmt"
 	"io/fs"
+	"math/rand"
 	"os"
 	"path"
 	"sort"
@@ -107,6 +108,11 @@ func (d *Writer) Close() error {
 	return d.close(true)
 }
 
+// MustClose the writer. alias of Close(), but will panic if has error.
+func (d *Writer) MustClose() {
+	printErrln("close writer -", d.close(true))
+}
+
 func (d *Writer) close(closeStopCh bool) error {
 	if err := d.file.Sync(); err != nil {
 		return err
@@ -145,10 +151,8 @@ func (d *Writer) Write(p []byte) (n int, err error) {
 		return
 	}
 
-	// update written size
+	// update size and rotate file
 	d.written += uint64(n)
-
-	// rotate file
 	err = d.doRotate()
 	return
 }
@@ -171,8 +175,10 @@ func (d *Writer) doRotate() (err error) {
 		err = d.rotatingByTime()
 	}
 
-	// async clean backup files. TODO only call on file rotated.
-	d.asyncClean()
+	// async clean backup files.
+	if d.shouldClean(true) {
+		d.asyncClean()
+	}
 	return
 }
 
@@ -243,27 +249,26 @@ func (d *Writer) rotatingFile(bakFile string, rename bool) error {
 	return nil
 }
 
-// open the log file. and set the d.file, d.path
-func (d *Writer) openFile(logfile string) error {
-	file, err := fsutil.OpenFile(logfile, DefaultFileFlags, d.cfg.FilePerm)
-	if err != nil {
-		return err
-	}
-
-	d.path = logfile
-	d.file = file
-	return nil
-}
-
 //
 // ---------------------------------------------------------------------------
 // clean backup files
 // ---------------------------------------------------------------------------
 //
 
+// check should clean old files by config
+func (d *Writer) shouldClean(withRand bool) bool {
+	cfgIsYes := d.cfg.BackupNum > 0 || d.cfg.BackupTime > 0
+	if !withRand {
+		return cfgIsYes
+	}
+
+	// 20% probability trigger clean
+	return cfgIsYes && rand.Intn(100) < 20
+}
+
 // async clean old files by config. should be in lock.
 func (d *Writer) asyncClean() {
-	if d.cfg.BackupNum == 0 && d.cfg.BackupTime == 0 {
+	if !d.shouldClean(false) {
 		return
 	}
 
@@ -384,6 +389,24 @@ func (d *Writer) Clean() (err error) {
 		err = d.compressFiles(oldFiles)
 	}
 	return
+}
+
+//
+// ---------------------------------------------------------------------------
+// helper methods
+// ---------------------------------------------------------------------------
+//
+
+// open the log file. and set the d.file, d.path
+func (d *Writer) openFile(logfile string) error {
+	file, err := fsutil.OpenFile(logfile, DefaultFileFlags, d.cfg.FilePerm)
+	if err != nil {
+		return err
+	}
+
+	d.path = logfile
+	d.file = file
+	return nil
 }
 
 func (d *Writer) buildFilterFns(fileName string) []fsutil.FilterFunc {

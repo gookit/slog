@@ -284,3 +284,8 @@ func WithFilepath(logfile string) ConfigFn {
 		c.Filepath = logfile
 	}
 }
+
+// WithDebugMode setting for debug mode
+func WithDebugMode(c *Config) {
+	c.DebugMode = true
+}

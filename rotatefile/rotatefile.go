@@ -2,9 +2,7 @@
 package rotatefile
 
 import (
-	"fmt"
 	"io"
-	"os"
 )
 
 // RotateWriter interface
@@ -58,9 +56,3 @@ const (
 	// DefaultBackTime default backup time for old files. default keep a week.
 	DefaultBackTime uint = 24 * 7
 )
-
-func printErrln(pfx string, err error) {
-	if err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, pfx, err)
-	}
-}
