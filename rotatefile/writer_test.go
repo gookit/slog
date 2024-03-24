@@ -5,10 +5,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gookit/goutil"
 	"github.com/gookit/goutil/dump"
 	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/goutil/mathutil"
 	"github.com/gookit/goutil/testutil/assert"
+	"github.com/gookit/goutil/timex"
 	"github.com/gookit/slog/rotatefile"
 )
 
@@ -129,4 +131,36 @@ func TestWriter_Clean(t *testing.T) {
 		err = wr.Clean()
 		assert.NoErr(t, err)
 	})
+}
+
+// TODO set github.com/benbjohnson/clock for mock clock
+type constantClock time.Time
+
+func (c constantClock) Now() time.Time { return time.Time(c) }
+func (c constantClock) NewTicker(d time.Duration) *time.Ticker {
+	return &time.Ticker{}
+}
+
+type mockTime struct {
+	tt time.Time
+}
+
+// newMockTime create a mock time instance from datetime string.
+func newMockTime(datetime string) *mockTime {
+	nt := goutil.Must(timex.FromString(datetime))
+	return &mockTime{tt: nt.Time}
+}
+
+func (mt *mockTime) Now() time.Time {
+	return mt.tt
+}
+
+// Add progresses time by the given duration.
+func (mt *mockTime) Add(d time.Duration) {
+	mt.tt = mt.tt.Add(d)
+}
+
+// Datetime returns the current time in the format "2006-01-02 15:04:05".
+func (mt *mockTime) Datetime() string {
+	return mt.tt.Format("2006-01-02 15:04:05")
 }
