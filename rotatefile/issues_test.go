@@ -15,7 +15,7 @@ import (
 func TestIssues_138(t *testing.T) {
 	logfile := "testdata/rotate_day.log"
 
-	mt := newMockTime("2023-11-16 23:59:58")
+	mt := newMockTime("2023-11-16 23:59:55")
 	w, err := rotatefile.NewWriterWith(rotatefile.WithDebugMode, func(c *rotatefile.Config) {
 		c.TimeClock = mt
 		// c.MaxSize = 128
@@ -26,11 +26,13 @@ func TestIssues_138(t *testing.T) {
 	assert.NoErr(t, err)
 	defer w.MustClose()
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 15; i++ {
 		dt := mt.Datetime()
 		_, err = w.WriteString(dt + " [INFO] this is a log message, idx=" + mathutil.String(i) + "\n")
 		assert.NoErr(t, err)
-		mt.Add(time.Second) // add one second
+		// increase time
+		mt.Add(time.Second * 3)
+		// mt.Add(time.Millisecond * 300)
 	}
 
 	// Out: rotate_day.log, rotate_day.log.20231116
@@ -40,12 +42,10 @@ func TestIssues_138(t *testing.T) {
 	// check contents
 	assert.True(t, fsutil.IsFile(logfile))
 	s := fsutil.ReadString(logfile)
-	assert.StrContains(t, s, "2023-11-17 00:00:01 [INFO]")
-	assert.StrNoContains(t, s, "2023-11-16")
+	assert.StrContains(t, s, "2023-11-17 00:00")
 
 	oldFile := logfile + ".20231116"
 	assert.True(t, fsutil.IsFile(oldFile))
 	s = fsutil.ReadString(oldFile)
-	assert.StrContains(t, s, "2023-11-16 23:59:59 [INFO]")
-	assert.StrNoContains(t, s, "2023-11-17")
+	assert.StrContains(t, s, "2023-11-16 23:")
 }

@@ -29,7 +29,7 @@ const (
 //   - "error.log.20201223_1523"
 type RotateTime int
 
-// built in rotate time consts
+// built in rotate time constants
 const (
 	EveryDay    RotateTime = timex.OneDaySec
 	EveryHour   RotateTime = timex.OneHourSec
@@ -39,38 +39,37 @@ const (
 	EverySecond RotateTime = 1 // only use for tests
 )
 
-// Interval get check interval time
+// Interval get check interval time. unit is seconds.
 func (rt RotateTime) Interval() int64 {
 	return int64(rt)
 }
 
 // FirstCheckTime for rotate file.
-// will automatically align the time from the start of each hour.
-func (rt RotateTime) FirstCheckTime(now time.Time) int64 {
+// - will automatically align the time from the start of each hour.
+func (rt RotateTime) FirstCheckTime(now time.Time) time.Time {
 	interval := rt.Interval()
 
 	switch rt.level() {
 	case levelDay:
-		return timex.DayEnd(now).Unix()
+		return timex.DayEnd(now)
 	case levelHour:
 		// should check on H:59:59.500
-		return timex.HourStart(now).Add(timex.OneHour - 500*time.Millisecond).Unix()
+		return timex.HourStart(now).Add(timex.OneHour - 500*time.Millisecond)
 	case levelMin:
 		// eg: minutes=5
 		minutes := int(interval / 60)
 		nextMin := now.Minute() + minutes
 
-		// eg: now.Minute()=57, nextMin=62.
-		// will rotate at next hour start.
+		// will rotate at next hour start. eg: now.Minute()=57, nextMin=62.
 		if nextMin >= 60 {
-			return timex.HourStart(now).Add(timex.OneHour).Unix()
+			return timex.HourStart(now).Add(timex.OneHour)
 		}
 
 		// eg: now.Minute()=37, nextMin=42, will get nextDur=40
 		nextDur := time.Duration(nextMin).Round(time.Duration(minutes))
-		return timex.HourStart(now).Add(nextDur).Unix()
+		return timex.HourStart(now).Add(nextDur)
 	default: // levelSec
-		return now.Unix() + interval
+		return now.Add(time.Duration(interval) * time.Second)
 	}
 }
 

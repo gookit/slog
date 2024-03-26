@@ -39,9 +39,9 @@ type Writer struct {
 	rotateNum uint   // rotate times number
 
 	// context use for rotating file by time
-	suffixFormat   string // the rotating file name suffix. eg: "20210102", "20210102_1500"
-	checkInterval  int64  // check interval seconds.
-	nextRotatingAt int64
+	suffixFormat   string    // the rotating file name suffix. eg: "20210102", "20210102_1500"
+	checkInterval  int64     // check interval seconds.
+	nextRotatingAt time.Time // next rotating time
 }
 
 // NewWriter create rotate write with config and init it.
@@ -74,12 +74,11 @@ func (d *Writer) init() error {
 
 	// calc and storage next rotating time
 	if d.checkInterval > 0 {
-		nowTime := d.cfg.TimeClock.Now()
+		now := d.cfg.TimeClock.Now()
 		// next rotating time
-		d.nextRotatingAt = d.cfg.RotateTime.FirstCheckTime(nowTime)
-
+		d.nextRotatingAt = d.cfg.RotateTime.FirstCheckTime(now)
 		if d.cfg.RotateMode == ModeCreate {
-			logfile = d.cfg.Filepath + "." + nowTime.Format(d.suffixFormat)
+			logfile = d.cfg.Filepath + "." + now.Format(d.suffixFormat)
 		}
 	}
 
@@ -185,17 +184,17 @@ func (d *Writer) doRotate() (err error) {
 // TIP: should only call on d.checkInterval > 0
 func (d *Writer) rotatingByTime() error {
 	now := d.cfg.TimeClock.Now()
-	if d.nextRotatingAt > now.Unix() {
+	if now.Before(d.nextRotatingAt) {
 		return nil
 	}
 
 	// generate new file path.
 	// eg: /tmp/error.log => /tmp/error.log.20220423_1600
-	file := d.cfg.Filepath + "." + now.Format(d.suffixFormat)
+	file := d.cfg.Filepath + "." + d.nextRotatingAt.Format(d.suffixFormat)
 	err := d.rotatingFile(file, false)
 
-	// storage next rotating time
-	d.nextRotatingAt = now.Unix() + d.checkInterval
+	// calc and storage next rotating time
+	d.nextRotatingAt = d.nextRotatingAt.Add(time.Duration(d.checkInterval) * time.Second)
 	return err
 }
 

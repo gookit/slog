@@ -50,7 +50,7 @@ func TestRotateTime_TimeFormat(t *testing.T) {
 	rt := rotatefile.EveryDay
 	assert.Eq(t, "20060102", rt.TimeFormat())
 	ft := rt.FirstCheckTime(now.T())
-	assert.Eq(t, now.DayEnd().Unix(), ft)
+	assert.True(t, now.DayEnd().Equal(ft))
 
 	rt = rotatefile.EveryHour
 	assert.Eq(t, "20060102_1500", rt.TimeFormat())
@@ -58,12 +58,12 @@ func TestRotateTime_TimeFormat(t *testing.T) {
 	rt = rotatefile.Every15Min
 	assert.Eq(t, "20060102_1504", rt.TimeFormat())
 	ft = rt.FirstCheckTime(now.T())
-	assert.Gt(t, ft, 0)
+	assert.Gt(t, ft.Unix(), 0)
 
 	rt = rotatefile.EverySecond
 	assert.Eq(t, "20060102_150405", rt.TimeFormat())
 	ft = rt.FirstCheckTime(now.T())
-	assert.Eq(t, now.Unix()+rt.Interval(), ft)
+	assert.Eq(t, now.Unix()+rt.Interval(), ft.Unix())
 }
 
 func TestRotateTime_String(t *testing.T) {
