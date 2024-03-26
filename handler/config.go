@@ -11,7 +11,7 @@ import (
 	"github.com/gookit/slog/rotatefile"
 )
 
-// the buff mode consts
+// the buff mode constants
 const (
 	BuffModeLine = "line"
 	BuffModeBite = "bite"
@@ -58,6 +58,9 @@ type Config struct {
 
 	// RotateMode for rotate file by time. default rotatefile.ModeRename
 	RotateMode rotatefile.RotateMode `json:"rotate_mode" yaml:"rotate_mode"`
+
+	// TimeClock for rotate file by time.
+	TimeClock rotatefile.Clocker `json:"-" yaml:"-"`
 
 	// MaxSize on rotate file by size, unit is bytes.
 	MaxSize uint64 `json:"max_size" yaml:"max_size"`
@@ -148,7 +151,7 @@ func (c *Config) CreateHandler() (*SyncCloseHandler, error) {
 // RotateWriter build rotate writer by config
 func (c *Config) RotateWriter() (output SyncCloseWriter, err error) {
 	if c.MaxSize == 0 && c.RotateTime == 0 {
-		return nil, errorx.Raw("slog: cannot create rotate writer, MaxSize and RotateTime both is 0")
+		return nil, errorx.E("slog: cannot create rotate writer, MaxSize and RotateTime both is 0")
 	}
 
 	return c.CreateWriter()
@@ -163,7 +166,7 @@ func (c *Config) CreateWriter() (output SyncCloseWriter, err error) {
 		c.FilePerm = rotatefile.DefaultFilePerm
 	}
 
-	// create a rotate config.
+	// create a rotated writer by config.
 	if c.MaxSize > 0 || c.RotateTime > 0 {
 		rc := rotatefile.EmptyConfigWith()
 
@@ -184,10 +187,13 @@ func (c *Config) CreateWriter() (output SyncCloseWriter, err error) {
 		if c.RenameFunc != nil {
 			rc.RenameFunc = c.RenameFunc
 		}
+		if c.TimeClock != nil {
+			rc.TimeClock = c.TimeClock
+		}
 
-		// create a rotating writer
 		output, err = rc.Create()
 	} else {
+		// create a file writer
 		output, err = fsutil.OpenAppendFile(c.Logfile, c.FilePerm)
 	}
 
@@ -209,10 +215,6 @@ type flushSyncCloseWriter interface {
 
 // wrap buffer for the writer
 func (c *Config) wrapBuffer(w io.Writer) (bw flushSyncCloseWriter) {
-	// if c.BuffSize == 0 {
-	// 	panic("slog: buff size cannot be zero on wrap buffer")
-	// }
-
 	if c.BuffMode == BuffModeLine {
 		bw = bufwrite.NewLineWriterSize(w, c.BuffSize)
 	} else {
@@ -264,14 +266,19 @@ func WithLevelNames(names []string) ConfigFn {
 	}
 }
 
-// WithRotateTime setting
+// WithRotateTime setting rotate time
 func WithRotateTime(rt rotatefile.RotateTime) ConfigFn {
 	return func(c *Config) { c.RotateTime = rt }
 }
 
-// WithRotateMode setting
+// WithRotateMode setting rotate mode
 func WithRotateMode(m rotatefile.RotateMode) ConfigFn {
 	return func(c *Config) { c.RotateMode = m }
+}
+
+// WithTimeClock setting
+func WithTimeClock(clock rotatefile.Clocker) ConfigFn {
+	return func(c *Config) { c.TimeClock = clock }
 }
 
 // WithBackupNum setting
@@ -279,32 +286,32 @@ func WithBackupNum(n uint) ConfigFn {
 	return func(c *Config) { c.BackupNum = n }
 }
 
-// WithBackupTime setting
+// WithBackupTime setting backup time
 func WithBackupTime(bt uint) ConfigFn {
 	return func(c *Config) { c.BackupTime = bt }
 }
 
-// WithBuffMode setting
+// WithBuffMode setting buffer mode
 func WithBuffMode(buffMode string) ConfigFn {
 	return func(c *Config) { c.BuffMode = buffMode }
 }
 
-// WithBuffSize setting
+// WithBuffSize setting buffer size
 func WithBuffSize(buffSize int) ConfigFn {
 	return func(c *Config) { c.BuffSize = buffSize }
 }
 
-// WithMaxSize setting
+// WithMaxSize setting max size for rotate file
 func WithMaxSize(maxSize uint64) ConfigFn {
 	return func(c *Config) { c.MaxSize = maxSize }
 }
 
-// WithCompress setting
+// WithCompress setting compress
 func WithCompress(compress bool) ConfigFn {
 	return func(c *Config) { c.Compress = compress }
 }
 
-// WithUseJSON setting
+// WithUseJSON setting use json format
 func WithUseJSON(useJSON bool) ConfigFn {
 	return func(c *Config) { c.UseJSON = useJSON }
 }

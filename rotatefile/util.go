@@ -6,8 +6,11 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"time"
 
+	"github.com/gookit/goutil"
 	"github.com/gookit/goutil/fsutil"
+	"github.com/gookit/goutil/timex"
 )
 
 const compressSuffix = ".gz"
@@ -81,4 +84,30 @@ func (fis modTimeFInfos) Swap(i, j int) {
 // Len get
 func (fis modTimeFInfos) Len() int {
 	return len(fis)
+}
+
+// MockClocker mock clock for test
+type MockClocker struct {
+	tt time.Time
+}
+
+// NewMockClock create a mock time instance from datetime string.
+func NewMockClock(datetime string) *MockClocker {
+	nt := goutil.Must(timex.FromString(datetime))
+	return &MockClocker{tt: nt.Time}
+}
+
+// Now get current time.
+func (mt *MockClocker) Now() time.Time {
+	return mt.tt
+}
+
+// Add progresses time by the given duration.
+func (mt *MockClocker) Add(d time.Duration) {
+	mt.tt = mt.tt.Add(d)
+}
+
+// Datetime returns the current time in the format "2006-01-02 15:04:05".
+func (mt *MockClocker) Datetime() string {
+	return mt.tt.Format("2006-01-02 15:04:05")
 }

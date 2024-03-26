@@ -46,7 +46,7 @@ func FlushCloserWithLevels(out FlushCloseWriter, levels []slog.Level) *FlushClos
 //
 // Usage:
 //
-//	buf := new(bytes.Buffer)
+//	buf := new(byteutil.Buffer)
 //	h := handler.NewFlushCloseHandler(&buf, slog.AllLevels)
 //
 //	f, err := os.OpenFile("my.log", ...)

@@ -88,25 +88,12 @@ func TestNewSizeRotateFileHandler(t *testing.T) {
 
 func TestNewTimeRotateFileHandler_EveryDay(t *testing.T) {
 	logfile := "./testdata/time-rotate_EveryDay.log"
-	newFile := logfile + timex.Now().DateFormat(".Ymd")
+	newFile := logfile + ".20221116"
 
-	sec := -2
-	// set current time to today 23:59:57
-	testClock := func() time.Time {
-		// dump.P(sec)
-		return timex.Now().DayEnd().AddSeconds(sec).Time
-	}
-	assert.Eq(t, "23:59:57", timex.Date(testClock(), "H:I:S"))
-
-	// backup
-	bckFn := rotatefile.DefaultTimeClockFn
-	rotatefile.DefaultTimeClockFn = testClock
-	defer func() {
-		rotatefile.DefaultTimeClockFn = bckFn
-	}()
-
+	clock := rotatefile.NewMockClock("2022-11-16 23:59:57")
 	options := []handler.ConfigFn{
 		handler.WithBuffSize(128),
+		handler.WithTimeClock(clock),
 	}
 
 	h := handler.MustTimeRotateFile(logfile, handler.EveryDay, options...)
@@ -114,14 +101,13 @@ func TestNewTimeRotateFileHandler_EveryDay(t *testing.T) {
 
 	l := slog.NewWithHandlers(h)
 	l.ReportCaller = true
-	l.TimeClock = testClock
+	l.TimeClock = clock.Now
 
-	for i := 0; i < 4; i++ {
+	for i := 0; i < 6; i++ {
 		l.WithData(sampleData).Info("the th:", i, "info message")
 		l.Warnf("the th:%d warn message text", i)
-		sec++
 		fmt.Println("log number ", (i+1)*2)
-		// time.Sleep(time.Second * 1)
+		clock.Add(time.Second * 1)
 	}
 
 	l.MustClose()
@@ -130,29 +116,12 @@ func TestNewTimeRotateFileHandler_EveryDay(t *testing.T) {
 }
 
 func TestNewTimeRotateFileHandler_EveryHour(t *testing.T) {
+	clock := rotatefile.NewMockClock("2022-04-28 20:59:58")
 	logfile := "./testdata/time-rotate_EveryHour.log"
-	assert.NoErr(t, fsutil.DeleteIfExist(logfile))
-
-	hourStart := timex.Now().HourStart()
-	newFile := logfile + hourStart.DateFormat(".Ymd_H00")
-	assert.NoErr(t, fsutil.DeleteIfFileExist(newFile))
-
-	sec := -2
-	// set current time to hour end 59:58
-	testClock := func() time.Time {
-		// dump.P(sec)
-		return hourStart.AddHour(1).AddSeconds(sec).Time
-	}
-	assert.Eq(t, "59:58", timex.Date(testClock(), "I:S"))
-
-	// backup
-	bckFn := rotatefile.DefaultTimeClockFn
-	rotatefile.DefaultTimeClockFn = testClock
-	defer func() {
-		rotatefile.DefaultTimeClockFn = bckFn
-	}()
+	newFile := logfile + timex.DateFormat(clock.Now(), ".Ymd_H00")
 
 	options := []handler.ConfigFn{
+		handler.WithTimeClock(clock),
 		handler.WithBuffSize(0),
 	}
 	h, err := handler.NewTimeRotateFile(logfile, rotatefile.EveryHour, options...)
@@ -162,13 +131,13 @@ func TestNewTimeRotateFileHandler_EveryHour(t *testing.T) {
 
 	l := slog.NewWithHandlers(h)
 	l.ReportCaller = true
-	l.TimeClock = testClock
+	l.TimeClock = clock.Now
 
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 6; i++ {
 		l.WithData(sampleData).Info("the th:", i, "info message")
 		l.Warnf("the th:%d warn message text", i)
-		sec++
 		fmt.Println("log number ", (i+1)*2)
+		clock.Add(time.Second * 1)
 	}
 	l.MustClose()
 

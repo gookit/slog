@@ -15,7 +15,7 @@ import (
 func TestIssues_138(t *testing.T) {
 	logfile := "testdata/rotate_day.log"
 
-	mt := newMockTime("2023-11-16 23:59:55")
+	mt := rotatefile.NewMockClock("2023-11-16 23:59:55")
 	w, err := rotatefile.NewWriterWith(rotatefile.WithDebugMode, func(c *rotatefile.Config) {
 		c.TimeClock = mt
 		// c.MaxSize = 128
