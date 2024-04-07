@@ -57,7 +57,25 @@ func (h *SysLogHandler) Handle(record *slog.Record) error {
 		return err
 	}
 
-	return h.writer.Info(string(bts))
+	s := string(bts)
+
+	// write log by level
+	switch record.Level {
+	case slog.DebugLevel, slog.TraceLevel:
+		return h.writer.Debug(s)
+	case slog.NoticeLevel:
+		return h.writer.Notice(s)
+	case slog.WarnLevel:
+		return h.writer.Warning(s)
+	case slog.ErrorLevel:
+		return h.writer.Err(s)
+	case slog.FatalLevel:
+		return h.writer.Crit(s)
+	case slog.PanicLevel:
+		return h.writer.Emerg(s)
+	default: // as info level
+		return h.writer.Info(s)
+	}
 }
 
 // Close handler
