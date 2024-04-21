@@ -315,3 +315,6 @@ func WithCompress(compress bool) ConfigFn {
 func WithUseJSON(useJSON bool) ConfigFn {
 	return func(c *Config) { c.UseJSON = useJSON }
 }
+
+// WithDebugMode setting for debug mode
+func WithDebugMode(c *Config) { c.DebugMode = true }

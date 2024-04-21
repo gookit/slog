@@ -289,17 +289,17 @@ func (d *Writer) asyncClean() {
 
 	// start a goroutine to clean backups
 	go func() {
-		d.cfg.Debug("start a goroutine consumer for clean old files")
+		d.cfg.Debug("START a goroutine consumer for clean old files")
 
 		// consume the signal until stop
 		for {
 			select {
 			case <-d.cleanCh:
-				d.cfg.Debug("clean old files handling ...")
+				d.cfg.Debug("receive signal - clean old files handling")
 				printErrln("rotatefile: clean old files error:", d.Clean())
 			case <-d.stopCh:
 				d.cleanCh = nil
-				d.cfg.Debug("stop consumer for clean old files")
+				d.cfg.Debug("STOP consumer for clean old files")
 				return // stop clean
 			}
 		}
@@ -317,7 +317,7 @@ func (d *Writer) Clean() (err error) {
 	fileDir, fileName := path.Split(d.cfg.Filepath)
 
 	// find and clean old files
-	err = fsutil.FindInDir(fileDir, func(fPath string, ent fs.DirEntry) error {
+	err = fsutil.FindInDir(fileDir[:len(fileDir)-2], func(fPath string, ent fs.DirEntry) error {
 		fi, err := ent.Info()
 		if err != nil {
 			return err
@@ -434,6 +434,7 @@ func (d *Writer) buildFilterFns(fileName string) []fsutil.FilterFunc {
 			}
 
 			// remove expired files
+			d.cfg.Debug("remove expired file:", fPath)
 			printErrln("rotatefile: remove expired file error:", os.Remove(fPath))
 			return false
 		})

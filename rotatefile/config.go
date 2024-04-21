@@ -219,7 +219,7 @@ func (c *Config) IsMode(m RotateMode) bool { return c.RotateMode == m }
 // Debug print debug message on development
 func (c *Config) Debug(vs ...any) {
 	if c.DebugMode {
-		stdio.WriteString("[rotate-file.DEBUG] " + fmt.Sprintln(vs...))
+		stdio.WriteString("[rotatefile.DEBUG] " + fmt.Sprintln(vs...))
 	}
 }
 

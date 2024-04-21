@@ -9,8 +9,10 @@ import (
 
 	"github.com/gookit/goutil/byteutil"
 	"github.com/gookit/goutil/testutil/assert"
+	"github.com/gookit/goutil/timex"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
+	"github.com/gookit/slog/rotatefile"
 )
 
 // https://github.com/gookit/slog/issues/27
@@ -148,4 +150,38 @@ func TestIssues_139(t *testing.T) {
 
 	ctx := context.WithValue(context.Background(), "requestid", "111111")
 	L.WithCtx(ctx).Info("test")
+}
+
+// https://github.com/gookit/slog/issues/121
+// 当我配置按日期的方式来滚动日志时，当大于 1 天时只能按 1 天来滚动日志。
+func TestIssues_121(t *testing.T) {
+	seconds := timex.OneDaySec * 7 // 7天
+	logFile := "testdata/issue121_7day.log"
+
+	clock := rotatefile.NewMockClock("2024-03-25 08:04:02")
+	fh, err := handler.NewTimeRotateFileHandler(
+		logFile,
+		rotatefile.RotateTime(seconds),
+		handler.WithLogLevels(slog.NormalLevels),
+		handler.WithBuffSize(128),
+		handler.WithBackupNum(20),
+		handler.WithTimeClock(clock),
+		handler.WithDebugMode, // debug mode
+		// handler.WithCompress(log.compress),
+		// handler.WithFilePerm(log.filePerm),
+	)
+	assert.NoError(t, err)
+
+	// create logger with handler and clock.
+	l := slog.NewWithHandlers(fh).Config(func(sl *slog.Logger) {
+		sl.TimeClock = clock.Now
+	})
+
+	// add logs
+	for i := 0; i < 50; i++ {
+		l.Infof("hi, this is a exmple information ... message text. log index=%d", i)
+		clock.Add(24 * timex.Hour)
+	}
+
+	l.MustClose()
 }
