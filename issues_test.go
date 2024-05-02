@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gookit/goutil/byteutil"
+	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/goutil/timex"
 	"github.com/gookit/slog"
@@ -184,4 +185,24 @@ func TestIssues_121(t *testing.T) {
 	}
 
 	l.MustClose()
+}
+
+// https://github.com/gookit/slog/issues/137
+// 按日期滚动 如果当天时间节点的日志文件已存在 不会append 会直接替换 #137
+func TestIssues_137(t *testing.T) {
+	logFile := "testdata/issue137_case.log"
+	fsutil.MustSave(logFile, "hello, this is a log file content\n")
+
+	l := slog.NewWithHandlers(handler.MustFileHandler(logFile))
+
+	// add logs
+	for i := 0; i < 5; i++ {
+		l.Infof("hi, this is a example information ... message text. log index=%d", i)
+	}
+
+	l.MustClose()
+	// read file content
+	content := fsutil.ReadString(logFile)
+	assert.StrContains(t, content, "this is a log file content")
+	assert.StrContains(t, content, "log index=4")
 }
