@@ -317,7 +317,7 @@ func (d *Writer) Clean() (err error) {
 	fileDir, fileName := path.Split(d.cfg.Filepath)
 
 	// find and clean old files
-	err = fsutil.FindInDir(fileDir[:len(fileDir)-2], func(fPath string, ent fs.DirEntry) error {
+	err = fsutil.FindInDir(fileDir[:len(fileDir)-1], func(fPath string, ent fs.DirEntry) error {
 		fi, err := ent.Info()
 		if err != nil {
 			return err
