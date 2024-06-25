@@ -128,6 +128,9 @@ func TestWriter_Clean(t *testing.T) {
 		c.Compress = true
 		err = wr.Clean()
 		assert.NoErr(t, err)
+
+		files := fsutil.Glob(logfile + ".*")
+		assert.Equal(t, 2, len(files))
 	})
 }
 
