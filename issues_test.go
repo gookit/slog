@@ -206,3 +206,27 @@ func TestIssues_137(t *testing.T) {
 	assert.StrContains(t, content, "this is a log file content")
 	assert.StrContains(t, content, "log index=4")
 }
+
+// https://github.com/gookit/slog/issues/144
+// slog: failed to handle log, error: write ./logs/info.log: file already closed #144
+func TestIssues_144(t *testing.T) {
+	defer slog.MustClose()
+	slog.Reset()
+
+	// DangerLevels 包含： slog.PanicLevel, slog.ErrorLevel, slog.WarnLevel
+	h1 := handler.MustRotateFile("./testdata/logs/error_is144.log", rotatefile.EveryDay,
+		handler.WithLogLevels(slog.DangerLevels),
+		handler.WithCompress(true),
+	)
+
+	// NormalLevels 包含： slog.InfoLevel, slog.NoticeLevel, slog.DebugLevel, slog.TraceLevel
+	h2 := handler.MustFileHandler("./testdata/logs/info_is144.log", handler.WithLogLevels(slog.NormalLevels))
+
+	// 注册 handler 到 logger(调度器)
+	slog.PushHandlers(h1, h2)
+
+	// add logs
+	slog.Info("info message text")
+	slog.Error("error message text")
+
+}

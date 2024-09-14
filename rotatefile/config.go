@@ -31,6 +31,7 @@ type RotateTime int
 
 // built in rotate time constants
 const (
+	EveryMonth  RotateTime = 30 * timex.OneDaySec
 	EveryDay    RotateTime = timex.OneDaySec
 	EveryHour   RotateTime = timex.OneHourSec
 	Every30Min  RotateTime = 30 * timex.OneMinSec
@@ -67,7 +68,7 @@ func (rt RotateTime) FirstCheckTime(now time.Time) time.Time {
 
 		// eg: now.Minute()=37, nextMin=42, will get nextDur=40
 		nextDur := time.Duration(nextMin).Round(time.Duration(minutes))
-		return timex.HourStart(now).Add(nextDur)
+		return timex.HourStart(now).Add(nextDur * time.Minute)
 	default: // levelSec
 		return now.Add(time.Duration(interval) * time.Second)
 	}
