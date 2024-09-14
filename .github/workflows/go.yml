@@ -42,6 +42,7 @@ jobs:
       uses: docker://morphy/revive-action:v2
       if: ${{ matrix.os == 'ubuntu-latest' && matrix.go_version == '1.22' }}
       with:
+        config: .github/revive.toml
         # Exclude patterns, separated by semicolons (optional)
         exclude: "./internal/..."
 
