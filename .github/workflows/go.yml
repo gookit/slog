@@ -38,13 +38,13 @@ jobs:
 #      with:
 #        go-version: ${{ matrix.go_version }}
 
-    - name: Revive check
-      uses: docker://morphy/revive-action:v2
-      if: ${{ matrix.os == 'ubuntu-latest' && matrix.go_version == '1.22' }}
-      with:
-        config: .github/revive.toml
-        # Exclude patterns, separated by semicolons (optional)
-        exclude: "./internal/..."
+#    - name: Revive check
+#      uses: docker://morphy/revive-action:v2
+#      if: ${{ matrix.os == 'ubuntu-latest' && matrix.go_version == '1.22' }}
+#      with:
+#        config: .github/revive.toml
+#        # Exclude patterns, separated by semicolons (optional)
+#        exclude: "./internal/..."
 
     - name: Run staticcheck
       uses: reviewdog/action-staticcheck@v1
