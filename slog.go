@@ -165,6 +165,9 @@ func WithContext(ctx context.Context) *Record {
 
 // -------------------------- Add log messages with level -----------------------------
 
+// Log logs a message with level
+func Log(level Level, args ...any) { std.log(level, args) }
+
 // Print logs a message at level PrintLevel
 func Print(args ...any) { std.log(PrintLevel, args) }
 

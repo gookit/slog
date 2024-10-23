@@ -165,6 +165,7 @@ func TestTextFormatWithColor(t *testing.T) {
 }
 
 func printLogs(msg string) {
+	slog.Log(slog.TraceLevel, msg)
 	slog.Print(msg)
 	slog.Println(msg)
 	slog.Trace(msg)
