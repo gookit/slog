@@ -3,7 +3,7 @@ package slog
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -47,7 +47,7 @@ func formatCaller(rf *runtime.Frame, flag uint8) (cs string) {
 	lineNum := strconv.FormatInt(int64(rf.Line), 10)
 	switch flag {
 	case CallerFlagFull:
-		return rf.Function + "," + path.Base(rf.File) + ":" + lineNum
+		return rf.Function + "," + filepath.Base(rf.File) + ":" + lineNum
 	case CallerFlagFunc:
 		return rf.Function
 	case CallerFlagFcLine:
@@ -59,12 +59,12 @@ func formatCaller(rf *runtime.Frame, flag uint8) (cs string) {
 	case CallerFlagPkgFnl:
 		i := strings.LastIndex(rf.Function, "/")
 		i += strings.IndexByte(rf.Function[i+1:], '.')
-		return rf.Function[:i+1] + "," + path.Base(rf.File) + ":" + lineNum
+		return rf.Function[:i+1] + "," + filepath.Base(rf.File) + ":" + lineNum
 	case CallerFlagFnlFcn:
 		ss := strings.Split(rf.Function, ".")
-		return path.Base(rf.File) + ":" + lineNum + "," + ss[len(ss)-1]
+		return filepath.Base(rf.File) + ":" + lineNum + "," + ss[len(ss)-1]
 	case CallerFlagFnLine:
-		return path.Base(rf.File) + ":" + lineNum
+		return filepath.Base(rf.File) + ":" + lineNum
 	case CallerFlagFcName:
 		ss := strings.Split(rf.Function, ".")
 		return ss[len(ss)-1]

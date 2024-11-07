@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"os"
 	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -62,7 +63,7 @@ func NewWriterWith(fns ...ConfigFn) (*Writer, error) {
 // init rotate dispatcher
 func (d *Writer) init() error {
 	logfile := d.cfg.Filepath
-	d.fileDir = path.Dir(logfile)
+	d.fileDir = filepath.Dir(logfile)
 	d.backupDur = d.cfg.backupDuration()
 
 	// if d.cfg.BackupNum > 0 {
@@ -314,10 +315,14 @@ func (d *Writer) Clean() (err error) {
 
 	// oldFiles: xx.log.yy files, no gz file
 	var oldFiles, gzFiles []fileInfo
-	fileDir, fileName := path.Split(d.cfg.Filepath)
+	fileDir, fileName := filepath.Split(d.cfg.Filepath)
+	if len(fileDir) > 0 {
+		// removes the trailing separator
+		fileDir = fileDir[:len(fileDir)-1]
+	}
 
 	// find and clean old files
-	err = fsutil.FindInDir(fileDir[:len(fileDir)-1], func(fPath string, ent fs.DirEntry) error {
+	err = fsutil.FindInDir(fileDir, func(fPath string, ent fs.DirEntry) error {
 		fi, err := ent.Info()
 		if err != nil {
 			return err
