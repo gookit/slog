@@ -94,12 +94,15 @@ func (fn ClockFn) Now() time.Time {
 	return fn()
 }
 
+// CallerFlagMode Defines the Caller backtrace information mode.
+type CallerFlagMode = uint8
+
 // NOTICE: you must set `Logger.ReportCaller=true` for reporting caller.
 // then config the Logger.CallerFlag by follow flags.
 const (
 	// CallerFlagFnlFcn report short func name with filename and with line.
 	// eg: "logger_test.go:48,TestLogger_ReportCaller"
-	CallerFlagFnlFcn uint8 = iota
+	CallerFlagFnlFcn CallerFlagMode = iota
 	// CallerFlagFull full func name with filename and with line.
 	// eg: "github.com/gookit/slog_test.TestLogger_ReportCaller(),logger_test.go:48"
 	CallerFlagFull
