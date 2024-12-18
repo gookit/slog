@@ -43,7 +43,8 @@ type Logger struct {
 	// ReportCaller on write log record
 	ReportCaller bool
 	CallerSkip   int
-	CallerFlag   uint8
+	// CallerFlag used to set caller traceback information in different modes
+	CallerFlag CallerFlagMode
 	// BackupArgs backup log input args to Record.Args
 	BackupArgs bool
 	// TimeClock custom time clock, timezone
