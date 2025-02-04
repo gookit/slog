@@ -3,8 +3,8 @@ module slog_example
 go 1.19
 
 require (
-	github.com/golang/glog v1.1.1
-	github.com/gookit/goutil v0.6.14
+	github.com/golang/glog v1.2.4
+	github.com/gookit/goutil v0.6.18
 	github.com/gookit/slog v0.5.0
 	github.com/phuslu/log v1.0.67
 	github.com/rs/zerolog v1.29.0
@@ -23,9 +23,9 @@ require (
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/sync v0.4.0 // indirect
-	golang.org/x/sys v0.13.0 // indirect
-	golang.org/x/text v0.13.0 // indirect
+	golang.org/x/sync v0.10.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 )
 
 replace github.com/gookit/slog => ../
