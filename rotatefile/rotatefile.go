@@ -14,7 +14,7 @@ type RotateWriter interface {
 	Sync() error
 }
 
-// RotateMode for rotate file
+// RotateMode for rotate file. 0: rename, 1: create
 type RotateMode uint8
 
 // String get string name

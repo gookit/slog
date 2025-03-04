@@ -65,6 +65,8 @@ func NewWriterWith(fns ...ConfigFn) (*Writer, error) {
 
 // init rotate dispatcher
 func (d *Writer) init() error {
+	d.id = fmt.Sprintf("%p", d)
+
 	logfile := d.cfg.Filepath
 	d.fileDir = filepath.Dir(logfile)
 	d.backupDur = d.cfg.backupDuration()
@@ -123,7 +125,7 @@ func (d *Writer) close(closeStopCh bool) error {
 
 	// stop the async clean backups
 	if closeStopCh && d.stopCh != nil {
-		d.cfg.Debug("close stopCh for stop async clean old files")
+		d.debugLog("close stopCh for stop async clean old files")
 		close(d.stopCh)
 		d.stopCh = nil
 	}
@@ -277,12 +279,17 @@ func (d *Writer) asyncClean() {
 
 	// if already running, send a signal
 	if d.cleanCh != nil {
-		select {
-		case d.cleanCh <- struct{}{}:
-			d.cfg.Debug("signal sent start clean old files ")
-		default: // skip on blocking
-			d.cfg.Debug("clean old files signal blocked, skip")
-		}
+		d.notifyClean()
+		return
+	}
+
+	// add lock for deny concurrent clean
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	// re-check d.cleanCh is not nil
+	if d.cleanCh != nil {
+		d.notifyClean()
 		return
 	}
 
@@ -308,6 +315,15 @@ func (d *Writer) asyncClean() {
 			}
 		}
 	}()
+}
+
+func (d *Writer) notifyClean() {
+	select {
+	case d.cleanCh <- struct{}{}: // notify clean old files
+		d.debugLog("sent signal - start clean old files...")
+	default: // skip on blocking
+		d.debugLog("clean old files signal blocked, SKIP")
+	}
 }
 
 // Clean old files by config
