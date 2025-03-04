@@ -14,12 +14,15 @@ import (
 
 	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/fsutil"
+	"github.com/gookit/goutil/stdio"
 )
 
 // Writer a flush, close, writer and support rotate file.
 //
 // refer https://github.com/flike/golog/blob/master/filehandler.go
 type Writer struct {
+	// writer instance id
+	id string
 	mu sync.Mutex
 	// config of the writer
 	cfg *Config
@@ -284,23 +287,23 @@ func (d *Writer) asyncClean() {
 	}
 
 	// init clean channel
-	d.cfg.Debug("init clean/stop channel for clean old files")
+	d.debugLog("INIT clean and stop channels for clean old files")
 	d.cleanCh = make(chan struct{})
 	d.stopCh = make(chan struct{})
 
 	// start a goroutine to clean backups
 	go func() {
-		d.cfg.Debug("START a goroutine consumer for clean old files")
+		d.debugLog("START a goroutine consumer for clean old files")
 
 		// consume the signal until stop
 		for {
 			select {
 			case <-d.cleanCh:
-				d.cfg.Debug("receive signal - clean old files handling")
+				d.debugLog("receive signal - clean old files handling")
 				printErrln("rotatefile: clean old files error:", d.Clean())
 			case <-d.stopCh:
 				d.cleanCh = nil
-				d.cfg.Debug("STOP consumer for clean old files")
+				d.debugLog("STOP consumer for clean old files")
 				return // stop clean
 			}
 		}
@@ -322,6 +325,7 @@ func (d *Writer) Clean() (err error) {
 	}
 
 	// find and clean old files
+	d.debugLog("find old files, match name:", fileName, ", in dir:", fileDir)
 	err = fsutil.FindInDir(fileDir, func(fPath string, ent fs.DirEntry) error {
 		fi, err := ent.Info()
 		if err != nil {
@@ -339,15 +343,16 @@ func (d *Writer) Clean() (err error) {
 	gzNum := len(gzFiles)
 	oldNum := len(oldFiles)
 	remNum := gzNum + oldNum - int(d.cfg.BackupNum)
-	d.cfg.Debug("clean old files, gzNum:", gzNum, "oldNum:", oldNum, "remNum:", remNum)
+	d.debugLog("clean old files, gzNum:", gzNum, "oldNum:", oldNum, "remNum:", remNum)
 
 	if remNum > 0 {
 		// remove old gz files
 		if gzNum > 0 {
 			sort.Sort(modTimeFInfos(gzFiles)) // sort by mod-time
-			d.cfg.Debug("remove old gz files ...")
+			d.debugLog("remove old gz files ...")
 
 			for idx := 0; idx < gzNum; idx++ {
+				d.debugLog("remove old gz file:", gzFiles[idx].filePath)
 				if err = os.Remove(gzFiles[idx].filePath); err != nil {
 					break
 				}
@@ -367,10 +372,11 @@ func (d *Writer) Clean() (err error) {
 		if remNum > 0 && oldNum > 0 {
 			// sort by mod-time, oldest at first.
 			sort.Sort(modTimeFInfos(oldFiles))
-			d.cfg.Debug("remove old normal files ...")
+			d.debugLog("remove old normal files ...")
 
 			var idx int
 			for idx = 0; idx < oldNum; idx++ {
+				d.debugLog("remove old file:", oldFiles[idx].filePath)
 				if err = os.Remove(oldFiles[idx].filePath); err != nil {
 					break
 				}
@@ -389,7 +395,7 @@ func (d *Writer) Clean() (err error) {
 	}
 
 	if d.cfg.Compress && len(oldFiles) > 0 {
-		d.cfg.Debug("compress old normal files to gz files")
+		d.debugLog("compress old normal files to gz files")
 		err = d.compressFiles(oldFiles)
 	}
 	return
@@ -443,7 +449,7 @@ func (d *Writer) buildFilterFns(fileName string) []fsutil.FilterFunc {
 			}
 
 			// remove expired files
-			d.cfg.Debug("remove expired file:", fPath)
+			d.debugLog("remove expired file:", fPath)
 			printErrln("rotatefile: remove expired file error:", os.Remove(fPath))
 			return false
 		})
@@ -460,9 +466,17 @@ func (d *Writer) compressFiles(oldFiles []fileInfo) error {
 		}
 
 		// remove old log file
+		d.debugLog("compress and rm old file:", fi.filePath)
 		if err = os.Remove(fi.filePath); err != nil {
 			return errorx.Wrap(err, "remove file error after compress")
 		}
 	}
 	return nil
+}
+
+// Debug print debug message on development
+func (d *Writer) debugLog(vs ...any) {
+	if d.cfg.DebugMode {
+		stdio.WriteString("[rotatefile.DEBUG] ID:" + d.id + " | " + fmt.Sprintln(vs...))
+	}
 }

@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strings"
 	"time"
+
+	"github.com/gookit/goutil/envutil"
 )
 
 //
@@ -167,7 +169,9 @@ var (
 	DefaultChannelName = "application"
 	// DefaultTimeFormat define
 	DefaultTimeFormat = "2006/01/02T15:04:05.000"
-	// TimeFormatRFC3339  = time.RFC3339
+
+	// DebugMode enable debug mode for logger. use for local development.
+	DebugMode = envutil.GetBool("OPEN_SLOG_DEBUG", false)
 
 	// DoNothingOnExit handle func. use for testing.
 	DoNothingOnExit = func(code int) {}

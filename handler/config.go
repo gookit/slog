@@ -104,6 +104,7 @@ func NewConfig(fns ...ConfigFn) *Config {
 		// old files clean settings
 		BackupNum:  rotatefile.DefaultBackNum,
 		BackupTime: rotatefile.DefaultBackTime,
+		DebugMode:  slog.DebugMode,
 	}
 
 	return c.WithConfigFn(fns...)

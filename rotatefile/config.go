@@ -5,7 +5,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/gookit/goutil/stdio"
 	"github.com/gookit/goutil/timex"
 )
 
@@ -216,13 +215,6 @@ func (c *Config) Create() (*Writer, error) { return NewWriter(c) }
 
 // IsMode check rotate mode
 func (c *Config) IsMode(m RotateMode) bool { return c.RotateMode == m }
-
-// Debug print debug message on development
-func (c *Config) Debug(vs ...any) {
-	if c.DebugMode {
-		stdio.WriteString("[rotatefile.DEBUG] " + fmt.Sprintln(vs...))
-	}
-}
 
 var (
 	// DefaultFilePerm perm and flags for create log file
