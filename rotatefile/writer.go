@@ -414,13 +414,17 @@ func (d *Writer) openFile(logfile string) error {
 }
 
 func (d *Writer) buildFilterFns(fileName string) []fsutil.FilterFunc {
+	nameNoSuffix := strings.TrimSuffix(fileName, path.Ext(fileName))
 	filterFns := []fsutil.FilterFunc{
 		fsutil.OnlyFindFile,
-		// filter by name. match pattern like: error.log.*
-		// eg: error.log.xx, error.log.xx.gz
+		// filter by name. match pattern like: error.log.* eg: error.log.xx, error.log.xx.gz
 		func(fPath string, ent fs.DirEntry) bool {
-			ok, _ := path.Match(fileName+".*", ent.Name())
-			return ok
+			// ok, _ := path.Match(fileName+".*", ent.Name())
+			if !strings.HasPrefix(ent.Name(), fileName) {
+				// 自定义文件名 eg: error.log -> error.20220423_02.log
+				return strings.HasPrefix(ent.Name(), nameNoSuffix)
+			}
+			return true
 		},
 	}
 
