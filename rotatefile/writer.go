@@ -145,6 +145,17 @@ func (d *Writer) WriteString(s string) (n int, err error) {
 
 // Write data to file. then check and do rotate file.
 func (d *Writer) Write(p []byte) (n int, err error) {
+	// do write data
+	if n, err = d.doWrite(p); err != nil {
+		return
+	}
+
+	// do rotate file
+	err = d.doRotate()
+	return
+}
+
+func (d *Writer) doWrite(p []byte) (n int, err error) {
 	// if enable lock
 	if !d.cfg.CloseLock {
 		d.mu.Lock()
@@ -152,13 +163,10 @@ func (d *Writer) Write(p []byte) (n int, err error) {
 	}
 
 	n, err = d.file.Write(p)
-	if err != nil {
-		return
+	if err == nil {
+		// update size
+		d.written += uint64(n)
 	}
-
-	// update size and rotate file
-	d.written += uint64(n)
-	err = d.doRotate()
 	return
 }
 
@@ -167,6 +175,12 @@ func (d *Writer) Rotate() error { return d.doRotate() }
 
 // do rotate the logfile by config and async clean backups
 func (d *Writer) doRotate() (err error) {
+	// if enable lock
+	if !d.cfg.CloseLock {
+		d.mu.Lock()
+		defer d.mu.Unlock()
+	}
+
 	// do rotate file by size
 	if d.cfg.MaxSize > 0 && d.written >= d.cfg.MaxSize {
 		err = d.rotatingBySize()
