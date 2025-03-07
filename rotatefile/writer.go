@@ -346,6 +346,12 @@ func (d *Writer) Clean() (err error) {
 		return errorx.Err("clean: backupNum and backupTime are both 0")
 	}
 
+	if !d.mu.TryRLock() {
+		d.debugLog("Clean - tryLock=false, SKIP clean old files")
+		return nil
+	}
+	defer d.mu.RUnlock()
+
 	// oldFiles: xx.log.yy files, no gz file
 	var oldFiles, gzFiles []fileInfo
 	fileDir, fileName := filepath.Split(d.cfg.Filepath)
@@ -353,6 +359,8 @@ func (d *Writer) Clean() (err error) {
 		// removes the trailing separator
 		fileDir = fileDir[:len(fileDir)-1]
 	}
+	// up: do not process recent changes to avoid conflicts
+	limitTime := d.cfg.TimeClock.Now().Add(-time.Second * 30)
 
 	// find and clean old files
 	d.debugLog("find old files, match name:", fileName, ", in dir:", fileDir)
@@ -364,7 +372,7 @@ func (d *Writer) Clean() (err error) {
 
 		if strings.HasSuffix(ent.Name(), compressSuffix) {
 			gzFiles = append(gzFiles, newFileInfo(fPath, fi))
-		} else {
+		} else if fi.ModTime().Before(limitTime) {
 			oldFiles = append(oldFiles, newFileInfo(fPath, fi))
 		}
 		return nil
