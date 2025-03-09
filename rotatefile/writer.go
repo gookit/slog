@@ -15,6 +15,7 @@ import (
 	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/goutil/stdio"
+	"github.com/gookit/goutil/strutil"
 )
 
 // Writer a flush, close, writer and support rotate file.
@@ -23,7 +24,7 @@ import (
 type Writer struct {
 	// writer instance id
 	id string
-	mu sync.Mutex
+	mu sync.RWMutex
 	// config of the writer
 	cfg *Config
 	// current opened logfile
@@ -143,7 +144,7 @@ func (d *Writer) WriteString(s string) (n int, err error) {
 	return d.Write([]byte(s))
 }
 
-// Write data to file. then check and do rotate file.
+// Write data to file. then check and do rotate file, then async clean backups
 func (d *Writer) Write(p []byte) (n int, err error) {
 	// do write data
 	if n, err = d.doWrite(p); err != nil {
@@ -152,6 +153,10 @@ func (d *Writer) Write(p []byte) (n int, err error) {
 
 	// do rotate file
 	err = d.doRotate()
+	// async clean backup files.
+	if err == nil && d.shouldClean(true) {
+		d.asyncClean()
+	}
 	return
 }
 
@@ -171,9 +176,17 @@ func (d *Writer) doWrite(p []byte) (n int, err error) {
 }
 
 // Rotate the file by config and async clean backups
-func (d *Writer) Rotate() error { return d.doRotate() }
+func (d *Writer) Rotate() error {
+	err := d.doRotate()
 
-// do rotate the logfile by config and async clean backups
+	// async clean backup files.
+	if err == nil && d.shouldClean(true) {
+		d.asyncClean()
+	}
+	return err
+}
+
+// do rotate the logfile by config
 func (d *Writer) doRotate() (err error) {
 	// if enable lock
 	if !d.cfg.CloseLock {
@@ -192,11 +205,6 @@ func (d *Writer) doRotate() (err error) {
 	// do rotate file by time
 	if d.checkInterval > 0 && d.written > 0 {
 		err = d.rotatingByTime()
-	}
-
-	// async clean backup files.
-	if d.shouldClean(true) {
-		d.asyncClean()
 	}
 	return
 }
@@ -220,15 +228,20 @@ func (d *Writer) rotatingByTime() error {
 
 func (d *Writer) rotatingBySize() error {
 	d.rotateNum++
+	now := d.cfg.TimeClock.Now()
+	// up: use now minutes + seconds as rotate number
+	numStr := fmt.Sprintf("%d%d%d", now.Hour(), now.Minute(), now.Second())
+	numInt := strutil.IntOr(numStr, 0) + now.Nanosecond()/1000
+	rotateNum := uint(numInt) + d.rotateNum
 
 	var bakFile string
 	if d.cfg.IsMode(ModeCreate) {
 		// eg: /tmp/error.log.20220423_1600 => /tmp/error.log.20220423_1600_001
-		bakFile = fmt.Sprintf("%s_%03d", d.path, d.rotateNum)
+		bakFile = fmt.Sprintf("%s_%d", d.path, rotateNum)
 	} else {
-		// rename current to new file
+		// rename current to new file by RenameFunc
 		// eg: /tmp/error.log => /tmp/error.log.163021_001
-		bakFile = d.cfg.RenameFunc(d.cfg.Filepath, d.rotateNum)
+		bakFile = d.cfg.RenameFunc(d.cfg.Filepath, rotateNum)
 	}
 
 	// always rename current to new file
@@ -298,8 +311,8 @@ func (d *Writer) asyncClean() {
 	}
 
 	// add lock for deny concurrent clean
-	d.mu.Lock()
-	defer d.mu.Unlock()
+	d.mu.RLock()
+	defer d.mu.RUnlock()
 
 	// re-check d.cleanCh is not nil
 	if d.cleanCh != nil {
@@ -346,11 +359,11 @@ func (d *Writer) Clean() (err error) {
 		return errorx.Err("clean: backupNum and backupTime are both 0")
 	}
 
-	if !d.mu.TryRLock() {
-		d.debugLog("Clean - tryLock=false, SKIP clean old files")
-		return nil
-	}
-	defer d.mu.RUnlock()
+	// if !d.mu.TryRLock() {
+	// 	d.debugLog("Clean - tryLock=false, SKIP clean old files")
+	// 	return nil
+	// }
+	// defer d.mu.RUnlock()
 
 	// oldFiles: xx.log.yy files, no gz file
 	var oldFiles, gzFiles []fileInfo
@@ -363,7 +376,7 @@ func (d *Writer) Clean() (err error) {
 	limitTime := d.cfg.TimeClock.Now().Add(-time.Second * 30)
 
 	// find and clean old files
-	d.debugLog("find old files, match name:", fileName, ", in dir:", fileDir)
+	d.debugLog("Clean - find old files, match name:", fileName, ", in dir:", fileDir)
 	err = fsutil.FindInDir(fileDir, func(fPath string, ent fs.DirEntry) error {
 		fi, err := ent.Info()
 		if err != nil {
