@@ -31,6 +31,9 @@ jobs:
       with:
         go-version: ${{ matrix.go_version }}
 
+    - name: Tidy go mod
+      run: go mod tidy
+
     # https://github.com/actions/setup-go
 #    - name: Use Go ${{ matrix.go_version }}
 #      timeout-minutes: 3
