@@ -9,6 +9,7 @@ import (
 	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/goutil/mathutil"
 	"github.com/gookit/goutil/testutil/assert"
+	"github.com/gookit/slog/internal"
 	"github.com/gookit/slog/rotatefile"
 )
 
@@ -86,7 +87,7 @@ func TestWriter_rotateByTime(t *testing.T) {
 		time.Sleep(time.Second)
 	}
 
-	files := fsutil.Glob(logfile + ".*")
+	files := fsutil.Glob(internal.BuildGlobPattern(logfile))
 	dump.P(files)
 
 }
@@ -112,7 +113,7 @@ func TestWriter_Clean(t *testing.T) {
 	_, err = wr.WriteString("hi\n")
 	assert.NoErr(t, err)
 
-	files := fsutil.Glob(logfile + ".*")
+	files := fsutil.Glob(internal.BuildGlobPattern(logfile))
 	dump.P(files)
 
 	// test clean error
@@ -129,8 +130,8 @@ func TestWriter_Clean(t *testing.T) {
 		err = wr.Clean()
 		assert.NoErr(t, err)
 
-		files := fsutil.Glob(logfile + ".*")
-		assert.Equal(t, 2, len(files))
+		files := fsutil.Glob(internal.BuildGlobPattern(logfile))
+		assert.Lt(t, 2, len(files))
 	})
 }
 

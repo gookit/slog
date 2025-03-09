@@ -224,10 +224,10 @@ var (
 
 	// DefaultFilenameFn default new filename func
 	DefaultFilenameFn = func(filepath string, rotateNum uint) string {
-		suffix := time.Now().Format("010215")
+		suffix := time.Now().Format("06010215")
 
-		// eg: /tmp/error.log => /tmp/error.log.163021_0001
-		return filepath + fmt.Sprintf(".%s_%03d", suffix, rotateNum)
+		// eg: /tmp/error.log => /tmp/error.log.24032116_894136
+		return filepath + fmt.Sprintf(".%s_%d", suffix, rotateNum)
 	}
 
 	// DefaultTimeClockFn for create time
@@ -243,9 +243,9 @@ func NewDefaultConfig() *Config {
 		RotateTime: EveryHour,
 		BackupNum:  DefaultBackNum,
 		BackupTime: DefaultBackTime,
-		RenameFunc: DefaultFilenameFn,
-		TimeClock:  DefaultTimeClockFn,
-		FilePerm:   DefaultFilePerm,
+		// RenameFunc: DefaultFilenameFn,
+		TimeClock: DefaultTimeClockFn,
+		FilePerm:  DefaultFilePerm,
 	}
 }
 
@@ -262,9 +262,9 @@ func NewConfigWith(fns ...ConfigFn) *Config {
 // EmptyConfigWith new empty config with custom func
 func EmptyConfigWith(fns ...ConfigFn) *Config {
 	c := &Config{
-		RenameFunc: DefaultFilenameFn,
-		TimeClock:  DefaultTimeClockFn,
-		FilePerm:   DefaultFilePerm,
+		// RenameFunc: DefaultFilenameFn,
+		TimeClock: DefaultTimeClockFn,
+		FilePerm:  DefaultFilePerm,
 	}
 
 	return c.With(fns...)

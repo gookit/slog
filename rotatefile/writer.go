@@ -5,7 +5,6 @@ import (
 	"io/fs"
 	"math/rand"
 	"os"
-	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -22,16 +21,20 @@ import (
 //
 // refer https://github.com/flike/golog/blob/master/filehandler.go
 type Writer struct {
-	// writer instance id
+	// writer instance id, use for debug
 	id string
 	mu sync.RWMutex
 	// config of the writer
 	cfg *Config
+
 	// current opened logfile
 	file *os.File
+	// current opened file path. NOTE it maybe not equals Config.Filepath
 	path string
-	// logfile dir path for the Config.Filepath
+	// The original file dir path for the Config.Filepath
 	fileDir string
+	// The original name and ext information
+	fileName, onlyName, fileExt string
 
 	// logfile max backup time. equals Config.BackupTime * time.Hour
 	backupDur time.Duration
@@ -43,8 +46,10 @@ type Writer struct {
 	written   uint64 // written size
 	rotateNum uint   // rotate times number
 
-	// context use for rotating file by time
-	suffixFormat   string    // the rotating file name suffix. eg: "20210102", "20210102_1500"
+	// ---- context use for rotating file by time ----
+
+	// the rotating file name suffix format. eg: "20210102", "20210102_1500"
+	suffixFormat   string
 	checkInterval  int64     // check interval seconds.
 	nextRotatingAt time.Time // next rotating time
 }
@@ -69,13 +74,17 @@ func (d *Writer) init() error {
 	d.id = fmt.Sprintf("%p", d)
 
 	logfile := d.cfg.Filepath
-	d.fileDir = filepath.Dir(logfile)
+	// dirSep := filepath.Separator
+	// d.fileDir = filepath.Dir(logfile)
+	d.fileDir, d.fileName = filepath.Split(d.cfg.Filepath)
+	d.fileExt = filepath.Ext(d.fileName)                   // eg: .log
+	d.onlyName = strings.TrimSuffix(d.fileName, d.fileExt) // eg: error
+	// removes the trailing separator on the dir path
+	if ln := len(d.fileDir); ln > 1 && d.fileDir[ln-1] == filepath.Separator {
+		d.fileDir = d.fileDir[:ln-1]
+	}
+
 	d.backupDur = d.cfg.backupDuration()
-
-	// if d.cfg.BackupNum > 0 {
-	// 	d.oldFiles = make([]string, 0, int(float32(d.cfg.BackupNum)*1.6))
-	// }
-
 	d.suffixFormat = d.cfg.RotateTime.TimeFormat()
 	d.checkInterval = d.cfg.RotateTime.Interval()
 
@@ -85,11 +94,12 @@ func (d *Writer) init() error {
 		// next rotating time
 		d.nextRotatingAt = d.cfg.RotateTime.FirstCheckTime(now)
 		if d.cfg.RotateMode == ModeCreate {
-			logfile = d.cfg.Filepath + "." + now.Format(d.suffixFormat)
+			// logfile = d.cfg.Filepath + "." + now.Format(d.suffixFormat)
+			logfile = d.buildFilePath(now.Format(d.suffixFormat))
 		}
 	}
 
-	// open the logfile
+	// open the current file
 	return d.openFile(logfile)
 }
 
@@ -217,8 +227,9 @@ func (d *Writer) rotatingByTime() error {
 	}
 
 	// generate new file path.
-	// eg: /tmp/error.log => /tmp/error.log.20220423_1600
-	file := d.cfg.Filepath + "." + d.nextRotatingAt.Format(d.suffixFormat)
+	// eg: /tmp/error.log => /tmp/error.20220423_1600.log
+	// file := d.cfg.Filepath + "." + d.nextRotatingAt.Format(d.suffixFormat)
+	file := d.buildFilePath(d.nextRotatingAt.Format(d.suffixFormat))
 	err := d.rotatingFile(file, false)
 
 	// calc and storage next rotating time
@@ -236,12 +247,17 @@ func (d *Writer) rotatingBySize() error {
 
 	var bakFile string
 	if d.cfg.IsMode(ModeCreate) {
-		// eg: /tmp/error.log.20220423_1600 => /tmp/error.log.20220423_1600_001
-		bakFile = fmt.Sprintf("%s_%d", d.path, rotateNum)
-	} else {
-		// rename current to new file by RenameFunc
-		// eg: /tmp/error.log => /tmp/error.log.163021_001
+		// eg: /tmp/error.log => /tmp/error.894136.log
+		// eg: /tmp/error.20220423_1600.log => /tmp/error.20220423_1600_894136.log
+		pathNoExt := d.path[:len(d.path)-len(d.fileExt)]
+		bakFile = fmt.Sprintf("%s_%d%s", pathNoExt, rotateNum, d.fileExt)
+	} else if d.cfg.RenameFunc != nil {
+		// rename current to new file by custom RenameFunc
+		// eg: /tmp/error.log => /tmp/error.163021_894136.log
 		bakFile = d.cfg.RenameFunc(d.cfg.Filepath, rotateNum)
+	} else {
+		// eg: /tmp/error.log => /tmp/error.25031615_894136.log
+		bakFile = d.buildFilePath(fmt.Sprintf("%s_%d", now.Format("06010215"), rotateNum))
 	}
 
 	// always rename current to new file
@@ -367,12 +383,8 @@ func (d *Writer) Clean() (err error) {
 
 	// oldFiles: xx.log.yy files, no gz file
 	var oldFiles, gzFiles []fileInfo
-	fileDir, fileName := filepath.Split(d.cfg.Filepath)
-	if len(fileDir) > 0 {
-		// removes the trailing separator
-		fileDir = fileDir[:len(fileDir)-1]
-	}
-	// up: do not process recent changes to avoid conflicts
+	fileDir, fileName := d.fileDir, d.fileName
+	// FIX: do not process recent changes to avoid conflicts
 	limitTime := d.cfg.TimeClock.Now().Add(-time.Second * 30)
 
 	// find and clean old files
@@ -458,7 +470,7 @@ func (d *Writer) Clean() (err error) {
 // ---------------------------------------------------------------------------
 //
 
-// open the log file. and set the d.file, d.path
+// open the current file. and set the d.file, d.path
 func (d *Writer) openFile(logfile string) error {
 	file, err := fsutil.OpenFile(logfile, DefaultFileFlags, d.cfg.FilePerm)
 	if err != nil {
@@ -470,8 +482,14 @@ func (d *Writer) openFile(logfile string) error {
 	return nil
 }
 
+// return eg. logs/error.20220423_1600.log
+func (d *Writer) buildFilePath(suffix string) string {
+	fileName := d.onlyName + "." + suffix + d.fileExt
+	return fmt.Sprintf("%s/%s", d.fileDir, fileName)
+}
+
 func (d *Writer) buildFilterFns(fileName string) []fsutil.FilterFunc {
-	nameNoSuffix := strings.TrimSuffix(fileName, path.Ext(fileName))
+	onlyName := d.onlyName
 	filterFns := []fsutil.FilterFunc{
 		fsutil.OnlyFindFile,
 		// filter by name. match pattern like: error.log.* eg: error.log.xx, error.log.xx.gz
@@ -479,7 +497,7 @@ func (d *Writer) buildFilterFns(fileName string) []fsutil.FilterFunc {
 			// ok, _ := path.Match(fileName+".*", ent.Name())
 			if !strings.HasPrefix(ent.Name(), fileName) {
 				// 自定义文件名 eg: error.log -> error.20220423_02.log
-				return strings.HasPrefix(ent.Name(), nameNoSuffix)
+				return strings.HasPrefix(ent.Name(), onlyName)
 			}
 			return true
 		},
