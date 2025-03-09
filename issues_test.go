@@ -128,31 +128,6 @@ func TestIssues_108(t *testing.T) {
 	assert.StrContains(t, str, "[probe] [WARN")
 }
 
-// https://github.com/gookit/slog/issues/139
-// 自定义模板报 invalid memory address or nil pointer dereference #139
-func TestIssues_139(t *testing.T) {
-	myTemplate := "[{{datetime}}] [{{requestid}}] [{{level}}] {{message}}\n"
-	textFormatter := &slog.TextFormatter{TimeFormat: "2006-01-02 15:04:05.000"}
-	textFormatter.SetTemplate(myTemplate)
-	// use func create
-	// textFormatter := slog.NewTextFormatter(myTemplate).Configure(func(f *slog.TextFormatter) {
-	// 	f.TimeFormat = "2006-01-02 15:04:05.000"
-	// })
-	h1 := handler.NewConsoleHandler(slog.AllLevels)
-	h1.SetFormatter(textFormatter)
-
-	L := slog.New()
-	L.AddHandlers(h1)
-	// add processor <====
-	// L.AddProcessor(slog.ProcessorFunc(func(r *slog.Record) {
-	// 	r.Fields["requestid"] = r.Ctx.Value("requestid")
-	// }))
-	L.AddProcessor(slog.AppendCtxKeys("requestid"))
-
-	ctx := context.WithValue(context.Background(), "requestid", "111111")
-	L.WithCtx(ctx).Info("test")
-}
-
 // https://github.com/gookit/slog/issues/121
 // 当我配置按日期的方式来滚动日志时，当大于 1 天时只能按 1 天来滚动日志。
 func TestIssues_121(t *testing.T) {
@@ -190,7 +165,7 @@ func TestIssues_121(t *testing.T) {
 // https://github.com/gookit/slog/issues/137
 // 按日期滚动 如果当天时间节点的日志文件已存在 不会append 会直接替换 #137
 func TestIssues_137(t *testing.T) {
-	logFile := "testdata/issue137_case.log"
+	logFile := "testdata/issue137_case1.log"
 	fsutil.MustSave(logFile, "hello, this is a log file content\n")
 
 	l := slog.NewWithHandlers(handler.MustFileHandler(logFile))
@@ -205,6 +180,31 @@ func TestIssues_137(t *testing.T) {
 	content := fsutil.ReadString(logFile)
 	assert.StrContains(t, content, "this is a log file content")
 	assert.StrContains(t, content, "log index=4")
+}
+
+// https://github.com/gookit/slog/issues/139
+// 自定义模板报 invalid memory address or nil pointer dereference #139
+func TestIssues_139(t *testing.T) {
+	myTemplate := "[{{datetime}}] [{{requestid}}] [{{level}}] {{message}}\n"
+	textFormatter := &slog.TextFormatter{TimeFormat: "2006-01-02 15:04:05.000"}
+	textFormatter.SetTemplate(myTemplate)
+	// use func create
+	// textFormatter := slog.NewTextFormatter(myTemplate).Configure(func(f *slog.TextFormatter) {
+	// 	f.TimeFormat = "2006-01-02 15:04:05.000"
+	// })
+	h1 := handler.NewConsoleHandler(slog.AllLevels)
+	h1.SetFormatter(textFormatter)
+
+	L := slog.New()
+	L.AddHandlers(h1)
+	// add processor <====
+	// L.AddProcessor(slog.ProcessorFunc(func(r *slog.Record) {
+	// 	r.Fields["requestid"] = r.Ctx.Value("requestid")
+	// }))
+	L.AddProcessor(slog.AppendCtxKeys("requestid"))
+
+	ctx := context.WithValue(context.Background(), "requestid", "111111")
+	L.WithCtx(ctx).Info("test")
 }
 
 // https://github.com/gookit/slog/issues/144

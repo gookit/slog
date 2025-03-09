@@ -11,6 +11,7 @@ import (
 	"github.com/gookit/goutil/timex"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
+	"github.com/gookit/slog/internal"
 	"github.com/gookit/slog/rotatefile"
 )
 
@@ -81,14 +82,14 @@ func TestNewSizeRotateFileHandler(t *testing.T) {
 		err := h.Handle(newLogRecord("this is a info message"))
 		assert.NoErr(t, err)
 
-		files := fsutil.Glob(logfile + "*")
+		files := fsutil.Glob(internal.BuildGlobPattern(logfile))
 		assert.Len(t, files, 2)
 	})
 }
 
 func TestNewTimeRotateFileHandler_EveryDay(t *testing.T) {
 	logfile := "./testdata/time-rotate_EveryDay.log"
-	newFile := logfile + ".20221116"
+	newFile := internal.AddSuffix2path(logfile, "20221116")
 
 	clock := rotatefile.NewMockClock("2022-11-16 23:59:57")
 	options := []handler.ConfigFn{
@@ -118,7 +119,7 @@ func TestNewTimeRotateFileHandler_EveryDay(t *testing.T) {
 func TestNewTimeRotateFileHandler_EveryHour(t *testing.T) {
 	clock := rotatefile.NewMockClock("2022-04-28 20:59:58")
 	logfile := "./testdata/time-rotate_EveryHour.log"
-	newFile := logfile + timex.DateFormat(clock.Now(), ".Ymd_H00")
+	newFile := internal.AddSuffix2path(logfile, timex.DateFormat(clock.Now(), "Ymd_H00"))
 
 	options := []handler.ConfigFn{
 		handler.WithTimeClock(clock),
