@@ -422,7 +422,7 @@ func (d *Writer) doClean(skipSeconds ...int) (err error) {
 	remNum := mathutil.Max(gzNum+oldNum-int(d.cfg.BackupNum), 0)
 	d.debugLog("clean old files, gzNum:", gzNum, "oldNum:", oldNum, "remNum:", remNum)
 
-	if remNum > 0 {
+	if remNum > 0 && d.cfg.BackupNum > 0 {
 		// remove old gz files
 		if gzNum > 0 {
 			remNum, err = d.removeOldGzFiles(remNum, gzFiles)
