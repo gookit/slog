@@ -30,7 +30,7 @@
   - `file` output log to the specified file, optionally enable `buffer` to buffer writes
   - `simple` output log to the specified file, write directly to the file without buffering
   - `rotate_file` outputs logs to the specified file, and supports splitting files by time and size, and `buffer` buffered writing is enabled by default
-  - See ./handler folder for more built-in implementations
+  - See [./handler](./handler) folder for more built-in implementations
 - Benchmark performance test please see [Benchmarks](#benchmarks)
 
 ### Output logs to file
@@ -602,8 +602,8 @@ type Config struct {
 	h := handler.NewEmptyConfig(
 			handler.WithLogfile(testFile),
 			handler.WithBuffSize(1024*8),
+			handler.WithRotateTimeString("1hour"),
 			handler.WithLogLevels(slog.DangerLevels),
-			handler.WithBuffMode(handler.BuffModeBite),
 		).
 		CreateHandler()
 
@@ -628,7 +628,6 @@ Use `handler.Builder` to easily and quickly create Handler instances.
 		WithLogfile(testFile).
 		WithLogLevels(slog.NormalLevels).
 		WithBuffSize(1024*8).
-		WithBuffMode(handler.BuffModeBite).
 		WithRotateTime(rotatefile.Every30Min).
 		WithCompress(true).
 		Build()

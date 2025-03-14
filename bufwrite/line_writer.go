@@ -57,9 +57,10 @@ func (b *LineWriter) Size() int { return len(b.buf) }
 // Reset discards any un-flushed buffered data, clears any error, and
 // resets b to write its output to w.
 func (b *LineWriter) Reset(w io.Writer) {
-	b.err = nil
 	b.n = 0
 	b.wr = w
+	b.err = nil
+	b.buf = b.buf[:0]
 }
 
 // Close implements the io.Closer
@@ -90,6 +91,7 @@ func (b *LineWriter) Flush() error {
 	if b.n == 0 {
 		return nil
 	}
+
 	n, err := b.wr.Write(b.buf[0:b.n])
 	if n < b.n && err == nil {
 		err = io.ErrShortWrite
@@ -102,6 +104,7 @@ func (b *LineWriter) Flush() error {
 		b.err = err
 		return err
 	}
+
 	b.n = 0
 	return nil
 }

@@ -7,7 +7,7 @@
 [![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/gookit/slog)](https://github.com/gookit/slog)
 [![Coverage Status](https://coveralls.io/repos/github/gookit/slog/badge.svg?branch=master)](https://coveralls.io/github/gookit/slog?branch=master)
 
-📑 Go 实现的一个易于使用的，易扩展、可配置的日志库
+📑 Go 实现的一个易于使用的，易扩展、可配置的日志库。
 
 **控制台日志效果:**
 
@@ -30,7 +30,7 @@
   - `file` 输出日志到指定文件，可选启用 `buffer` 缓冲写入
   - `simple` 输出日志到指定文件，无缓冲直接写入文件
   - `rotate_file` 输出日志到指定文件，并且同时支持按时间、按大小分割文件，默认启用 `buffer` 缓冲写入
-  - 更多内置实现请查看 ./handler 文件夹
+  - 更多内置实现请查看 [./handler](./handler) 文件夹
 - 基准性能测试请看 [Benchmarks](#benchmarks)
 
 ### 输出日志到文件
@@ -583,8 +583,8 @@ type Config struct {
 	h := handler.NewEmptyConfig(
 			handler.WithLogfile(testFile),
 			handler.WithBuffSize(1024*8),
+			handler.WithRotateTimeString("1hour"),
 			handler.WithLogLevels(slog.DangerLevels),
-			handler.WithBuffMode(handler.BuffModeBite),
 		).
 		CreateHandler()
 
@@ -609,7 +609,6 @@ type Config struct {
 		WithLogfile(testFile).
 		WithLogLevels(slog.NormalLevels).
 		WithBuffSize(1024*8).
-		WithBuffMode(handler.BuffModeBite).
 		WithRotateTime(rotatefile.Every30Min).
 		WithCompress(true).
 		Build()

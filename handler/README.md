@@ -110,12 +110,17 @@ type ConfigFn func(c *Config)
     func WithCompress(compress bool) ConfigFn
     func WithFilePerm(filePerm fs.FileMode) ConfigFn
     func WithLevelMode(mode slog.LevelMode) ConfigFn
+    func WithLevelName(name string) ConfigFn
     func WithLevelNames(names []string) ConfigFn
+    func WithLevelNamesString(names string) ConfigFn
     func WithLogLevel(level slog.Level) ConfigFn
     func WithLogLevels(levels slog.Levels) ConfigFn
     func WithLogfile(logfile string) ConfigFn
+    func WithMaxLevelName(name string) ConfigFn
     func WithMaxSize(maxSize uint64) ConfigFn
     func WithRotateMode(m rotatefile.RotateMode) ConfigFn
     func WithRotateTime(rt rotatefile.RotateTime) ConfigFn
+    func WithRotateTimeString(rt string) ConfigFn
+    func WithTimeClock(clock rotatefile.Clocker) ConfigFn
     func WithUseJSON(useJSON bool) ConfigFn
 ```

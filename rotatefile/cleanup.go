@@ -14,6 +14,7 @@ const defaultCheckInterval = 60 * time.Second
 // CConfig struct for clean files
 type CConfig struct {
 	// BackupNum max number for keep old files.
+	//
 	// 0 is not limit, default is 20.
 	BackupNum uint `json:"backup_num" yaml:"backup_num"`
 

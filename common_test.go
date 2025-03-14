@@ -11,6 +11,7 @@ import (
 	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/gsr"
 	"github.com/gookit/slog"
+	"github.com/gookit/slog/handler"
 )
 
 var (
@@ -196,6 +197,19 @@ func newLogger() *slog.Logger {
 		l.ReportCaller = true
 		l.DoNothingOnPanicFatal()
 	})
+}
+
+// newTestLogger create a logger for test, will write logs to buffer
+func newTestLogger() (*closedBuffer, *slog.Logger) {
+	l := slog.NewWithConfig(func(l *slog.Logger) {
+		l.DoNothingOnPanicFatal()
+		l.CallerFlag = slog.CallerFlagFull
+	})
+	w := newBuffer()
+	h := handler.NewIOWriter(w, slog.AllLevels)
+	// fmt.Print("Template:", h.TextFormatter().Template())
+	l.SetHandlers([]slog.Handler{h})
+	return w, l
 }
 
 func printAllLevelLogs(l gsr.Logger, args ...any) {

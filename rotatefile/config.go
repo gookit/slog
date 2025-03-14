@@ -185,7 +185,14 @@ type Config struct {
 
 	// RenameFunc you can custom-build filename for rotate file by size.
 	//
-	// default see DefaultFilenameFn
+	// Example:
+	//
+	//  c.RenameFunc = func(filepath string, rotateNum uint) string {
+	// 		suffix := time.Now().Format("06010215")
+	//
+	// 		// eg: /tmp/error.log => /tmp/error.log.24032116_894136
+	// 		return filepath + fmt.Sprintf(".%s_%d", suffix, rotateNum)
+	//  }
 	RenameFunc func(filePath string, rotateNum uint) string
 
 	// TimeClock for rotate file by time.
@@ -222,14 +229,6 @@ var (
 	// DefaultFileFlags for open log file
 	DefaultFileFlags = os.O_CREATE | os.O_WRONLY | os.O_APPEND
 
-	// DefaultFilenameFn default new filename func
-	DefaultFilenameFn = func(filepath string, rotateNum uint) string {
-		suffix := time.Now().Format("06010215")
-
-		// eg: /tmp/error.log => /tmp/error.log.24032116_894136
-		return filepath + fmt.Sprintf(".%s_%d", suffix, rotateNum)
-	}
-
 	// DefaultTimeClockFn for create time
 	DefaultTimeClockFn = ClockFn(func() time.Time {
 		return time.Now()
@@ -249,9 +248,12 @@ func NewDefaultConfig() *Config {
 	}
 }
 
-// NewConfig by file path
-func NewConfig(filePath string) *Config {
-	return NewConfigWith(WithFilepath(filePath))
+// NewConfig by file path, and can with custom setting
+func NewConfig(filePath string, fns ...ConfigFn) *Config {
+	if len(fns) == 0 {
+		return NewConfigWith(WithFilepath(filePath))
+	}
+	return NewConfigWith(append(fns, WithFilepath(filePath))...)
 }
 
 // NewConfigWith custom func
@@ -280,4 +282,16 @@ func WithFilepath(logfile string) ConfigFn {
 // WithDebugMode setting for debug mode
 func WithDebugMode(c *Config) {
 	c.DebugMode = true
+}
+
+// WithCompress setting for compress
+func WithCompress(c *Config) {
+	c.Compress = true
+}
+
+// WithBackupNum setting for backup number
+func WithBackupNum(num uint) ConfigFn {
+	return func(c *Config) {
+		c.BackupNum = num
+	}
 }

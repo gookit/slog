@@ -85,7 +85,8 @@ func TestRecord_AddExtra(t *testing.T) {
 	assert.Contains(t, s, "log message and add extra")
 	assert.Contains(t, s, "key0:val0")
 
-	r.AddExtra(slog.M{"key002": "val002"}).Trace("log message and add extra2")
+	r.AddExtra(slog.M{"key002": "val002"}).AddExtra(slog.M{"key01": "val01"}).
+		Trace("log message and add extra2")
 	s = w.StringReset()
 	fmt.Print(s)
 	assert.Contains(t, s, "log message and add extra2")
@@ -133,15 +134,7 @@ func TestRecord_WithError(t *testing.T) {
 }
 
 func TestRecord_WithTime(t *testing.T) {
-	w := newBuffer()
-	l := slog.NewWithConfig(func(l *slog.Logger) {
-		l.CallerFlag = slog.CallerFlagFnLine
-		l.DoNothingOnPanicFatal()
-	})
-	l.SetHandlers([]slog.Handler{
-		handler.NewIOWriter(w, slog.AllLevels),
-	})
-
+	w, l := newTestLogger()
 	ht := timex.NowHourStart()
 
 	r := l.Record()
@@ -162,6 +155,7 @@ func TestRecord_AddFields(t *testing.T) {
 	r.AddFields(slog.M{"app": "goods"})
 	assert.NotEmpty(t, r.Fields)
 
+	// WithFields
 	r = r.WithFields(slog.M{"f2": "v2"})
 	assert.Eq(t, "v2", r.Field("f2"))
 
@@ -170,6 +164,22 @@ func TestRecord_AddFields(t *testing.T) {
 	assert.Nil(t, nr.Field("f3"))
 	nr.AddField("f3", "val02")
 	assert.Eq(t, "val02", nr.Field("f3"))
+}
+
+func TestRecord_WithFields(t *testing.T) {
+	w, l := newTestLogger()
+	r := l.Record().
+		WithFields(slog.M{"key1": "value1", "key2": "value2"}).
+		WithFields(slog.M{"key3": "value3"})
+	assert.Eq(t, "value1", r.Field("key1"))
+	assert.Eq(t, "value2", r.Field("key2"))
+	assert.Eq(t, "value3", r.Field("key3"))
+
+	r.Info("log message with fields")
+	s := w.StringReset()
+	fmt.Print(s)
+
+	assert.Contains(t, s, "log message with fields")
 }
 
 func TestRecord_SetFields(t *testing.T) {

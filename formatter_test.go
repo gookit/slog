@@ -79,6 +79,12 @@ func TestNewTextFormatter(t *testing.T) {
 		l.Debug("test message")
 		assert.Contains(t, buf.String(), "custom_caller")
 	})
+
+	f1 := slog.NewTextFormatter()
+	f1.Configure(func(f *slog.TextFormatter) {
+		f.FullDisplay = true
+	})
+	assert.True(t, f1.FullDisplay)
 }
 
 func TestTextFormatter_Format(t *testing.T) {

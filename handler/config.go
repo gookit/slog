@@ -50,6 +50,8 @@ type Config struct {
 	UseJSON bool `json:"use_json" yaml:"use_json"`
 
 	// BuffMode type name. allow: line, bite
+	//
+	// Recommend use BuffModeLine(it's default)
 	BuffMode string `json:"buff_mode" yaml:"buff_mode"`
 
 	// BuffSize for enable buffer, unit is bytes. set 0 to disable buffer

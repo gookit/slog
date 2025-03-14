@@ -28,6 +28,7 @@ func TestNewBufIOWriter_WriteString(t *testing.T) {
 type closeWriter struct {
 	errOnWrite bool
 	errOnClose bool
+	writeNum   int
 }
 
 func (w *closeWriter) Close() error {
@@ -39,7 +40,11 @@ func (w *closeWriter) Close() error {
 
 func (w *closeWriter) Write(p []byte) (n int, err error) {
 	if w.errOnWrite {
-		return 0, errorx.Raw("write error")
+		return w.writeNum, errorx.Raw("write error")
+	}
+
+	if w.writeNum > 0 {
+		return w.writeNum, nil
 	}
 	return len(p), nil
 }
@@ -96,6 +101,20 @@ func TestLineWriter_Write_error(t *testing.T) {
 	w := &closeWriter{errOnWrite: true}
 	bw := bufwrite.NewLineWriterSize(w, 6)
 
+	t.Run("flush err on write", func(t *testing.T) {
+		w1 := &closeWriter{}
+		bw.Reset(w1)
+		n, err := bw.WriteString("hi") // write ok
+		assert.NoErr(t, err)
+		assert.Equal(t, 2, n)
+
+		// fire flush
+		w1.errOnWrite = true
+		_, err = bw.WriteString("hello, tom")
+		assert.Err(t, err)
+		assert.Eq(t, "write error", err.Error())
+	})
+
 	_, err := bw.WriteString("hello, tom")
 	assert.Err(t, err)
 	assert.Eq(t, "write error", err.Error())
@@ -108,33 +127,62 @@ func TestLineWriter_Write_error(t *testing.T) {
 	assert.Eq(t, "write error", err.Error())
 
 	bw.Reset(w)
-
 	_, err = bw.WriteString("hello")
 	assert.NoErr(t, err)
 }
 
 func TestLineWriter_Flush_error(t *testing.T) {
+	t.Run("write ok but n < b.n", func(t *testing.T) {
+		w := &closeWriter{}
+		bw := bufwrite.NewLineWriterSize(w, 6)
+		_, err := bw.WriteString("hi!")
+		assert.NoErr(t, err)
+
+		// err: write n < b.n
+		w.writeNum = 1
+		err = bw.Flush()
+		assert.Err(t, err)
+		assert.Eq(t, "short write", err.Error())
+	})
+
+	t.Run("write err and n < b.n", func(t *testing.T) {
+		w := &closeWriter{}
+		bw := bufwrite.NewLineWriterSize(w, 6)
+		_, err := bw.WriteString("hi!")
+		assert.NoErr(t, err)
+
+		// err: write n < b.n
+		w.writeNum = 1
+		w.errOnWrite = true
+		err = bw.Flush()
+		assert.Err(t, err)
+		assert.Eq(t, "write error", err.Error())
+	})
+
 	w := &closeWriter{}
 	bw := bufwrite.NewLineWriterSize(w, 6)
 
 	_, err := bw.WriteString("hello")
 	assert.NoErr(t, err)
-
-	// write error on flush
+	// error on flush
 	w.errOnWrite = true
 	err = bw.Flush()
 	assert.Err(t, err)
 	assert.Eq(t, "write error", err.Error())
 
+	// err: write n < b.n
+	w.writeNum = 2
+	err = bw.Flush()
+	assert.Err(t, err)
+	w.writeNum = 0
+
 	// get old error
 	w.errOnWrite = false
-
 	err = bw.Flush()
 	assert.Err(t, err)
 	assert.Eq(t, "write error", err.Error())
 
 	bw.Reset(w)
-
 	_, err = bw.WriteString("hello")
 	assert.NoErr(t, err)
 }
