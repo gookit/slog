@@ -135,6 +135,51 @@ func TestWriter_Clean(t *testing.T) {
 	})
 }
 
+// test writer compress
+func TestWriter_Compress(t *testing.T) {
+	logfile := "testdata/test_compress.log"
+
+	c := rotatefile.NewConfig(logfile)
+	c.MaxSize = 128 // will rotate by size
+	c.With(rotatefile.WithDebugMode)
+
+	wr, err := c.Create()
+	assert.NoErr(t, err)
+
+	for i := 0; i < 20; i++ {
+		_, err = wr.WriteString("[INFO] this is a log message, idx=" + mathutil.String(i) + "\n")
+		assert.NoErr(t, err)
+	}
+
+	assert.True(t, fsutil.IsFile(logfile))
+	_, err = wr.WriteString("hi\n")
+	assert.NoErr(t, err)
+	wr.MustClose()
+
+	files := fsutil.Glob(internal.BuildGlobPattern(logfile))
+	assert.NotEmpty(t, files)
+	dump.P(files)
+
+	// test clean and compress backup
+	t.Run("compress backup", func(t *testing.T) {
+		c := rotatefile.NewConfig(logfile,
+			rotatefile.WithDebugMode, rotatefile.WithCompress,
+			rotatefile.WithBackupNum(2),
+		)
+
+		wr, err := c.Create()
+		assert.NoErr(t, err)
+		defer wr.MustClose()
+
+		err = wr.Clean()
+		assert.NoErr(t, err)
+
+		files := fsutil.Glob(internal.BuildGlobPattern(logfile))
+		assert.Lt(t, 2, len(files))
+		dump.P(files)
+	})
+}
+
 // TODO set github.com/benbjohnson/clock for mock clock
 type constantClock time.Time
 

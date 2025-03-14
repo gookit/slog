@@ -13,6 +13,7 @@ import (
 
 	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/fsutil"
+	"github.com/gookit/goutil/mathutil"
 	"github.com/gookit/goutil/stdio"
 	"github.com/gookit/goutil/strutil"
 )
@@ -350,7 +351,7 @@ func (d *Writer) asyncClean() {
 			select {
 			case <-d.cleanCh:
 				d.debugLog("receive signal - clean old files handling")
-				printErrln("rotatefile: clean old files error:", d.Clean())
+				printErrln("rotatefile: clean old files error:", d.doClean())
 			case <-d.stopCh:
 				d.cleanCh = nil
 				d.debugLog("STOP consumer for clean old files")
@@ -375,17 +376,25 @@ func (d *Writer) Clean() (err error) {
 		return errorx.Err("clean: backupNum and backupTime are both 0")
 	}
 
-	// if !d.mu.TryRLock() {
-	// 	d.debugLog("Clean - tryLock=false, SKIP clean old files")
-	// 	return nil
-	// }
-	// defer d.mu.RUnlock()
+	// up: 单独运行清理，不需要设置 skipSeconds
+	return d.doClean(0)
+}
 
+// do clean old files by config
+//
+// - skipSeconds: skip find files that are within the specified seconds
+func (d *Writer) doClean(skipSeconds ...int) (err error) {
 	// oldFiles: xx.log.yy files, no gz file
 	var oldFiles, gzFiles []fileInfo
 	fileDir, fileName := d.fileDir, d.fileName
+	curFileName := filepath.Base(d.path)
+
 	// FIX: do not process recent changes to avoid conflicts
-	limitTime := d.cfg.TimeClock.Now().Add(-time.Second * 30)
+	skipSec := 30
+	if len(skipSeconds) > 0 {
+		skipSec = skipSeconds[0]
+	}
+	limitTime := d.cfg.TimeClock.Now().Add(-time.Second * time.Duration(skipSec))
 
 	// find and clean old files
 	d.debugLog("Clean - find old files, match name:", fileName, ", in dir:", fileDir)
@@ -393,6 +402,11 @@ func (d *Writer) Clean() (err error) {
 		fi, err := ent.Info()
 		if err != nil {
 			return err
+		}
+
+		// fix: exclude the current file
+		if ent.Name() == curFileName {
+			return nil
 		}
 
 		if strings.HasSuffix(ent.Name(), compressSuffix) {
@@ -405,54 +419,23 @@ func (d *Writer) Clean() (err error) {
 
 	gzNum := len(gzFiles)
 	oldNum := len(oldFiles)
-	remNum := gzNum + oldNum - int(d.cfg.BackupNum)
+	remNum := mathutil.Max(gzNum+oldNum-int(d.cfg.BackupNum), 0)
 	d.debugLog("clean old files, gzNum:", gzNum, "oldNum:", oldNum, "remNum:", remNum)
 
 	if remNum > 0 {
 		// remove old gz files
 		if gzNum > 0 {
-			sort.Sort(modTimeFInfos(gzFiles)) // sort by mod-time
-			d.debugLog("remove old gz files ...")
-
-			for idx := 0; idx < gzNum; idx++ {
-				d.debugLog("remove old gz file:", gzFiles[idx].filePath)
-				if err = os.Remove(gzFiles[idx].filePath); err != nil {
-					break
-				}
-
-				remNum--
-				if remNum == 0 {
-					break
-				}
-			}
-
+			remNum, err = d.removeOldGzFiles(remNum, gzFiles)
 			if err != nil {
-				return errorx.Wrap(err, "remove old gz file error")
+				return err
 			}
 		}
 
 		// remove old log files
 		if remNum > 0 && oldNum > 0 {
-			// sort by mod-time, oldest at first.
-			sort.Sort(modTimeFInfos(oldFiles))
-			d.debugLog("remove old normal files ...")
-
-			var idx int
-			for idx = 0; idx < oldNum; idx++ {
-				d.debugLog("remove old file:", oldFiles[idx].filePath)
-				if err = os.Remove(oldFiles[idx].filePath); err != nil {
-					break
-				}
-
-				remNum--
-				if remNum == 0 {
-					break
-				}
-			}
-
-			oldFiles = oldFiles[idx+1:]
+			oldFiles, err = d.removeOldFiles(remNum, oldFiles)
 			if err != nil {
-				return errorx.Wrap(err, "remove old file error")
+				return err
 			}
 		}
 	}
@@ -462,6 +445,58 @@ func (d *Writer) Clean() (err error) {
 		err = d.compressFiles(oldFiles)
 	}
 	return
+}
+
+// remove old gz files
+func (d *Writer) removeOldGzFiles(remNum int, gzFiles []fileInfo) (rn int, err error) {
+	gzNum := len(gzFiles)
+	sort.Sort(modTimeFInfos(gzFiles)) // sort by mod-time
+	d.debugLog("remove old gz files ...")
+
+	for idx := 0; idx < gzNum; idx++ {
+		d.debugLog("remove old gz file:", gzFiles[idx].filePath)
+		if err = os.Remove(gzFiles[idx].filePath); err != nil {
+			break
+		}
+
+		remNum--
+		if remNum == 0 {
+			break
+		}
+	}
+
+	if err != nil {
+		return remNum, errorx.Wrap(err, "remove old gz file error")
+	}
+	return remNum, nil
+}
+
+// remove old log files
+func (d *Writer) removeOldFiles(remNum int, oldFiles []fileInfo) (files []fileInfo, err error) {
+	// sort by mod-time, oldest at first.
+	sort.Sort(modTimeFInfos(oldFiles))
+	d.debugLog("remove old normal files ...")
+
+	var idx int
+	oldNum := len(oldFiles)
+
+	for idx = 0; idx < oldNum; idx++ {
+		d.debugLog("remove old file:", oldFiles[idx].filePath)
+		if err = os.Remove(oldFiles[idx].filePath); err != nil {
+			break
+		}
+
+		remNum--
+		if remNum == 0 {
+			break
+		}
+	}
+
+	oldFiles = oldFiles[idx+1:]
+	if err != nil {
+		return nil, errorx.Wrap(err, "remove old file error")
+	}
+	return oldFiles, nil
 }
 
 //
