@@ -1,7 +1,7 @@
 package handler_test
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/gookit/goutil/fsutil"
@@ -140,7 +140,7 @@ func TestNewSimpleFileHandler(t *testing.T) {
 
 	assert.True(t, fsutil.IsFile(logfile))
 	// assert.NoErr(t, os.Remove(logfile))
-	bts, err := ioutil.ReadFile(logfile)
+	bts, err := os.ReadFile(logfile)
 	assert.NoErr(t, err)
 
 	str := string(bts)
