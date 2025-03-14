@@ -20,12 +20,12 @@ func (l Level) String() string {
 	return LevelName(l)
 }
 
-// Name get level name
+// Name get level name. eg: INFO, DEBUG ...
 func (l Level) Name() string {
 	return LevelName(l)
 }
 
-// LowerName get lower level name
+// LowerName get lower level name. eg: info, debug ...
 func (l Level) LowerName() string {
 	if n, ok := lowerLevelNames[l]; ok {
 		return n

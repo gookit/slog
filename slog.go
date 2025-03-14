@@ -103,6 +103,9 @@ func StopDaemon() { std.StopDaemon() }
 // SetLogLevel max level for the std logger
 func SetLogLevel(l Level) { std.Level = l }
 
+// SetLevelByName set max log level by name. eg: "info", "debug" ...
+func SetLevelByName(name string) { std.Level = LevelByName(name) }
+
 // SetFormatter to std logger
 func SetFormatter(f Formatter) { std.Formatter = f }
 

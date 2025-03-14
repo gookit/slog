@@ -40,6 +40,21 @@ func TestNewConfig(t *testing.T) {
 	assert.Eq(t, []slog.Level{slog.InfoLevel, slog.DebugLevel}, c.Levels)
 }
 
+func TestWithLevelNamesString(t *testing.T) {
+	c := handler.NewConfig(handler.WithLevelNamesString("info,error"))
+	assert.Eq(t, []slog.Level{slog.InfoLevel, slog.ErrorLevel}, c.Levels)
+}
+
+func TestWithMaxLevelName(t *testing.T) {
+	c := handler.NewConfig(handler.WithMaxLevelName("error"))
+	assert.Eq(t, slog.ErrorLevel, c.Level)
+	assert.Eq(t, handler.LevelModeValue, c.LevelMode)
+
+	c1 := handler.NewConfig(handler.WithLevelName("warn"))
+	assert.Eq(t, slog.WarnLevel, c1.Level)
+	assert.Eq(t, handler.LevelModeValue, c1.LevelMode)
+}
+
 func TestNewBuilder(t *testing.T) {
 	testFile := "testdata/builder.log"
 	assert.NoErr(t, fsutil.DeleteIfFileExist(testFile))

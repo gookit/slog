@@ -196,7 +196,7 @@ func printfLogs(msg string, args ...any) {
 
 func TestSetFormatter_jsonFormat(t *testing.T) {
 	defer slog.Reset()
-	slog.SetLogLevel(slog.TraceLevel)
+	slog.SetLevelByName("trace")
 	slog.SetFormatter(slog.NewJSONFormatter())
 
 	th := newTestHandler()

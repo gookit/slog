@@ -3,6 +3,7 @@ package handler
 import (
 	"io"
 	"io/fs"
+	"strings"
 
 	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/fsutil"
@@ -245,26 +246,40 @@ func WithLevelMode(mode slog.LevelMode) ConfigFn {
 	return func(c *Config) { c.LevelMode = mode }
 }
 
-// WithLogLevel setting
+// WithLogLevel setting max log level
 func WithLogLevel(level slog.Level) ConfigFn {
-	return func(c *Config) { c.Level = level }
+	return func(c *Config) {
+		c.Level = level
+		c.LevelMode = LevelModeValue
+	}
 }
+
+// WithLevelName setting max level by name
+func WithLevelName(name string) ConfigFn { return WithLogLevel(slog.LevelByName(name)) }
+
+// WithMaxLevelName setting max level by name
+func WithMaxLevelName(name string) ConfigFn { return WithLogLevel(slog.LevelByName(name)) }
 
 // WithLogLevels setting
 func WithLogLevels(levels slog.Levels) ConfigFn {
-	return func(c *Config) { c.Levels = levels }
+	return func(c *Config) {
+		c.Levels = levels
+		c.LevelMode = LevelModeList
+	}
 }
 
-// WithLevelNames set levels by level names.
+// WithLevelNamesString setting multi levels by level names string, multi names split by comma.
+func WithLevelNamesString(names string) ConfigFn {
+	return WithLevelNames(strings.Split(names, ","))
+}
+
+// WithLevelNames set multi levels by level names.
 func WithLevelNames(names []string) ConfigFn {
 	levels := make([]slog.Level, 0, len(names))
 	for _, name := range names {
 		levels = append(levels, slog.LevelByName(name))
 	}
-
-	return func(c *Config) {
-		c.Levels = levels
-	}
+	return WithLogLevels(levels)
 }
 
 // WithRotateTime setting rotate time
