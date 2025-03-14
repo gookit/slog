@@ -55,6 +55,38 @@ func TestWithMaxLevelName(t *testing.T) {
 	assert.Eq(t, handler.LevelModeValue, c1.LevelMode)
 }
 
+func TestWithRotateTimeString(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected rotatefile.RotateTime
+		panics   bool
+	}{
+		{"1hours", rotatefile.RotateTime(3600), false},
+		{"24h", rotatefile.RotateTime(86400), false},
+		{"1day", rotatefile.RotateTime(86400), false},
+		{"7d", rotatefile.RotateTime(604800), false},
+		{"1m", rotatefile.RotateTime(60), false},
+		{"30s", rotatefile.RotateTime(30), false},
+		{"invalid", 0, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			c := &handler.Config{}
+			if tt.panics {
+				assert.Panics(t, func() {
+					handler.WithRotateTimeString(tt.input)(c)
+				})
+			} else {
+				assert.NotPanics(t, func() {
+					handler.WithRotateTimeString(tt.input)(c)
+				})
+				assert.Eq(t, tt.expected, c.RotateTime)
+			}
+		})
+	}
+}
+
 func TestNewBuilder(t *testing.T) {
 	testFile := "testdata/builder.log"
 	assert.NoErr(t, fsutil.DeleteIfFileExist(testFile))

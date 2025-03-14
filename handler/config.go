@@ -7,6 +7,7 @@ import (
 
 	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/fsutil"
+	"github.com/gookit/goutil/timex"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/bufwrite"
 	"github.com/gookit/slog/rotatefile"
@@ -285,6 +286,19 @@ func WithLevelNames(names []string) ConfigFn {
 // WithRotateTime setting rotate time
 func WithRotateTime(rt rotatefile.RotateTime) ConfigFn {
 	return func(c *Config) { c.RotateTime = rt }
+}
+
+// WithRotateTimeString setting rotate time by string.
+//
+// eg: "1hour", "24h", "1day", "7d", "1m", "30s"
+func WithRotateTimeString(rt string) ConfigFn {
+	return func(c *Config) {
+		rtDur, err := timex.ToDuration(rt)
+		if err != nil {
+			panic(err)
+		}
+		c.RotateTime = rotatefile.RotateTime(rtDur.Seconds())
+	}
 }
 
 // WithRotateMode setting rotate mode
