@@ -127,14 +127,18 @@ type testHandler struct {
 	slog.FormatterWrapper
 	byteutil.Buffer
 	errOnHandle bool
-	errOnFlush  bool
 	errOnClose  bool
+	errOnFlush  bool
 	// hooks
 	callOnFlush func()
+	// tip: 设置为true，默认会让 error,fatal 等信息提前被reset丢弃掉.
+	// see Logger.writeRecord()
+	resetOnFlush bool
 }
 
+// built in test, will collect logs to buffer
 func newTestHandler() *testHandler {
-	return &testHandler{}
+	return &testHandler{resetOnFlush: true}
 }
 
 func (h *testHandler) IsHandling(_ slog.Level) bool {
@@ -158,7 +162,9 @@ func (h *testHandler) Flush() error {
 		h.callOnFlush()
 	}
 
-	h.Reset()
+	if h.resetOnFlush {
+		h.Reset()
+	}
 	return nil
 }
 

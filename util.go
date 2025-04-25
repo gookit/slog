@@ -23,6 +23,15 @@ import (
 // 	return nil
 // }
 
+// FormatLevelName Format the level name, specify the length returned,
+// fill the space with less length, and truncate than the length
+func FormatLevelName(name string, length int) string {
+	if len(name) < length {
+		return fmt.Sprintf("%-"+strconv.Itoa(length)+"s", name)
+	}
+	return name[:length]
+}
+
 func buildLowerLevelName() map[Level]string {
 	mp := make(map[Level]string, len(LevelNames))
 	for level, s := range LevelNames {

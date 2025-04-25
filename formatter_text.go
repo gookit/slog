@@ -46,6 +46,12 @@ type TextFormatter struct {
 	EncodeFunc func(v any) string
 	// CallerFormatFunc the caller format layout. default is defined by CallerFlag
 	CallerFormatFunc CallerFormatFn
+	// LevelFormatFunc custom the level name format.
+	LevelFormatFunc func(s string) string
+	// ColorRenderFunc custom color render func.
+	//
+	// - `s`: level name or message
+	ColorRenderFunc func(filed, s string, l Level) string
 
 	// TODO BeforeFunc call it before format, update fields or other
 	// BeforeFunc func(r *Record)
@@ -81,6 +87,15 @@ func NewTextFormatter(template ...string) *TextFormatter {
 // TextFormatterWith create new TextFormatter with options
 func TextFormatterWith(fns ...TextFormatterFn) *TextFormatter {
 	return NewTextFormatter().WithOptions(fns...)
+}
+
+// LimitLevelNameLen limit the length of the level name
+func LimitLevelNameLen(length int) TextFormatterFn {
+	return func(f *TextFormatter) {
+		f.LevelFormatFunc = func(s string) string {
+			return FormatLevelName(s, length)
+		}
+	}
 }
 
 // Configure the formatter
@@ -190,7 +205,22 @@ func (f *TextFormatter) beforeFormat() {
 	}
 }
 
-func (f *TextFormatter) renderColorByLevel(s string, l Level) string {
+func (f *TextFormatter) renderColorText(field, s string, l Level) string {
+	// custom level name format
+	if f.LevelFormatFunc != nil && field == FieldKeyLevel {
+		s = f.LevelFormatFunc(s)
+	}
+
+	if !f.EnableColor {
+		return s
+	}
+
+	// custom color render func
+	if f.ColorRenderFunc != nil {
+		return f.ColorRenderFunc(field, s, l)
+	}
+
+	// output colored logs for console output
 	if theme, ok := f.ColorTheme[l]; ok {
 		return theme.Render(s)
 	}

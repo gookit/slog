@@ -230,6 +230,22 @@ func TestIssues_144(t *testing.T) {
 	slog.Error("error message text")
 }
 
+// https://github.com/gookit/slog/issues/161 自定义level、caller的宽度
+func TestIssues_161(t *testing.T) {
+	slog.LevelNames[slog.WarnLevel] = "WARNI"
+	slog.LevelNames[slog.InfoLevel] = "INFO "
+	slog.LevelNames[slog.NoticeLevel] = "NOTIC"
+
+	l := slog.New()
+	l.DoNothingOnPanicFatal()
+	l.AddHandler(handler.ConsoleWithMaxLevel(slog.TraceLevel))
+
+	for _, level := range slog.AllLevels {
+		l.Logf(level, "a %s test message", level.String())
+	}
+	assert.NoErr(t, l.LastErr())
+}
+
 // https://github.com/gookit/slog/issues/163
 func TestIssues_163(t *testing.T) {
 	h, e := handler.NewRotateFile("testdata/app_iss163.log", rotatefile.EveryDay)

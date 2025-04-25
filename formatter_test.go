@@ -101,6 +101,72 @@ func TestTextFormatter_Format(t *testing.T) {
 	assert.NotContains(t, logTxt, "}}")
 }
 
+func TestTextFormatter_ColorRenderFunc(t *testing.T) {
+	f := slog.NewTextFormatter()
+	f.WithEnableColor(true)
+	f.ColorRenderFunc = func(field, s string, l slog.Level) string {
+		return fmt.Sprintf("NO-%s-NO", s)
+	}
+
+	r := newLogRecord("TEST_LOG_MESSAGE")
+	bts, err := f.Format(r)
+	assert.NoErr(t, err)
+	str := string(bts)
+	assert.StrContains(t, str, "[NO-info-NO]")
+	assert.StrContains(t, str, "NO-TEST_LOG_MESSAGE-NO")
+}
+
+func TestTextFormatter_LimitLevelNameLen(t *testing.T) {
+	f := slog.TextFormatterWith(slog.LimitLevelNameLen(4))
+
+	h := handler.ConsoleWithMaxLevel(slog.TraceLevel)
+	h.SetFormatter(f)
+
+	th := newTestHandler()
+	th.resetOnFlush = false
+	th.SetFormatter(f)
+
+	l := slog.NewWithHandlers(h, th)
+	l.DoNothingOnPanicFatal()
+
+	for _, level := range slog.AllLevels {
+		l.Logf(level, "a %s test message", level.String())
+	}
+	assert.NoErr(t, l.LastErr())
+
+	str := th.ResetAndGet()
+	assert.StrContains(t, str, "[PANI]")
+	assert.StrContains(t, str, "[FATA]")
+	assert.StrContains(t, str, "[ERRO]")
+	assert.StrContains(t, str, "[TRAC]")
+}
+
+func TestTextFormatter_LimitLevelNameLen2(t *testing.T) {
+	// set to max length.
+	f := slog.TextFormatterWith(slog.LimitLevelNameLen(7))
+
+	h := handler.ConsoleWithMaxLevel(slog.TraceLevel)
+	h.SetFormatter(f)
+
+	th := newTestHandler()
+	th.resetOnFlush = false
+	th.SetFormatter(f)
+
+	l := slog.NewWithHandlers(h, th)
+	l.DoNothingOnPanicFatal()
+
+	for _, level := range slog.AllLevels {
+		l.Logf(level, "a %s test message", level.String())
+	}
+	assert.NoErr(t, l.LastErr())
+
+	str := th.ResetAndGet()
+	assert.StrContains(t, str, "[PANIC  ]")
+	assert.StrContains(t, str, "[FATAL  ]")
+	assert.StrContains(t, str, "[ERROR  ]")
+	assert.StrContains(t, str, "[WARNING]")
+}
+
 func TestNewJSONFormatter(t *testing.T) {
 	f := slog.NewJSONFormatter()
 	f.AddField(slog.FieldKeyTimestamp)
