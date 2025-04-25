@@ -32,13 +32,14 @@ var (
 type JSONFormatter struct {
 	// Fields exported log fields. default is DefaultFields
 	Fields []string
-	// Aliases for output fields. you can change export field name.
+	// Aliases for output fields. you can change the export field name.
 	//
-	// item: `"field" : "output name"`
+	// - item: `"field" : "output name"`
+	//
 	// eg: {"message": "msg"} export field will display "msg"
 	Aliases StringMap
 
-	// PrettyPrint will indent all json logs
+	// PrettyPrint will indent all JSON logs
 	PrettyPrint bool
 	// TimeFormat the time format layout. default is DefaultTimeFormat
 	TimeFormat string
@@ -74,7 +75,7 @@ func (f *JSONFormatter) AddField(name string) *JSONFormatter {
 
 var jsonPool bytebufferpool.Pool
 
-// Format an log record
+// Format a log record to JSON bytes
 func (f *JSONFormatter) Format(r *Record) ([]byte, error) {
 	logData := make(M, len(f.Fields))
 
@@ -91,11 +92,7 @@ func (f *JSONFormatter) Format(r *Record) ([]byte, error) {
 		case field == FieldKeyTimestamp:
 			logData[outName] = r.timestamp()
 		case field == FieldKeyCaller && r.Caller != nil:
-			if f.CallerFormatFunc != nil {
-				logData[outName] = f.CallerFormatFunc(r.Caller)
-			} else {
-				logData[outName] = formatCaller(r.Caller, r.CallerFlag)
-			}
+			logData[outName] = formatCaller(r.Caller, r.CallerFlag, f.CallerFormatFunc)
 		case field == FieldKeyLevel:
 			logData[outName] = r.LevelName()
 		case field == FieldKeyChannel:

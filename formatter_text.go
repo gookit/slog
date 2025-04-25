@@ -28,8 +28,8 @@ type TextFormatter struct {
 	// template text template for render output log messages
 	template string
 	// fields list, parsed from template string.
-	// NOTICE: fields contains no-field items.
-	// eg: ["level", "}}"}
+	//
+	// NOTE: contains no-field items in the list. eg: ["level", "}}"}
 	fields []string
 
 	// TimeFormat the time format layout. default is DefaultTimeFormat
@@ -113,7 +113,7 @@ func (f *TextFormatter) WithEnableColor(enable bool) *TextFormatter {
 	return f
 }
 
-// Fields get export field list
+// Fields get an export field list
 func (f *TextFormatter) Fields() []string {
 	ss := make([]string, 0, len(f.fields)/2)
 	for _, s := range f.fields {
@@ -152,29 +152,13 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 		case field == FieldKeyTimestamp:
 			buf.WriteString(r.timestamp())
 		case field == FieldKeyCaller && r.Caller != nil:
-			var callerLog string
-			if f.CallerFormatFunc != nil {
-				callerLog = f.CallerFormatFunc(r.Caller)
-			} else {
-				callerLog = formatCaller(r.Caller, r.CallerFlag)
-			}
-			buf.WriteString(callerLog)
+			buf.WriteString(formatCaller(r.Caller, r.CallerFlag, f.CallerFormatFunc))
 		case field == FieldKeyLevel:
-			// output colored logs for console
-			if f.EnableColor {
-				buf.WriteString(f.renderColorByLevel(r.LevelName(), r.Level))
-			} else {
-				buf.WriteString(r.LevelName())
-			}
+			buf.WriteString(f.renderColorText(field, r.LevelName(), r.Level))
 		case field == FieldKeyChannel:
 			buf.WriteString(r.Channel)
 		case field == FieldKeyMessage:
-			// output colored logs for console
-			if f.EnableColor {
-				buf.WriteString(f.renderColorByLevel(r.Message, r.Level))
-			} else {
-				buf.WriteString(r.Message)
-			}
+			buf.WriteString(f.renderColorText(field, r.Message, r.Level))
 		case field == FieldKeyData:
 			if f.FullDisplay || len(r.Data) > 0 {
 				buf.WriteString(f.EncodeFunc(r.Data))

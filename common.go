@@ -214,7 +214,7 @@ var (
 		PanicLevel:  "PANIC",
 		FatalLevel:  "FATAL",
 		ErrorLevel:  "ERROR",
-		WarnLevel:   "WARN",
+		WarnLevel:   "WARNING",
 		NoticeLevel: "NOTICE",
 		InfoLevel:   "INFO",
 		DebugLevel:  "DEBUG",

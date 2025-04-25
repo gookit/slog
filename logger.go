@@ -345,7 +345,7 @@ func (l *Logger) runExitHandlers() {
 	}
 }
 
-// DoNothingOnPanicFatal do nothing on panic or fatal level. useful on testing.
+// DoNothingOnPanicFatal do nothing on panic or fatal level. TIP: useful on testing.
 func (l *Logger) DoNothingOnPanicFatal() {
 	l.PanicFunc = DoNothingOnPanic
 	l.ExitFunc = DoNothingOnExit
@@ -356,7 +356,7 @@ func (l *Logger) HandlersNum() int {
 	return len(l.handlers)
 }
 
-// LastErr fetch, will clear it after read.
+// LastErr get, will clear it after read.
 func (l *Logger) LastErr() error {
 	err := l.err
 	l.err = nil

@@ -43,7 +43,11 @@ func getCaller(callerSkip int) (fr runtime.Frame, ok bool) {
 	return f, f.PC != 0
 }
 
-func formatCaller(rf *runtime.Frame, flag uint8) (cs string) {
+func formatCaller(rf *runtime.Frame, flag uint8, userFn CallerFormatFn) (cs string) {
+	if userFn != nil {
+		return userFn(rf)
+	}
+
 	lineNum := strconv.FormatInt(int64(rf.Line), 10)
 	switch flag {
 	case CallerFlagFull:
