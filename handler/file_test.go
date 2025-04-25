@@ -30,7 +30,7 @@ func TestNewFileHandler(t *testing.T) {
 
 	assert.Contains(t, str, "[INFO]")
 	assert.Contains(t, str, "info message")
-	assert.Contains(t, str, "[WARN]")
+	assert.Contains(t, str, "[WARNING]")
 	assert.Contains(t, str, "warn message")
 
 	// assert.NoErr(t, os.Remove(testFile))

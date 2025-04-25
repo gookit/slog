@@ -32,9 +32,10 @@ type Formattable interface {
 type FormattableTrait = FormatterWrapper
 
 // FormatterWrapper use for format log record.
-// default use the TextFormatter
+//
+// Default will use the TextFormatter
 type FormatterWrapper struct {
-	// if not set, default use the TextFormatter
+	// if not set, default uses the TextFormatter
 	formatter Formatter
 }
 

@@ -68,7 +68,7 @@ func TestNewSizeRotateFileHandler(t *testing.T) {
 
 		for i := 0; i < 4; i++ {
 			l.Info("this is a info", "message, index=", i)
-			l.Warn("this is a warn message, index=", i)
+			l.Warn("this is a warning message, index=", i)
 		}
 
 		assert.NoErr(t, l.Close())
@@ -106,7 +106,7 @@ func TestNewTimeRotateFileHandler_EveryDay(t *testing.T) {
 
 	for i := 0; i < 6; i++ {
 		l.WithData(sampleData).Info("the th:", i, "info message")
-		l.Warnf("the th:%d warn message text", i)
+		l.Warnf("the th:%d warning message text", i)
 		fmt.Println("log number ", (i+1)*2)
 		clock.Add(time.Second * 1)
 	}
@@ -136,7 +136,7 @@ func TestNewTimeRotateFileHandler_EveryHour(t *testing.T) {
 
 	for i := 0; i < 6; i++ {
 		l.WithData(sampleData).Info("the th:", i, "info message")
-		l.Warnf("the th:%d warn message text", i)
+		l.Warnf("the th:%d warning message text", i)
 		fmt.Println("log number ", (i+1)*2)
 		clock.Add(time.Second * 1)
 	}
@@ -159,7 +159,7 @@ func TestNewTimeRotateFileHandler_someSeconds(t *testing.T) {
 
 	for i := 0; i < 3; i++ {
 		l.Info("info", "message", i)
-		l.Warn("warn message", i)
+		l.Warn("warning message", i)
 		fmt.Println("second ", i+1)
 		time.Sleep(time.Second * 1)
 	}
@@ -176,6 +176,6 @@ func checkLogFileContents(t *testing.T, logfile string) {
 	str := string(bts)
 	assert.Contains(t, str, "[INFO]")
 	assert.Contains(t, str, "info message")
-	assert.Contains(t, str, "[WARN]")
-	assert.Contains(t, str, "warn message")
+	assert.Contains(t, str, "[WARNING]")
+	assert.Contains(t, str, "warning message")
 }

@@ -45,7 +45,7 @@ type FormattableHandler interface {
 // - only support set max log level
 type LevelWithFormatter struct {
 	FormattableTrait
-	// Level max for log message. if current level <= Level will log message
+	// Level max for logging messages. if current level <= Level will log messages
 	Level Level
 }
 
@@ -54,7 +54,7 @@ func NewLvFormatter(maxLv Level) *LevelWithFormatter {
 	return &LevelWithFormatter{Level: maxLv}
 }
 
-// SetMaxLevel set max level for log message
+// SetMaxLevel set max level for logging messages
 func (h *LevelWithFormatter) SetMaxLevel(maxLv Level) {
 	h.Level = maxLv
 }
@@ -70,7 +70,7 @@ func (h *LevelWithFormatter) IsHandling(level Level) bool {
 // - support setting multi log levels
 type LevelsWithFormatter struct {
 	FormattableTrait
-	// Levels for log message
+	// Levels for logging messages
 	Levels []Level
 }
 

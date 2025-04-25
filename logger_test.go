@@ -40,7 +40,7 @@ func TestLogger_PushHandler(t *testing.T) {
 	l.Warning(slog.WarnLevel, "message")
 	l.Logf(slog.TraceLevel, "%s message", slog.TraceLevel)
 
-	assert.Contains(t, w1.String(), "WARN message")
+	assert.Contains(t, w1.String(), "WARNING message")
 	assert.Contains(t, w2.String(), "TRACE message")
 	assert.Contains(t, w2.String(), "TestLogger_PushHandler")
 

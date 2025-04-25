@@ -212,7 +212,7 @@ func TestSetFormatter_jsonFormat(t *testing.T) {
 	s := th.ResetGet()
 	assert.StrContains(t, s, `"level":"INFO"`)
 	assert.StrContains(t, s, `info log message1`)
-	assert.StrContains(t, s, `"level":"WARN"`)
+	assert.StrContains(t, s, `"level":"WARNING"`)
 	assert.StrContains(t, s, `warning log message2`)
 
 	slog.WithData(slog.M{

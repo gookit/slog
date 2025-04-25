@@ -232,13 +232,18 @@ func TestIssues_144(t *testing.T) {
 
 // https://github.com/gookit/slog/issues/161 自定义level、caller的宽度
 func TestIssues_161(t *testing.T) {
-	slog.LevelNames[slog.WarnLevel] = "WARNI"
-	slog.LevelNames[slog.InfoLevel] = "INFO "
-	slog.LevelNames[slog.NoticeLevel] = "NOTIC"
+	// 这样是全局影响的 - 不推荐
+	// slog.LevelNames[slog.WarnLevel] = "WARNI"
+	// slog.LevelNames[slog.InfoLevel] = "INFO "
+	// slog.LevelNames[slog.NoticeLevel] = "NOTIC"
 
 	l := slog.New()
 	l.DoNothingOnPanicFatal()
-	l.AddHandler(handler.ConsoleWithMaxLevel(slog.TraceLevel))
+
+	h := handler.ConsoleWithMaxLevel(slog.TraceLevel)
+	// 通过 SetFormatter 设置格式化 LevelNameLen=5
+	h.SetFormatter(slog.TextFormatterWith(slog.LimitLevelNameLen(5)))
+	l.AddHandler(h)
 
 	for _, level := range slog.AllLevels {
 		l.Logf(level, "a %s test message", level.String())
