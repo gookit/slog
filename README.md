@@ -47,6 +47,10 @@
 - `rotatefile.FilesClear` is an independent file cleaning backup tool, which can be used in other places (such as other program log cleaning such as PHP)
 - For more usage, please see [rotatefile](rotatefile/README.md)
 
+### Use slog in GORM
+
+Please see https://github.com/gookit/slog/issues/127#issuecomment-2827745713
+
 ## [中文说明](README.zh-CN.md)
 
 中文说明请阅读 [README.zh-CN](README.zh-CN.md)

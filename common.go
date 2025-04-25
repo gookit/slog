@@ -74,7 +74,7 @@ const (
 )
 
 //
-// some commonly definitions
+// some common definitions
 //
 
 // StringMap string map short name

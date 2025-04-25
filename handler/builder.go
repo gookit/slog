@@ -57,15 +57,17 @@ func (b *Builder) WithLevelMode(mode slog.LevelMode) *Builder {
 	return b
 }
 
-// WithLogLevel setting
+// WithLogLevel setting max log level
 func (b *Builder) WithLogLevel(level slog.Level) *Builder {
 	b.Level = level
+	b.LevelMode = slog.LevelModeMax
 	return b
 }
 
 // WithLogLevels setting
 func (b *Builder) WithLogLevels(levels []slog.Level) *Builder {
 	b.Levels = levels
+	b.LevelMode = slog.LevelModeList
 	return b
 }
 

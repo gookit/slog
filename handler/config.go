@@ -41,9 +41,11 @@ type Config struct {
 	LevelMode slog.LevelMode `json:"level_mode" yaml:"level_mode"`
 
 	// Level max value. valid on LevelMode = LevelModeValue
+	//
+	// eg: set Level=slog.LevelError, it will only write messages on level <= error.
 	Level slog.Level `json:"level" yaml:"level"`
 
-	// Levels list for write. valid on LevelMode = LevelModeList
+	// Levels list for writing. valid on LevelMode = LevelModeList
 	Levels []slog.Level `json:"levels" yaml:"levels"`
 
 	// UseJSON for format logs
@@ -57,16 +59,16 @@ type Config struct {
 	// BuffSize for enable buffer, unit is bytes. set 0 to disable buffer
 	BuffSize int `json:"buff_size" yaml:"buff_size"`
 
-	// RotateTime for rotate file, unit is seconds.
+	// RotateTime for a rotating file, unit is seconds.
 	RotateTime rotatefile.RotateTime `json:"rotate_time" yaml:"rotate_time"`
 
-	// RotateMode for rotate file by time. default rotatefile.ModeRename
+	// RotateMode for a rotating file by time. default rotatefile.ModeRename
 	RotateMode rotatefile.RotateMode `json:"rotate_mode" yaml:"rotate_mode"`
 
-	// TimeClock for rotate file by time.
+	// TimeClock for a rotating file by time.
 	TimeClock rotatefile.Clocker `json:"-" yaml:"-"`
 
-	// MaxSize on rotate file by size, unit is bytes.
+	// MaxSize for a rotating file by size, unit is bytes.
 	MaxSize uint64 `json:"max_size" yaml:"max_size"`
 
 	// Compress determines if the rotated log files should be compressed using gzip.
@@ -285,12 +287,12 @@ func WithLevelNames(names []string) ConfigFn {
 	return WithLogLevels(levels)
 }
 
-// WithRotateTime setting rotate time
+// WithRotateTime setting the rotated time
 func WithRotateTime(rt rotatefile.RotateTime) ConfigFn {
 	return func(c *Config) { c.RotateTime = rt }
 }
 
-// WithRotateTimeString setting rotate time by string.
+// WithRotateTimeString setting the rotated time by string.
 //
 // eg: "1hour", "24h", "1day", "7d", "1m", "30s"
 func WithRotateTimeString(rt string) ConfigFn {

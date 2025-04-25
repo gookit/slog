@@ -228,5 +228,17 @@ func TestIssues_144(t *testing.T) {
 	// add logs
 	slog.Info("info message text")
 	slog.Error("error message text")
+}
 
+// https://github.com/gookit/slog/issues/163
+func TestIssues_163(t *testing.T) {
+	h, e := handler.NewRotateFile("testdata/app_iss163.log", rotatefile.EveryDay)
+	assert.NoError(t, e)
+
+	l := slog.NewWithHandlers(h)
+	defer l.MustClose()
+
+	l.Debugf("error %+v", e)
+	l.Infof("2222")
+	// TODO assert.FileExists("testdata/app_iss163.log")
 }
