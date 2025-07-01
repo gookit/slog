@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/gookit/goutil/errorx"
-	"github.com/gookit/goutil/fmtutil"
 	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/goutil/testutil/assert"
+	"github.com/gookit/goutil/x/fmtutil"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
 	"github.com/gookit/slog/rotatefile"

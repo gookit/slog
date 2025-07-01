@@ -16,14 +16,10 @@ import (
 type Level uint32
 
 // String get level name
-func (l Level) String() string {
-	return LevelName(l)
-}
+func (l Level) String() string { return LevelName(l) }
 
 // Name get level name. eg: INFO, DEBUG ...
-func (l Level) Name() string {
-	return LevelName(l)
-}
+func (l Level) Name() string { return LevelName(l) }
 
 // LowerName get lower level name. eg: info, debug ...
 func (l Level) LowerName() string {

@@ -31,7 +31,7 @@ type ConfigFn func(c *Config)
 
 // Config struct
 type Config struct {
-	// Logfile for write logs
+	// Logfile for writing logs
 	Logfile string `json:"logfile" yaml:"logfile"`
 
 	// FilePerm for create log file. default rotatefile.DefaultFilePerm

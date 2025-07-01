@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/gookit/goutil/basefn"
+	"github.com/gookit/goutil/x/basefn"
 	"github.com/gookit/slog/rotatefile"
 )
 

@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/gookit/goutil/dump"
-	"github.com/gookit/goutil/fmtutil"
 	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/goutil/timex"
+	"github.com/gookit/goutil/x/fmtutil"
 	"github.com/gookit/slog/rotatefile"
 )
 

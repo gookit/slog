@@ -13,7 +13,7 @@ import (
 // The logger implements the `github.com/gookit/gsr.Logger`
 type Logger struct {
 	name string
-	// lock for write logs
+	// lock for writing logs
 	mu sync.Mutex
 	// logger latest error
 	err error
@@ -40,7 +40,7 @@ type Logger struct {
 	FlushInterval time.Duration
 	// LowerLevelName use lower level name
 	LowerLevelName bool
-	// ReportCaller on write log record
+	// ReportCaller on writing log record
 	ReportCaller bool
 	CallerSkip   int
 	// CallerFlag used to set caller traceback information in different modes

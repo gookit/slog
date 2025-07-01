@@ -2,6 +2,7 @@ package main
 
 import (
 	"io"
+	goslog "log/slog"
 	"testing"
 
 	"github.com/gookit/slog"
@@ -21,6 +22,18 @@ import (
 //
 //	https://github.com/phuslu/log
 var msg = "The quick brown fox jumps over the lazy dog"
+
+func BenchmarkGoSlogNegative(b *testing.B) {
+	logger := goslog.New(goslog.NewTextHandler(io.Discard, &goslog.HandlerOptions{
+		Level: goslog.LevelInfo,
+	}))
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		logger.Info(msg, goslog.String("rate", "15"), goslog.Int("low", 16), goslog.Float64("high", 123.2))
+	}
+}
 
 func BenchmarkZapNegative(b *testing.B) {
 	logger := zap.New(zapcore.NewCore(

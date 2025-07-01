@@ -14,8 +14,8 @@ import (
 	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/goutil/mathutil"
-	"github.com/gookit/goutil/stdio"
 	"github.com/gookit/goutil/strutil"
+	"github.com/gookit/goutil/x/stdio"
 )
 
 // Writer a flush, close, writer and support rotate file.
