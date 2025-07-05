@@ -72,6 +72,7 @@ func TestWriter_rotateByTime(t *testing.T) {
 	c := rotatefile.NewConfig(logfile).With(func(c *rotatefile.Config) {
 		c.DebugMode = true
 		c.Compress = true
+		c.CleanOnClose = true
 		c.RotateTime = rotatefile.EverySecond * 2
 	})
 

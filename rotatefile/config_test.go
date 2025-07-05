@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gookit/goutil/dump"
+	"github.com/gookit/goutil/jsonutil"
 	"github.com/gookit/goutil/testutil/assert"
 	"github.com/gookit/goutil/timex"
 	"github.com/gookit/goutil/x/fmtutil"
@@ -21,6 +22,7 @@ func TestNewDefaultConfig(t *testing.T) {
 
 func TestNewConfig(t *testing.T) {
 	cfg := rotatefile.NewConfig("testdata/test.log")
+	dump.P(cfg)
 
 	assert.Eq(t, rotatefile.DefaultBackNum, cfg.BackupNum)
 	assert.Eq(t, rotatefile.DefaultBackTime, cfg.BackupTime)
@@ -28,20 +30,84 @@ func TestNewConfig(t *testing.T) {
 	assert.Eq(t, rotatefile.DefaultMaxSize, cfg.MaxSize)
 	assert.Eq(t, rotatefile.ModeRename, cfg.RotateMode)
 
-	dump.P(cfg)
-
 	cfg = rotatefile.EmptyConfigWith(func(c *rotatefile.Config) {
 		c.Compress = true
 	})
 	assert.True(t, cfg.Compress)
 	assert.Eq(t, uint(0), cfg.BackupNum)
 	assert.Eq(t, uint(0), cfg.BackupTime)
+
+	cfg = &rotatefile.Config{}
+	assert.Eq(t, rotatefile.ModeRename, cfg.RotateMode)
+
+	err := jsonutil.DecodeString(`{
+	"debug_mode": true,
+	"rotate_mode": "create",
+	"rotate_time": "1day"
+}`, cfg)
+	dump.P(cfg)
+	assert.NoErr(t, err)
+	assert.Eq(t, rotatefile.ModeCreate, cfg.RotateMode)
+	assert.Eq(t, "Every 1 Day", cfg.RotateTime.String())
 }
 
-func TestRotateMode_String(t *testing.T) {
-	assert.Eq(t, "rename", rotatefile.ModeRename.String())
-	assert.Eq(t, "create", rotatefile.ModeCreate.String())
-	assert.Eq(t, "unknown", rotatefile.RotateMode(9).String())
+func TestRotateMode_cases(t *testing.T) {
+	t.Run("String", func(t *testing.T) {
+		assert.Eq(t, "rename", rotatefile.ModeRename.String())
+		assert.Eq(t, "create", rotatefile.ModeCreate.String())
+		assert.Eq(t, "unknown", rotatefile.RotateMode(9).String())
+	})
+
+	t.Run("UnmarshalJSON", func(t *testing.T) {
+		rm := rotatefile.RotateMode(0)
+
+		// UnmarshalJSON
+		err := rm.UnmarshalJSON([]byte(`"create"`))
+		assert.NoErr(t, err)
+		assert.Eq(t, rotatefile.ModeCreate, rm)
+
+		rm = rotatefile.RotateMode(0)
+		// use int
+		err = rm.UnmarshalJSON([]byte(`"1"`))
+		assert.NoErr(t, err)
+		assert.Eq(t, rotatefile.ModeCreate, rm)
+
+		// error case
+		assert.Err(t, rm.UnmarshalJSON([]byte(`create`)))
+	})
+
+	t.Run("MarshalJSON", func(t *testing.T) {
+		bs, err := rotatefile.ModeRename.MarshalJSON()
+		assert.NoErr(t, err)
+		assert.Eq(t, `"rename"`, string(bs))
+		bs, err = rotatefile.ModeCreate.MarshalJSON()
+		assert.NoErr(t, err)
+		assert.Eq(t, `"create"`, string(bs))
+
+		bs, err = rotatefile.RotateMode(35).MarshalJSON()
+		assert.NoErr(t, err)
+		assert.Eq(t, `"unknown"`, string(bs))
+	})
+}
+
+func TestRotateTime_encode(t *testing.T) {
+	rt := rotatefile.RotateTime(0)
+
+	// UnmarshalJSON
+	err := rt.UnmarshalJSON([]byte(`"1h"`))
+	assert.NoErr(t, err)
+	assert.Eq(t, "Every 1 Hours", rt.String())
+	err = rt.UnmarshalJSON([]byte(`"3600"`))
+	assert.NoErr(t, err)
+	assert.Eq(t, "Every 1 Hours", rt.String())
+
+	// error case
+	assert.Err(t, rt.UnmarshalJSON([]byte(`a`)))
+
+	// MarshalJSON
+	bs, err := rt.MarshalJSON()
+	assert.NoErr(t, err)
+	assert.Eq(t, `"3600s"`, string(bs))
 }
 
 func TestRotateTime_TimeFormat(t *testing.T) {

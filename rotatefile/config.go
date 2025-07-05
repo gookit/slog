@@ -3,10 +3,16 @@ package rotatefile
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
+	"github.com/gookit/goutil/strutil"
 	"github.com/gookit/goutil/timex"
 )
+
+//
+// ---------------------------- rotate time -------------------------------
+//
 
 type rotateLevel uint8
 
@@ -17,7 +23,7 @@ const (
 	levelSec
 )
 
-// RotateTime for rotate file. unit is seconds.
+// RotateTime for a rotating file. unit is seconds.
 //
 // EveryDay:
 //   - "error.log.20201223"
@@ -44,7 +50,7 @@ func (rt RotateTime) Interval() int64 {
 	return int64(rt)
 }
 
-// FirstCheckTime for rotate file.
+// FirstCheckTime for a rotated file.
 // - will automatically align the time from the start of each hour.
 func (rt RotateTime) FirstCheckTime(now time.Time) time.Time {
 	interval := rt.Interval()
@@ -73,7 +79,7 @@ func (rt RotateTime) FirstCheckTime(now time.Time) time.Time {
 	}
 }
 
-// level for rotate time
+// level for rotating time
 func (rt RotateTime) level() rotateLevel {
 	switch {
 	case rt >= timex.OneDaySec:
@@ -111,6 +117,22 @@ func (rt RotateTime) TimeFormat() (suffixFormat string) {
 	return
 }
 
+// MarshalJSON implement the JSON Marshal interface [encoding/json.Marshaler]
+func (rt RotateTime) MarshalJSON() ([]byte, error) {
+	return []byte(fmt.Sprintf(`"%ds"`, rt.Interval())), nil
+}
+
+// UnmarshalJSON implement the JSON Unmarshal interface [encoding/json.Unmarshaler]
+func (rt *RotateTime) UnmarshalJSON(data []byte) error {
+	s, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
+	}
+
+	*rt, err = StringToRotateTime(s)
+	return err
+}
+
 // String rotate type to string
 func (rt RotateTime) String() string {
 	switch rt.level() {
@@ -124,6 +146,99 @@ func (rt RotateTime) String() string {
 		return fmt.Sprintf("Every %d Seconds", rt.Interval())
 	}
 }
+
+// StringToRotateTime parse and convert string to RotateTime
+func StringToRotateTime(s string) (RotateTime, error) {
+	// is int value, try to parse as seconds
+	if strutil.IsInt(s) {
+		iVal := strutil.SafeInt(s)
+		if iVal < 0 || iVal > timex.OneMonthSec*3 {
+			return 0, fmt.Errorf("rotatefile: invalid rotate time: %s", s)
+		}
+		return RotateTime(iVal), nil
+	}
+
+	// parse time duration string. eg: "1h", "1m", "1d"
+	rtDur, err := timex.ToDuration(s)
+	if err != nil {
+		return 0, err
+	}
+	return RotateTime(rtDur.Seconds()), nil
+}
+
+//
+// ---------------------------- RotateMode -------------------------------
+//
+
+// RotateMode for a rotated file. 0: rename, 1: create
+type RotateMode uint8
+
+const (
+	// ModeRename rotating file by rename.
+	//
+	// Example flow:
+	//  - always write to "error.log"
+	//  - rotating by rename it to "error.log.20201223"
+	//  - then re-create "error.log"
+	ModeRename RotateMode = iota
+
+	// ModeCreate rotating file by create a new file.
+	//
+	// Example flow:
+	//  - directly create a new file on each rotated time. eg: "error.log.20201223", "error.log.20201224"
+	ModeCreate
+)
+
+// String get string name
+func (m RotateMode) String() string {
+	switch m {
+	case ModeRename:
+		return "rename"
+	case ModeCreate:
+		return "create"
+	default:
+		return "unknown"
+	}
+}
+
+// MarshalJSON implement the JSON Marshal interface [encoding/json.Marshaler]
+func (m RotateMode) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + m.String() + `"`), nil
+}
+
+// UnmarshalJSON implement the JSON Unmarshal interface [encoding/json.Unmarshaler]
+func (m *RotateMode) UnmarshalJSON(data []byte) error {
+	s, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
+	}
+
+	*m, err = StringToRotateMode(s)
+	return err
+}
+
+// StringToRotateMode convert string to RotateMode
+func StringToRotateMode(s string) (RotateMode, error) {
+	switch s {
+	case "rename":
+		return ModeRename, nil
+	case "create", "make":
+		return ModeCreate, nil
+	default:
+		// is int value, try to parse as int
+		if strutil.IsInt(s) {
+			iVal := strutil.SafeInt(s)
+			if iVal >= int(ModeRename) && iVal <= int(ModeCreate) {
+				return RotateMode(iVal), nil
+			}
+		}
+		return 0, fmt.Errorf("rotatefile: invalid rotate mode: %s", s)
+	}
+}
+
+//
+// ---------------------------- Clocker -------------------------------
+//
 
 // Clocker is the interface used for determine the current time
 type Clocker interface {
@@ -158,13 +273,13 @@ type Config struct {
 	// default see DefaultMaxSize
 	MaxSize uint64 `json:"max_size" yaml:"max_size"`
 
-	// RotateTime the file rotate interval time, unit is seconds.
+	// RotateTime the file rotating interval time, unit is seconds.
 	// If is equals zero, disable rotate file by time
 	//
 	// default: EveryHour
 	RotateTime RotateTime `json:"rotate_time" yaml:"rotate_time"`
 
-	// CloseLock use sync lock on write contents, rotating file.
+	// CloseLock use sync lock on writing contents, rotating file.
 	//
 	// default: false
 	CloseLock bool `json:"close_lock" yaml:"close_lock"`
@@ -178,6 +293,9 @@ type Config struct {
 	//
 	// 0 is not limit, default is DefaultBackTime
 	BackupTime uint `json:"backup_time" yaml:"backup_time"`
+
+	// CleanOnClose determines if the rotated log files should be cleaned up when close.
+	CleanOnClose bool `json:"clean_on_close" yaml:"clean_on_close"`
 
 	// Compress determines if the rotated log files should be compressed using gzip.
 	// The default is not to perform compression.
@@ -193,13 +311,13 @@ type Config struct {
 	// 		// eg: /tmp/error.log => /tmp/error.log.24032116_894136
 	// 		return filepath + fmt.Sprintf(".%s_%d", suffix, rotateNum)
 	//  }
-	RenameFunc func(filePath string, rotateNum uint) string
+	RenameFunc func(filePath string, rotateNum uint) string `json:"-" yaml:"-"`
 
-	// TimeClock for rotate file by time.
-	TimeClock Clocker
+	// TimeClock for a rotating file by time.
+	TimeClock Clocker `json:"-" yaml:"-"`
 
 	// DebugMode for debug on development.
-	DebugMode bool
+	DebugMode bool `json:"debug_mode" yaml:"debug_mode"`
 }
 
 func (c *Config) backupDuration() time.Duration {
@@ -274,24 +392,16 @@ func EmptyConfigWith(fns ...ConfigFn) *Config {
 
 // WithFilepath setting
 func WithFilepath(logfile string) ConfigFn {
-	return func(c *Config) {
-		c.Filepath = logfile
-	}
+	return func(c *Config) { c.Filepath = logfile }
 }
 
 // WithDebugMode setting for debug mode
-func WithDebugMode(c *Config) {
-	c.DebugMode = true
-}
+func WithDebugMode(c *Config) { c.DebugMode = true }
 
 // WithCompress setting for compress
-func WithCompress(c *Config) {
-	c.Compress = true
-}
+func WithCompress(c *Config) { c.Compress = true }
 
 // WithBackupNum setting for backup number
 func WithBackupNum(num uint) ConfigFn {
-	return func(c *Config) {
-		c.BackupNum = num
-	}
+	return func(c *Config) { c.BackupNum = num }
 }

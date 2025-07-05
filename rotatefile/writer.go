@@ -65,7 +65,7 @@ func NewWriter(c *Config) (*Writer, error) {
 	return d, nil
 }
 
-// NewWriterWith create rotate writer with some settings.
+// NewWriterWith create a rotated writer with some settings.
 func NewWriterWith(fns ...ConfigFn) (*Writer, error) {
 	return NewWriter(NewConfigWith(fns...))
 }
@@ -104,7 +104,7 @@ func (d *Writer) init() error {
 	return d.openFile(logfile)
 }
 
-// Config get the config
+// Config gets the config
 func (d *Writer) Config() Config {
 	return *d.cfg
 }
@@ -120,14 +120,19 @@ func (d *Writer) Sync() error {
 }
 
 // Close the writer. will sync data to disk, then close the file handle.
-// and will stop the async clean backups.
+// and it will stop the async clean backups.
 func (d *Writer) Close() error {
+	if d.cfg.CleanOnClose {
+		d.debugLog("cfg.CleanOnClose=true: start clean old files")
+		printErrln("files-clear-onClose: cleanup old files error:", d.Clean())
+	}
+
 	return d.close(true)
 }
 
 // MustClose the writer. alias of Close(), but will panic if has error.
 func (d *Writer) MustClose() {
-	printErrln("close writer -", d.close(true))
+	printErrln("rotatefile: close writer -", d.Close())
 }
 
 func (d *Writer) close(closeStopCh bool) error {
@@ -205,7 +210,7 @@ func (d *Writer) doRotate() (err error) {
 		defer d.mu.Unlock()
 	}
 
-	// do rotate file by size
+	// do rotate a file by size
 	if d.cfg.MaxSize > 0 && d.written >= d.cfg.MaxSize {
 		err = d.rotatingBySize()
 		if err != nil {
@@ -213,7 +218,7 @@ func (d *Writer) doRotate() (err error) {
 		}
 	}
 
-	// do rotate file by time
+	// do rotate a file by time
 	if d.checkInterval > 0 && d.written > 0 {
 		err = d.rotatingByTime()
 	}
@@ -261,7 +266,7 @@ func (d *Writer) rotatingBySize() error {
 		bakFile = d.buildFilePath(fmt.Sprintf("%s_%d", now.Format("06010215"), rotateNum))
 	}
 
-	// always rename current to new file
+	// always rename current to a new file
 	return d.rotatingFile(bakFile, true)
 }
 
@@ -275,14 +280,14 @@ func (d *Writer) rotatingFile(bakFile string, rename bool) error {
 	// record old files for clean.
 	// d.oldFiles = append(d.oldFiles, bakFile)
 
-	// rename current to new file.
+	// rename current to a new file.
 	if rename || d.cfg.RotateMode == ModeRename {
 		if err := os.Rename(d.path, bakFile); err != nil {
 			return err
 		}
 	}
 
-	// filepath for reopen
+	// filepath for reopening
 	logfile := d.path
 	if d.cfg.RotateMode == ModeRename {
 		logfile = d.cfg.Filepath
@@ -397,7 +402,7 @@ func (d *Writer) doClean(skipSeconds ...int) (err error) {
 	limitTime := d.cfg.TimeClock.Now().Add(-time.Second * time.Duration(skipSec))
 
 	// find and clean old files
-	d.debugLog("Clean - find old files, match name:", fileName, ", in dir:", fileDir)
+	d.debugLog("clean - find old files, match name:", fileName, ", in dir:", fileDir)
 	err = fsutil.FindInDir(fileDir, func(fPath string, ent fs.DirEntry) error {
 		fi, err := ent.Info()
 		if err != nil {
@@ -569,7 +574,7 @@ func (d *Writer) compressFiles(oldFiles []fileInfo) error {
 			return errorx.Wrap(err, "compress old file error")
 		}
 
-		// remove old log file
+		// remove an old log file
 		d.debugLog("compress and rm old file:", fi.filePath)
 		if err = os.Remove(fi.filePath); err != nil {
 			return errorx.Wrap(err, "remove file error after compress")
