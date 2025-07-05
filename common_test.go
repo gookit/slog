@@ -48,33 +48,78 @@ func TestM_String(t *testing.T) {
 	assert.NotEmpty(t, m.String())
 }
 
-func TestLevel_Name(t *testing.T) {
-	assert.Eq(t, "INFO", slog.InfoLevel.Name())
-	assert.Eq(t, "INFO", slog.InfoLevel.String())
-	assert.Eq(t, "info", slog.InfoLevel.LowerName())
-	assert.Eq(t, "unknown", slog.Level(330).LowerName())
-}
-
-func TestLevelByName(t *testing.T) {
-	assert.Eq(t, slog.InfoLevel, slog.LevelByName("info"))
-	assert.Eq(t, slog.InfoLevel, slog.LevelByName("invalid"))
-}
-
-func TestLevelName(t *testing.T) {
+func TestLevelName_func(t *testing.T) {
 	for level, wantName := range slog.LevelNames {
 		realName := slog.LevelName(level)
 		assert.Eq(t, wantName, realName)
 	}
 
 	assert.Eq(t, "UNKNOWN", slog.LevelName(20))
+
+	// LevelByName
+	assert.Eq(t, slog.InfoLevel, slog.LevelByName("info"))
+	assert.Eq(t, slog.InfoLevel, slog.LevelByName("invalid"))
 }
 
-func TestLevel_ShouldHandling(t *testing.T) {
-	assert.True(t, slog.InfoLevel.ShouldHandling(slog.ErrorLevel))
-	assert.False(t, slog.InfoLevel.ShouldHandling(slog.TraceLevel))
+func TestName2Level(t *testing.T) {
+	for wantLevel, name := range slog.LevelNames {
+		level, err := slog.Name2Level(name)
+		assert.NoErr(t, err)
+		assert.Eq(t, wantLevel, level)
+	}
 
-	assert.True(t, slog.DebugLevel.ShouldHandling(slog.InfoLevel))
-	assert.False(t, slog.DebugLevel.ShouldHandling(slog.TraceLevel))
+	// special names
+	tests := map[slog.Level]string{
+		slog.WarnLevel:  "warn",
+		slog.ErrorLevel: "err",
+		slog.InfoLevel:  "",
+	}
+	for wantLevel, name := range tests {
+		level, err := slog.Name2Level(name)
+		assert.NoErr(t, err)
+		assert.Eq(t, wantLevel, level)
+	}
+
+	level, err := slog.Name2Level("unknown")
+	assert.Err(t, err)
+	assert.Eq(t, slog.Level(0), level)
+
+	level, err = slog.StringToLevel("300")
+	assert.NoErr(t, err)
+	assert.Eq(t, slog.ErrorLevel, level)
+}
+
+func TestLevel_methods(t *testing.T) {
+	t.Run("ShouldHandling", func(t *testing.T) {
+		assert.True(t, slog.InfoLevel.ShouldHandling(slog.ErrorLevel))
+		assert.False(t, slog.InfoLevel.ShouldHandling(slog.TraceLevel))
+
+		assert.True(t, slog.DebugLevel.ShouldHandling(slog.InfoLevel))
+		assert.False(t, slog.DebugLevel.ShouldHandling(slog.TraceLevel))
+	})
+
+	t.Run("Name", func(t *testing.T) {
+		assert.Eq(t, "INFO", slog.InfoLevel.Name())
+		assert.Eq(t, "INFO", slog.InfoLevel.String())
+		assert.Eq(t, "info", slog.InfoLevel.LowerName())
+		assert.Eq(t, "unknown", slog.Level(330).LowerName())
+	})
+
+	t.Run("encoding", func(t *testing.T) {
+		// MarshalJSON
+		bs, err := slog.InfoLevel.MarshalJSON()
+		assert.NoErr(t, err)
+		assert.Eq(t, `"INFO"`, string(bs))
+
+		// UnmarshalJSON
+		level := slog.Level(0)
+		assert.Eq(t, "UNKNOWN", level.Name())
+		err = level.UnmarshalJSON([]byte(`"warn"`))
+		assert.NoErr(t, err)
+		assert.Eq(t, "WARNING", level.Name())
+
+		assert.Err(t, level.UnmarshalJSON([]byte(`a`)))
+	})
 }
 
 func TestLevels_Contains(t *testing.T) {

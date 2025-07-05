@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/gookit/goutil/dump"
 	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/goutil/testutil/assert"
@@ -36,8 +37,36 @@ func TestNewConfig(t *testing.T) {
 	assert.Eq(t, slog.ErrorLevel, c.Level)
 	assert.Eq(t, rotatefile.ModeCreate, c.RotateMode)
 
+	c.With(handler.WithLevelModeString("max"))
+	assert.Eq(t, slog.LevelModeMax, c.LevelMode)
+
 	c.WithConfigFn(handler.WithLevelNames([]string{"info", "debug"}))
 	assert.Eq(t, []slog.Level{slog.InfoLevel, slog.DebugLevel}, c.Levels)
+}
+
+func TestConfig_fromJSON(t *testing.T) {
+	c := &handler.Config{}
+	assert.Eq(t, slog.LevelModeList, c.LevelMode)
+	assert.Eq(t, rotatefile.ModeRename, c.RotateMode)
+
+	assert.NoErr(t, c.FromJSON([]byte(`{
+		"logfile": "testdata/config_test.log",
+		"level": "debug",
+		"level_mode": "max",
+		"levels": ["info", "debug"],
+		"buff_mode": "line",
+		"buff_size": 128,
+		"backup_num": 3,
+		"backup_time": 3600,
+		"rotate_mode": "create",
+		"rotate_time": "1day"
+	}`)))
+	c.With(handler.WithDebugMode)
+	dump.P(c)
+
+	assert.Eq(t, slog.LevelModeMax, c.LevelMode)
+	assert.Eq(t, rotatefile.ModeCreate, c.RotateMode)
+	assert.Eq(t, "Every 1 Day", c.RotateTime.String())
 }
 
 func TestWithLevelNamesString(t *testing.T) {
@@ -53,6 +82,18 @@ func TestWithMaxLevelName(t *testing.T) {
 	c1 := handler.NewConfig(handler.WithLevelName("warn"))
 	assert.Eq(t, slog.WarnLevel, c1.Level)
 	assert.Eq(t, handler.LevelModeValue, c1.LevelMode)
+}
+
+func TestWithRotateMode(t *testing.T) {
+	c := handler.Config{}
+
+	c.With(handler.WithRotateModeString("rename"))
+	assert.Eq(t, rotatefile.ModeRename, c.RotateMode)
+
+	assert.PanicsErrMsg(t, func() {
+		c.With(handler.WithRotateModeString("invalid"))
+	}, "rotatefile: invalid rotate mode: invalid")
+
 }
 
 func TestWithRotateTimeString(t *testing.T) {

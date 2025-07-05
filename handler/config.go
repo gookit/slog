@@ -1,13 +1,13 @@
 package handler
 
 import (
+	"encoding/json"
 	"io"
 	"io/fs"
 	"strings"
 
 	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/fsutil"
-	"github.com/gookit/goutil/timex"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/bufwrite"
 	"github.com/gookit/slog/rotatefile"
@@ -88,6 +88,9 @@ type Config struct {
 	// RenameFunc build filename for rotate file
 	RenameFunc func(filepath string, rotateNum uint) string
 
+	// CleanOnClose determines if the rotated log files should be cleaned up when close.
+	CleanOnClose bool `json:"clean_on_close" yaml:"clean_on_close"`
+
 	// DebugMode for debug on development.
 	DebugMode bool
 }
@@ -116,10 +119,11 @@ func NewConfig(fns ...ConfigFn) *Config {
 	return c.WithConfigFn(fns...)
 }
 
+// FromJSON load config from json string
+func (c *Config) FromJSON(bts []byte) error { return json.Unmarshal(bts, c) }
+
 // With more config settings func
-func (c *Config) With(fns ...ConfigFn) *Config {
-	return c.WithConfigFn(fns...)
-}
+func (c *Config) With(fns ...ConfigFn) *Config { return c.WithConfigFn(fns...) }
 
 // WithConfigFn more config settings func
 func (c *Config) WithConfigFn(fns ...ConfigFn) *Config {
@@ -190,6 +194,7 @@ func (c *Config) CreateWriter() (output SyncCloseWriter, err error) {
 		rc.BackupNum = c.BackupNum
 		rc.BackupTime = c.BackupTime
 		rc.Compress = c.Compress
+		rc.CleanOnClose = c.CleanOnClose
 
 		if c.RenameFunc != nil {
 			rc.RenameFunc = c.RenameFunc
@@ -247,8 +252,13 @@ func WithFilePerm(filePerm fs.FileMode) ConfigFn {
 }
 
 // WithLevelMode setting
-func WithLevelMode(mode slog.LevelMode) ConfigFn {
-	return func(c *Config) { c.LevelMode = mode }
+func WithLevelMode(lm slog.LevelMode) ConfigFn {
+	return func(c *Config) { c.LevelMode = lm }
+}
+
+// WithLevelModeString setting
+func WithLevelModeString(s string) ConfigFn {
+	return func(c *Config) { c.LevelMode = slog.SafeToLevelMode(s) }
 }
 
 // WithLogLevel setting max log level
@@ -295,19 +305,30 @@ func WithRotateTime(rt rotatefile.RotateTime) ConfigFn {
 // WithRotateTimeString setting the rotated time by string.
 //
 // eg: "1hour", "24h", "1day", "7d", "1m", "30s"
-func WithRotateTimeString(rt string) ConfigFn {
+func WithRotateTimeString(s string) ConfigFn {
 	return func(c *Config) {
-		rtDur, err := timex.ToDuration(rt)
+		rt, err := rotatefile.StringToRotateTime(s)
 		if err != nil {
 			panic(err)
 		}
-		c.RotateTime = rotatefile.RotateTime(rtDur.Seconds())
+		c.RotateTime = rt
 	}
 }
 
-// WithRotateMode setting rotate mode
+// WithRotateMode setting rotating mode rotatefile.RotateMode
 func WithRotateMode(m rotatefile.RotateMode) ConfigFn {
 	return func(c *Config) { c.RotateMode = m }
+}
+
+// WithRotateModeString setting rotatefile.RotateMode by string.
+func WithRotateModeString(s string) ConfigFn {
+	return func(c *Config) {
+		m, err := rotatefile.StringToRotateMode(s)
+		if err != nil {
+			panic(err)
+		}
+		c.RotateMode = m
+	}
 }
 
 // WithTimeClock setting
@@ -330,12 +351,12 @@ func WithBuffMode(buffMode string) ConfigFn {
 	return func(c *Config) { c.BuffMode = buffMode }
 }
 
-// WithBuffSize setting buffer size
+// WithBuffSize setting buffer size, unit is bytes.
 func WithBuffSize(buffSize int) ConfigFn {
 	return func(c *Config) { c.BuffSize = buffSize }
 }
 
-// WithMaxSize setting max size for rotate file
+// WithMaxSize setting max size for a rotated file
 func WithMaxSize(maxSize uint64) ConfigFn {
 	return func(c *Config) { c.MaxSize = maxSize }
 }
@@ -345,7 +366,7 @@ func WithCompress(compress bool) ConfigFn {
 	return func(c *Config) { c.Compress = compress }
 }
 
-// WithUseJSON setting use json format
+// WithUseJSON setting uses JSON format
 func WithUseJSON(useJSON bool) ConfigFn {
 	return func(c *Config) { c.UseJSON = useJSON }
 }

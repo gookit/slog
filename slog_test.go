@@ -309,29 +309,6 @@ func TestAddProcessor(t *testing.T) {
 	assert.Contains(t, str, "Debugf message")
 }
 
-func TestName2Level(t *testing.T) {
-	for wantLevel, name := range slog.LevelNames {
-		level, err := slog.Name2Level(name)
-		assert.NoErr(t, err)
-		assert.Eq(t, wantLevel, level)
-	}
-
-	// special names
-	tests := map[slog.Level]string{
-		slog.WarnLevel:  "warn",
-		slog.ErrorLevel: "err",
-		slog.InfoLevel:  "",
-	}
-	for wantLevel, name := range tests {
-		level, err := slog.Name2Level(name)
-		assert.NoErr(t, err)
-		assert.Eq(t, wantLevel, level)
-	}
-
-	level, err := slog.Name2Level("unknown")
-	assert.Err(t, err)
-	assert.Eq(t, slog.Level(0), level)
-}
 
 func TestPrependExitHandler(t *testing.T) {
 	defer slog.Reset()

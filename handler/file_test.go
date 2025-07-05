@@ -118,12 +118,18 @@ func TestJSONFileHandler(t *testing.T) {
 	assert.Contains(t, str, `"message":"test json file handler"`)
 }
 
-func TestMustSimpleFile(t *testing.T) {
+func TestSimpleFile(t *testing.T) {
 	logfile := "./testdata/must-simple-file.log"
 	assert.NoErr(t, fsutil.DeleteIfFileExist(logfile))
-
 	h := handler.MustSimpleFile(logfile)
 	assert.True(t, h.IsHandling(slog.InfoLevel))
+
+	// NewSimpleFile
+	logfile = "./testdata/test-simple-file.log"
+	assert.NoErr(t, fsutil.DeleteIfFileExist(logfile))
+	h2, err := handler.NewSimpleFile(logfile)
+	assert.NoErr(t, err)
+	assert.True(t, h2.IsHandling(slog.InfoLevel))
 }
 
 func TestNewSimpleFileHandler(t *testing.T) {

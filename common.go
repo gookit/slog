@@ -2,10 +2,12 @@ package slog
 
 import (
 	"errors"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gookit/goutil/envutil"
+	"github.com/gookit/goutil/strutil"
 )
 
 //
@@ -32,6 +34,22 @@ func (l Level) LowerName() string {
 // ShouldHandling compare level, if current level <= l, it will be record.
 func (l Level) ShouldHandling(curLevel Level) bool {
 	return curLevel <= l
+}
+
+// MarshalJSON implement the JSON Marshal interface [encoding/json.Marshaler]
+func (l Level) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + l.String() + `"`), nil
+}
+
+// UnmarshalJSON implement the JSON Unmarshal interface [encoding/json.Unmarshaler]
+func (l *Level) UnmarshalJSON(data []byte) error {
+	s, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
+	}
+
+	*l, err = StringToLevel(s)
+	return err
 }
 
 // Levels level list
@@ -231,9 +249,9 @@ func LevelName(l Level) string {
 	return "UNKNOWN"
 }
 
-// LevelByName convert name to level
+// LevelByName convert name to level, fallback to InfoLevel if not match
 func LevelByName(ln string) Level {
-	l, err := Name2Level(ln)
+	l, err := StringToLevel(ln)
 	if err != nil {
 		return InfoLevel
 	}
@@ -241,8 +259,11 @@ func LevelByName(ln string) Level {
 }
 
 // Name2Level convert name to level
-func Name2Level(ln string) (Level, error) {
-	switch strings.ToLower(ln) {
+func Name2Level(s string) (Level, error) { return StringToLevel(s) }
+
+// StringToLevel parse and convert string value to Level
+func StringToLevel(s string) (Level, error) {
+	switch strings.ToLower(s) {
 	case "panic":
 		return PanicLevel, nil
 	case "fatal":
@@ -260,7 +281,13 @@ func Name2Level(ln string) (Level, error) {
 	case "trace":
 		return TraceLevel, nil
 	}
-	return 0, errors.New("invalid log level name: " + ln)
+
+	// is int value, try to parse as int
+	if strutil.IsInt(s) {
+		iVal := strutil.SafeInt(s)
+		return Level(iVal), nil
+	}
+	return 0, errors.New("slog: invalid log level name: " + s)
 }
 
 //

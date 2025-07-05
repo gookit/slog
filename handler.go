@@ -1,6 +1,12 @@
 package slog
 
-import "io"
+import (
+	"fmt"
+	"io"
+	"strconv"
+
+	"github.com/gookit/goutil/strutil"
+)
 
 //
 // Handler interface
@@ -94,8 +100,24 @@ func (h *LevelsWithFormatter) IsHandling(level Level) bool {
 	return false
 }
 
-// LevelMode define level mode
+// LevelMode define level mode for logging
 type LevelMode uint8
+
+// MarshalJSON implement the JSON Marshal interface [encoding/json.Marshaler]
+func (m LevelMode) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + m.String() + `"`), nil
+}
+
+// UnmarshalJSON implement the JSON Unmarshal interface [encoding/json.Unmarshaler]
+func (m *LevelMode) UnmarshalJSON(data []byte) error {
+	s, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
+	}
+
+	*m, err = StringToLevelMode(s)
+	return err
+}
 
 // String return string value
 func (m LevelMode) String() string {
@@ -116,17 +138,45 @@ const (
 	LevelModeMax
 )
 
+// SafeToLevelMode parse string value to LevelMode, fail return LevelModeList
+func SafeToLevelMode(s string) LevelMode {
+	lm, err := StringToLevelMode(s)
+	if err != nil {
+		return LevelModeList
+	}
+	return lm
+}
+
+// StringToLevelMode parse string value to LevelMode
+func StringToLevelMode(s string) (LevelMode, error) {
+	switch s {
+	case "", "list", "list_level", "level_list":
+		return LevelModeList, nil
+	case "max", "max_level", "level_max":
+		return LevelModeMax, nil
+	default:
+		// is int value, try to parse as int
+		if strutil.IsInt(s) {
+			iVal := strutil.SafeInt(s)
+			if iVal >= 0 && iVal <= int(LevelModeMax) {
+				return LevelMode(iVal), nil
+			}
+		}
+		return 0, fmt.Errorf("slog: invalid level mode: %s", s)
+	}
+}
+
 // LevelHandling struct definition
 type LevelHandling struct {
 	// level check mode. default is LevelModeList
 	lvMode LevelMode
-	// max level for log message. if current level <= Level will log message
+	// max level for a log message. if the current level <= Level will log a message
 	maxLevel Level
 	// levels limit for log message
 	levels []Level
 }
 
-// SetMaxLevel set max level for log message
+// SetMaxLevel set max level for a log message
 func (h *LevelHandling) SetMaxLevel(maxLv Level) {
 	h.lvMode = LevelModeMax
 	h.maxLevel = maxLv
