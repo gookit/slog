@@ -7,7 +7,7 @@
 [![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/gookit/slog)](https://github.com/gookit/slog)
 [![Coverage Status](https://coveralls.io/repos/github/gookit/slog/badge.svg?branch=master)](https://coveralls.io/github/gookit/slog?branch=master)
 
-📑 Go 实现的一个易于使用的，易扩展、可配置的日志库。
+📑 Go 实现的一个易于使用的，结构化的，易扩展、可配置的日志库。
 
 **控制台日志效果:**
 

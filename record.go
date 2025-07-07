@@ -215,6 +215,11 @@ func (r *Record) AddData(data M) *Record {
 	return r
 }
 
+// WithValue add Data value to record. alias of AddValue
+func (r *Record) WithValue(key string, value any) *Record {
+	return r.AddValue(key, value)
+}
+
 // AddValue add Data value to record
 func (r *Record) AddValue(key string, value any) *Record {
 	if r.Data == nil {
@@ -295,7 +300,7 @@ func (r *Record) SetFields(fields M) *Record {
 	return r
 }
 
-// Field value get from record
+// Field value gets from record
 func (r *Record) Field(key string) any {
 	if r.Fields == nil {
 		return nil

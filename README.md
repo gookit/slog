@@ -7,7 +7,7 @@
 [![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/gookit/slog)](https://github.com/gookit/slog)
 [![Coverage Status](https://coveralls.io/repos/github/gookit/slog/badge.svg?branch=master)](https://coveralls.io/github/gookit/slog?branch=master)
 
-📑 Lightweight, extensible, configurable logging library written in Golang.
+📑 Lightweight, structured, extensible, configurable logging library written in Golang.
 
 **Output in console:**
 

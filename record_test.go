@@ -52,7 +52,7 @@ func TestRecord_AddData(t *testing.T) {
 	// - first add value
 	nr := &slog.Record{}
 	assert.Nil(t, nr.Value("key01"))
-	nr.AddValue("key01", "val02")
+	nr.WithValue("key01", "val02")
 	assert.Eq(t, "val02", nr.Value("key01"))
 
 	// -with data

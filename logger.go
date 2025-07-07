@@ -175,7 +175,7 @@ const defaultFlushInterval = 30 * time.Second
 
 // FlushDaemon run flush handle on daemon
 //
-// Usage please refer to the FlushDaemon() on package.
+// Usage, please refer to the FlushDaemon() on package.
 func (l *Logger) FlushDaemon(onStops ...func()) {
 	l.quitDaemon = make(chan struct{})
 	if l.FlushInterval <= 0 {

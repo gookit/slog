@@ -54,7 +54,7 @@ func NewLineWriter(w io.Writer) *LineWriter {
 // Size returns the size of the underlying buffer in bytes.
 func (b *LineWriter) Size() int { return len(b.buf) }
 
-// Reset discards any un-flushed buffered data, clears any error, and
+// Reset discards any unflushed buffered data, clears any error, and
 // resets b to write its output to w.
 func (b *LineWriter) Reset(w io.Writer) {
 	b.n = 0
@@ -83,7 +83,7 @@ func (b *LineWriter) Sync() error {
 
 // Flush writes any buffered data to the underlying io.Writer.
 //
-// TIP: please add lock before call the method.
+// TIP: please add lock before calling the method.
 func (b *LineWriter) Flush() error {
 	if b.err != nil {
 		return b.err
@@ -118,9 +118,9 @@ func (b *LineWriter) Buffered() int { return b.n }
 // Write writes the contents of p into the buffer.
 // It returns the number of bytes written.
 // If nn < len(p), it also returns an error explaining
-// why the write is short.
+// why the writing is short.
 func (b *LineWriter) Write(p []byte) (nn int, err error) {
-	// 原来的会造成 p 写了一部分到 b.wr, 还有一部分在 b.buf，
+	// NOTE: 原来的 bufio.Writer#Write 会造成 p 写了一部分到 b.wr, 还有一部分在 b.buf，
 	// 如果现在外部工具从 b.wr 收集数据，会收集到一行无法解析的数据(例如每个p是一行json日志)
 	// for len(p) > b.Available() && b.err == nil {
 	// 	var n int
@@ -167,7 +167,7 @@ func (b *LineWriter) Write(p []byte) (nn int, err error) {
 	return nn, nil
 }
 
-// WriteString to writer
+// WriteString to the writer
 func (b *LineWriter) WriteString(s string) (int, error) {
 	return b.Write([]byte(s))
 }
