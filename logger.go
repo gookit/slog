@@ -104,20 +104,28 @@ func (l *Logger) newRecord() *Record {
 }
 
 func (l *Logger) releaseRecord(r *Record) {
+	// must reset for each record
+	r.Time = emptyTime
+	r.Message = ""
+	r.Caller = nil
+	r.Fmt = ""
+	r.Args = nil
+
+	// reuse=true: will not be released
 	if r.reuse || r.freed {
 		return
 	}
 
-	// reset data
-	r.Time = emptyTime
-	r.Data = map[string]any{}
+	// reset ctx data
+	r.Ctx = nil
 	r.Extra = nil
+	r.Data = map[string]any{}
+	r.Fields = map[string]any{}
 	// reset flags
 	r.inited = false
 	r.reuse = false
 	r.freed = true
 
-	r.Message = ""
 	r.CallerSkip = l.CallerSkip
 	l.recordPool.Put(r)
 }
@@ -400,16 +408,29 @@ func (l *Logger) AddProcessors(ps ...Processor) { l.processors = append(l.proces
 // SetProcessors for the logger
 func (l *Logger) SetProcessors(ps []Processor) { l.processors = ps }
 
+// -------------------------- New sub-logger -----------------------------
+
+// NewSub return a new sub logger on the logger, can keep fields/data/ctx for sub logger.
+//
+// Usage:
+//
+//	sl := logger.NewSub().KeepCtx(custom ctx).
+//		KeepFields(slog.M{"ip": ...}).
+//		KeepData(slog.M{"username": ...})
+//	defer sl.Release()
+//
+//	sl.Info("some message")
+//	sl.Warn("some message")
+func (l *Logger) NewSub() *SubLogger { return NewSubWith(l) }
+
 //
 // ---------------------------------------------------------------------------
 // New record with log data, fields
 // ---------------------------------------------------------------------------
 //
 
-// Record return a new record with logger, will release after write log.
-func (l *Logger) Record() *Record {
-	return l.newRecord()
-}
+// Record return a new record with logger, will release after writing log.
+func (l *Logger) Record() *Record { return l.newRecord() }
 
 // Reused return a new record with logger, but it can be reused.
 // if you want to release the record, please call the Record.Release() after write log.
@@ -422,9 +443,7 @@ func (l *Logger) Record() *Record {
 //	// can write log multiple times
 //	r.Info("some message1")
 //	r.Warn("some message1")
-func (l *Logger) Reused() *Record {
-	return l.newRecord().Reused()
-}
+func (l *Logger) Reused() *Record { return l.newRecord().Reused() }
 
 // WithField new record with field
 //
@@ -543,7 +562,7 @@ func (l *Logger) Error(args ...any) { l.log(ErrorLevel, args) }
 // Errorf logs a message at level error
 func (l *Logger) Errorf(format string, args ...any) { l.logf(ErrorLevel, format, args) }
 
-// ErrorT logs a error type at level error
+// ErrorT logs an error type at level error
 func (l *Logger) ErrorT(err error) {
 	if err != nil {
 		l.log(ErrorLevel, []any{err})

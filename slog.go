@@ -48,7 +48,7 @@ type LoggerFn func(l *Logger)
 // ------------------------------------------------------------
 //
 
-// std logger is an SugaredLogger.
+// std logger is a SugaredLogger.
 // It is directly available without any additional configuration
 var std = NewStdLogger()
 
@@ -129,6 +129,11 @@ func AddProcessor(p Processor) { std.AddProcessor(p) }
 
 // AddProcessors to the logger
 func AddProcessors(ps ...Processor) { std.AddProcessors(ps...) }
+
+// -------------------------- New sub-logger -----------------------------
+
+// NewSub returns a new SubLogger on the std logger.
+func NewSub() *SubLogger { return NewSubWith(std.Logger) }
 
 // -------------------------- New record with log data, fields -----------------------------
 

@@ -13,9 +13,12 @@ import (
 // Record a log record definition
 type Record struct {
 	logger *Logger
-	// reuse flag for reuse a record, will not be released on after write.
-	// so, if you want reuse a record, you must call Reused() method.
-	// release a record need call Release() method.
+	// reuse flag. for reuse a Record, will not be released on after writing.
+	// release the record need call Release() method.
+	//
+	// Reuse field: Ctx, Data, Fields, Extra
+	//
+	// NOTE, if you reuse a record, you must call Reused() method.
 	reuse bool
 	// Mark whether the current record is released to the pool. TODO
 	freed bool
@@ -77,7 +80,8 @@ func newRecord(logger *Logger) *Record {
 	}
 }
 
-// Reused set record is reused, will not be released on after write.
+// Reused set record is reused, will not be released on after writing.
+// so, MUST call Release() method after use completed.
 func (r *Record) Reused() *Record {
 	r.reuse = true
 	return r
@@ -425,7 +429,7 @@ func (r *Record) Debugf(format string, args ...any) {
 // Print logs a message at level Print
 func (r *Record) Print(args ...any) { r.log(PrintLevel, args) }
 
-// Println logs a message at level Print, will not append \n. alias of Print
+// Println logs a message at level Print. alias of Print
 func (r *Record) Println(args ...any) { r.log(PrintLevel, args) }
 
 // Printf logs a message at level Print
