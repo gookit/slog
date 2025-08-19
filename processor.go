@@ -86,7 +86,7 @@ var MemoryUsage ProcessorFunc = func(record *Record) {
 	record.SetExtraValue("memoryUsage", stat.Alloc)
 }
 
-// AppendCtxKeys append context keys to record.Fields
+// AppendCtxKeys append context keys to Record.Fields
 func AppendCtxKeys(keys ...string) Processor {
 	return ProcessorFunc(func(record *Record) {
 		if record.Ctx == nil {

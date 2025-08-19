@@ -216,29 +216,51 @@ func TestSetFormatter_jsonFormat(t *testing.T) {
 	assert.StrContains(t, s, `"level":"WARNING"`)
 	assert.StrContains(t, s, `warning log message2`)
 
+	// WithData
 	slog.WithData(slog.M{
 		"key0": 134,
 		"key1": "abc",
 	}).Infof("info log %s", "message")
 	s = th.ResetGet()
+	assert.StrContains(t, s, `"key1":"abc"`)
 
+	// reused record
 	r := slog.WithFields(slog.M{
 		"category": "service",
 		"IP":       "127.0.0.1",
-	})
+	}).Reused()
 	r.Infof("info %s", "message")
 	r.Debugf("debug %s", "message")
+	r.Release()
 	s = th.ResetGet()
+	assert.StrContains(t, s, `"category"`)
+	assert.StrCount(t, s, `"127.0.0.1"`, 2)
 
-	r = slog.WithField("app", "order")
-	r.Trace("trace message")
-	r.Println("print message")
+	// reused record
+	r = slog.WithField("category", "app-service").Reused()
+	r.Infof("info %s", "message")
+	r.Debugf("debug %s", "message")
+	r.Release()
+	s = th.ResetGet()
+	assert.StrContains(t, s, `"category"`)
+	assert.StrCount(t, s, `"app-service"`, 2)
+
+	// sub logger
+	sub := slog.NewSub().KeepField("app", "order")
+	sub.Trace("trace message")
+	sub.Print("print message")
+	sub.Release()
 	s = th.ResetGet()
 	assert.StrContains(t, s, `"app":"order"`)
 	assert.StrCount(t, s, `"app":"order"`, 2)
 
-	slog.WithContext(context.Background()).Print("print message with ctx")
-	assert.StrContains(t, th.ResetGet(), "print message with ctx")
+	// WithContext
+	ctx := context.WithValue(context.Background(), "ctxField", "ctx1-value")
+	slog.AddProcessor(slog.CtxKeysProcessor("fields", "ctxField"))
+	slog.WithContext(ctx).Print("print message with ctx")
+	s = th.ResetGet()
+	assert.StrContains(t, s, "print message with ctx")
+	assert.StrContains(t, s, "ctxField")
 }
 
 func TestAddHandler(t *testing.T) {

@@ -168,6 +168,10 @@ func (w *closedBuffer) StringReset() string {
 	return s
 }
 
+//
+// region test handler
+//
+
 type testHandler struct {
 	slog.FormatterWrapper
 	byteutil.Buffer
@@ -175,15 +179,17 @@ type testHandler struct {
 	errOnClose  bool
 	errOnFlush  bool
 	// hooks
+	beforeFormat func(r *slog.Record)
+	beforeWrite  func(r *slog.Record)
 	callOnFlush func()
-	// tip: 设置为true，默认会让 error,fatal 等信息提前被reset丢弃掉.
+	// NOTE: 如果设置为true，默认会让 error,fatal 等信息提前被reset丢弃掉.
 	// see Logger.writeRecord()
 	resetOnFlush bool
 }
 
 // built in test, will collect logs to buffer
 func newTestHandler() *testHandler {
-	return &testHandler{resetOnFlush: true}
+	return &testHandler{}
 }
 
 func (h *testHandler) IsHandling(_ slog.Level) bool {
@@ -218,13 +224,25 @@ func (h *testHandler) Handle(r *slog.Record) error {
 		return errorx.Raw("handle error")
 	}
 
+	if h.beforeFormat != nil {
+		h.beforeFormat(r)
+	}
+
 	bs, err := h.Format(r)
 	if err != nil {
 		return err
 	}
+
+	if h.beforeWrite != nil {
+		h.beforeWrite(r)
+	}
 	h.Write(bs)
 	return nil
 }
+
+//
+// region test formatter
+//
 
 type testFormatter struct {
 	errOnFormat bool
@@ -242,6 +260,10 @@ func (f testFormatter) Format(r *slog.Record) ([]byte, error) {
 	}
 	return []byte(r.Message), nil
 }
+
+//
+// region test logger
+//
 
 func newLogger() *slog.Logger {
 	return slog.NewWithConfig(func(l *slog.Logger) {

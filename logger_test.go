@@ -253,23 +253,33 @@ func TestLogger_option_BackupArgs(t *testing.T) {
 		l.CallerFlag = slog.CallerFlagPkgFnl
 	})
 
-	buf := new(bytes.Buffer)
-	l.AddHandler(handler.NewSimple(buf, slog.DebugLevel))
+	var rFmt string
+	var rArgs []any
 
-	r := l.Record()
-	r.Info("str message1")
-	assert.NotEmpty(t, r.Args)
-	r = r.Copy()
-	r.Infof("fmt %s", "message2")
-	assert.NotEmpty(t, r.Fmt)
-	assert.NotEmpty(t, r.Args)
-	r.WithField("key", "value").Info("field message3")
+	h := newTestHandler()
+	h.beforeFormat = func(r *slog.Record) {
+		rFmt = r.Fmt
+		rArgs = r.Args
+	}
+	l.AddHandler(h)
 
-	s := buf.String()
+	l.Info("str message1")
+	assert.NotEmpty(t, rArgs)
+
+	rFmt = ""
+	rArgs = nil
+	l.Infof("fmt %s", "message2")
+	assert.NotEmpty(t, rFmt)
+	assert.NotEmpty(t, rArgs)
+
+	l.WithField("key", "value").Info("field message3")
+
+	s := h.ResetGet()
 	fmt.Println(s)
 	assert.StrContains(t, s, "str message1")
 	assert.StrContains(t, s, "fmt message2")
 	assert.StrContains(t, s, "field message3")
+	assert.StrContains(t, s, "UN-CONFIGURED FIELDS: {key:value}")
 }
 
 func TestLogger_FlushTimeout(t *testing.T) {

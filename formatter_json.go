@@ -30,7 +30,7 @@ var (
 
 // JSONFormatter definition
 type JSONFormatter struct {
-	// Fields exported log fields. default is DefaultFields
+	// Fields set exported common log fields. default is DefaultFields
 	Fields []string
 	// Aliases for output fields. you can change the export field name.
 	//
@@ -108,13 +108,12 @@ func (f *JSONFormatter) Format(r *Record) ([]byte, error) {
 		}
 	}
 
-	// exported custom fields
+	// exported custom record fields
 	for field, value := range r.Fields {
 		fieldKey := field
 		if _, has := logData[field]; has {
 			fieldKey = "fields." + field
 		}
-
 		logData[fieldKey] = value
 	}
 

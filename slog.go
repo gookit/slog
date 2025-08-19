@@ -29,18 +29,7 @@ import (
 	"time"
 
 	"github.com/gookit/goutil"
-	"github.com/gookit/gsr"
 )
-
-// SLogger interface
-type SLogger interface {
-	gsr.Logger
-	Log(level Level, v ...any)
-	Logf(level Level, format string, v ...any)
-}
-
-// LoggerFn func
-type LoggerFn func(l *Logger)
 
 //
 // ------------------------------------------------------------
@@ -93,9 +82,7 @@ func FlushTimeout(timeout time.Duration) { std.FlushTimeout(timeout) }
 // FlushDaemon run flush handle on daemon.
 //
 // Usage please see slog_test.ExampleFlushDaemon()
-func FlushDaemon(onStops ...func()) {
-	std.FlushDaemon(onStops...)
-}
+func FlushDaemon(onStops ...func()) { std.FlushDaemon(onStops...) }
 
 // StopDaemon stop flush daemon
 func StopDaemon() { std.StopDaemon() }
@@ -138,39 +125,28 @@ func NewSub() *SubLogger { return NewSubWith(std.Logger) }
 // -------------------------- New record with log data, fields -----------------------------
 
 // WithExtra new record with extra data
-func WithExtra(ext M) *Record {
-	return std.WithExtra(ext)
-}
+func WithExtra(ext M) *Record { return std.WithExtra(ext) }
 
 // WithData new record with data
-func WithData(data M) *Record {
-	return std.WithData(data)
-}
+func WithData(data M) *Record { return std.WithData(data) }
 
 // WithValue new record with data value
-func WithValue(key string, value any) *Record {
-	return std.WithValue(key, value)
-}
+func WithValue(key string, value any) *Record { return std.WithValue(key, value) }
 
 // WithField new record with field.
 //
-// TIP: add field need config Formatter template fields.
-func WithField(name string, value any) *Record {
-	return std.WithField(name, value)
-}
+// **NOTE**: add field need config Formatter template fields.
+func WithField(name string, value any) *Record { return std.WithField(name, value) }
 
 // WithFields new record with fields
 //
-// TIP: add field need config Formatter template fields.
-func WithFields(fields M) *Record {
-	return std.WithFields(fields)
-}
+// **NOTE**: add field need config Formatter template fields.
+func WithFields(fields M) *Record { return std.WithFields(fields) }
 
 // WithContext new record with context
-func WithContext(ctx context.Context) *Record {
-	return std.WithContext(ctx)
-}
+func WithContext(ctx context.Context) *Record { return std.WithContext(ctx) }
 
+// region Add log messages
 // -------------------------- Add log messages with level -----------------------------
 
 // Log logs a message with level

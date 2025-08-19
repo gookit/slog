@@ -8,11 +8,22 @@ import (
 
 	"github.com/gookit/goutil/envutil"
 	"github.com/gookit/goutil/strutil"
+	"github.com/gookit/gsr"
 )
+
+// SLogger interface
+type SLogger interface {
+	gsr.Logger
+	Log(level Level, v ...any)
+	Logf(level Level, format string, v ...any)
+}
+
+// LoggerFn func
+type LoggerFn func(l *Logger)
 
 //
 // log level definitions
-//
+// region Log level
 
 // Level type
 type Level uint32
@@ -89,7 +100,7 @@ const (
 
 //
 // some common definitions
-//
+// region common types
 
 // StringMap string map short name
 type StringMap = map[string]string
@@ -109,6 +120,8 @@ type ClockFn func() time.Time
 func (fn ClockFn) Now() time.Time {
 	return fn()
 }
+
+// region CallerFlagMode
 
 // CallerFlagMode Defines the Caller backtrace information mode.
 type CallerFlagMode = uint8
@@ -178,6 +191,8 @@ var (
 	FieldKeyMessage = "message"
 )
 
+// region Global variables
+
 var (
 	// DefaultChannelName for log record
 	DefaultChannelName = "application"
@@ -193,17 +208,13 @@ var (
 	DoNothingOnPanic = func(v any) {}
 
 	// DefaultPanicFn handle func
-	DefaultPanicFn = func(v any) {
-		panic(v)
-	}
+	DefaultPanicFn = func(v any) { panic(v) }
 	// DefaultClockFn create func
-	DefaultClockFn = ClockFn(func() time.Time {
-		return time.Now()
-	})
+	DefaultClockFn = ClockFn(func() time.Time { return time.Now() })
 )
 
 var (
-	// PrintLevel for use logger.Print / Printf / Println
+	// PrintLevel for use Logger.Print / Printf / Println
 	PrintLevel = InfoLevel
 
 	// AllLevels exposing all logging levels
@@ -240,6 +251,8 @@ var (
 	// empty time for reset record.
 	emptyTime = time.Time{}
 )
+
+// region Global functions
 
 // LevelName match
 func LevelName(l Level) string {

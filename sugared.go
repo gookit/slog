@@ -60,9 +60,8 @@ func NewSugaredLogger(output io.Writer, level Level, fns ...SugaredLoggerFn) *Su
 		Formatter: NewTextFormatter(),
 	}
 
-	// NOTICE: use self as an log handler
+	// NOTICE: use self as a log handler
 	sl.AddHandler(sl)
-
 	return sl.Config(fns...)
 }
 
@@ -123,9 +122,7 @@ func (sl *SugaredLogger) Close() error {
 }
 
 // Flush all logs. alias of the FlushAll()
-func (sl *SugaredLogger) Flush() error {
-	return sl.FlushAll()
-}
+func (sl *SugaredLogger) Flush() error { return sl.FlushAll() }
 
 // FlushAll all logs
 func (sl *SugaredLogger) FlushAll() error {

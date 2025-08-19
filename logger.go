@@ -55,9 +55,7 @@ type Logger struct {
 }
 
 // New create a new logger
-func New(fns ...LoggerFn) *Logger {
-	return NewWithName("logger", fns...)
-}
+func New(fns ...LoggerFn) *Logger { return NewWithName("logger", fns...) }
 
 // NewWithHandlers create a new logger with handlers
 func NewWithHandlers(hs ...Handler) *Logger {
@@ -67,9 +65,7 @@ func NewWithHandlers(hs ...Handler) *Logger {
 }
 
 // NewWithConfig create a new logger with config func
-func NewWithConfig(fns ...LoggerFn) *Logger {
-	return NewWithName("logger", fns...)
-}
+func NewWithConfig(fns ...LoggerFn) *Logger { return NewWithName("logger", fns...) }
 
 // NewWithName create a new logger with name
 func NewWithName(name string, fns ...LoggerFn) *Logger {
@@ -132,7 +128,7 @@ func (l *Logger) releaseRecord(r *Record) {
 
 //
 // ---------------------------------------------------------------------------
-// Configure logger
+// region Configure logger
 // ---------------------------------------------------------------------------
 //
 
@@ -158,14 +154,10 @@ func (l *Logger) PrependExitHandler(handler func()) {
 }
 
 // ResetExitHandlers reset logger exitHandlers
-func (l *Logger) ResetExitHandlers() {
-	l.exitHandlers = make([]func(), 0)
-}
+func (l *Logger) ResetExitHandlers() { l.exitHandlers = make([]func(), 0) }
 
 // ExitHandlers get all exitHandlers of the logger
-func (l *Logger) ExitHandlers() []func() {
-	return l.exitHandlers
-}
+func (l *Logger) ExitHandlers() []func() { return l.exitHandlers }
 
 // SetName for logger
 func (l *Logger) SetName(name string) { l.name = name }
@@ -175,7 +167,7 @@ func (l *Logger) Name() string { return l.name }
 
 //
 // ---------------------------------------------------------------------------
-// Management logger
+// region Management logger
 // ---------------------------------------------------------------------------
 //
 
@@ -275,9 +267,7 @@ func (l *Logger) flushAll() {
 }
 
 // MustClose close logger. will panic on error
-func (l *Logger) MustClose() {
-	goutil.PanicErr(l.Close())
-}
+func (l *Logger) MustClose() { goutil.PanicErr(l.Close()) }
 
 // Close the logger, will flush all logs and close all handlers
 //
@@ -320,14 +310,10 @@ func (l *Logger) Reset() {
 }
 
 // ResetProcessors for the logger
-func (l *Logger) ResetProcessors() {
-	l.processors = make([]Processor, 0)
-}
+func (l *Logger) ResetProcessors() { l.processors = make([]Processor, 0) }
 
 // ResetHandlers for the logger
-func (l *Logger) ResetHandlers() {
-	l.handlers = make([]Handler, 0)
-}
+func (l *Logger) ResetHandlers() { l.handlers = make([]Handler, 0) }
 
 // Exit logger handle
 func (l *Logger) Exit(code int) {
@@ -360,9 +346,7 @@ func (l *Logger) DoNothingOnPanicFatal() {
 }
 
 // HandlersNum returns the number of handlers
-func (l *Logger) HandlersNum() int {
-	return len(l.handlers)
-}
+func (l *Logger) HandlersNum() int { return len(l.handlers) }
 
 // LastErr get, will clear it after read.
 func (l *Logger) LastErr() error {
@@ -373,7 +357,7 @@ func (l *Logger) LastErr() error {
 
 //
 // ---------------------------------------------------------------------------
-// Register handlers and processors
+// region Register handlers, processors
 // ---------------------------------------------------------------------------
 //
 
@@ -425,7 +409,7 @@ func (l *Logger) NewSub() *SubLogger { return NewSubWith(l) }
 
 //
 // ---------------------------------------------------------------------------
-// New record with log data, fields
+// region New record with logger
 // ---------------------------------------------------------------------------
 //
 
@@ -450,7 +434,7 @@ func (l *Logger) Reused() *Record { return l.newRecord().Reused() }
 // TIP: add field need config Formatter template fields.
 func (l *Logger) WithField(name string, value any) *Record {
 	r := l.newRecord()
-	defer l.releaseRecord(r)
+	// defer l.releaseRecord(r)
 	return r.WithField(name, value)
 }
 
@@ -459,33 +443,29 @@ func (l *Logger) WithField(name string, value any) *Record {
 // TIP: add field need config Formatter template fields.
 func (l *Logger) WithFields(fields M) *Record {
 	r := l.newRecord()
-	defer l.releaseRecord(r)
+	// defer l.releaseRecord(r)
 	return r.WithFields(fields)
 }
 
 // WithData new record with data
 func (l *Logger) WithData(data M) *Record {
-	r := l.newRecord()
-	defer l.releaseRecord(r)
-	return r.WithData(data)
+	return l.newRecord().WithData(data)
 }
 
 // WithValue new record with data value
 func (l *Logger) WithValue(key string, value any) *Record {
-	r := l.newRecord()
-	return r.AddValue(key, value)
+	return l.newRecord().AddValue(key, value)
 }
 
 // WithExtra new record with extra data
 func (l *Logger) WithExtra(ext M) *Record {
-	r := l.newRecord()
-	return r.SetExtra(ext)
+	return l.newRecord().SetExtra(ext)
 }
 
 // WithTime new record with time.Time
 func (l *Logger) WithTime(t time.Time) *Record {
 	r := l.newRecord()
-	defer l.releaseRecord(r)
+	// defer l.releaseRecord(r)
 	return r.WithTime(t)
 }
 
@@ -495,13 +475,13 @@ func (l *Logger) WithCtx(ctx context.Context) *Record { return l.WithContext(ctx
 // WithContext new record with context.Context
 func (l *Logger) WithContext(ctx context.Context) *Record {
 	r := l.newRecord()
-	defer l.releaseRecord(r)
+	// defer l.releaseRecord(r)
 	return r.WithContext(ctx)
 }
 
 //
 // ---------------------------------------------------------------------------
-// Add log message with level
+// region Add log message
 // ---------------------------------------------------------------------------
 //
 
@@ -622,18 +602,6 @@ func (l *Logger) WarnfCtx(ctx context.Context, format string, args ...any) {
 // Warning logs a message at level Warn, alias of Logger.Warn()
 func (l *Logger) Warning(args ...any) { l.log(WarnLevel, args) }
 
-// Info logs a message at level Info
-func (l *Logger) Info(args ...any) { l.log(InfoLevel, args) }
-
-// Infof logs a message at level Info
-func (l *Logger) Infof(format string, args ...any) { l.logf(InfoLevel, format, args) }
-
-// Trace logs a message at level trace
-func (l *Logger) Trace(args ...any) { l.log(TraceLevel, args) }
-
-// Tracef logs a message at level trace
-func (l *Logger) Tracef(format string, args ...any) { l.logf(TraceLevel, format, args) }
-
 // Error logs a message at level error
 func (l *Logger) Error(args ...any) { l.log(ErrorLevel, args) }
 
@@ -657,18 +625,6 @@ func (l *Logger) ErrorfCtx(ctx context.Context, format string, args ...any) {
 
 // Stack logs a error message and with call stack. TODO
 // func EStack(args ...any) { std.log(ErrorLevel, args) }
-
-// Notice logs a message at level notice
-func (l *Logger) Notice(args ...any) { l.log(NoticeLevel, args) }
-
-// Noticef logs a message at level notice
-func (l *Logger) Noticef(format string, args ...any) { l.logf(NoticeLevel, format, args) }
-
-// Debug logs a message at level debug
-func (l *Logger) Debug(args ...any) { l.log(DebugLevel, args) }
-
-// Debugf logs a message at level debug
-func (l *Logger) Debugf(format string, args ...any) { l.logf(DebugLevel, format, args) }
 
 // Fatal logs a message at level fatal
 func (l *Logger) Fatal(args ...any) { l.log(FatalLevel, args) }
