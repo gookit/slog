@@ -101,6 +101,7 @@ func TestFlushDaemon(t *testing.T) {
 func TestFlushTimeout(t *testing.T) {
 	defer slog.Reset()
 	slog.Info("print log message")
+	slog.NewSub().KeepData(map[string]any{"key": "value"}).Warn("test message")
 	slog.FlushTimeout(timex.Second * 1)
 	slog.MustFlush()
 }
@@ -433,4 +434,53 @@ func TestSugaredLogger_Handle(t *testing.T) {
 	err := sl.LastErr()
 	assert.Err(t, err)
 	assert.Eq(t, "format error", err.Error())
+}
+
+func TestAddWithCtx(t *testing.T) {
+	h := newTestHandler()
+
+	slog.Reset()
+	slog.PushHandler(h)
+	slog.Std().DoNothingOnPanicFatal()
+	slog.AddProcessor(slog.CtxKeysProcessor("data", "ctx1", "ctx2"))
+
+	ctx := context.WithValue(context.Background(), "ctx1", "ctx1-value")
+	ctx = context.WithValue(ctx, "ctx2", "ctx2-value")
+
+	t.Run("normal", func(t *testing.T) {
+		slog.TraceCtx(ctx, "A message", "test")
+		slog.DebugCtx(ctx, "A message", "test")
+		slog.InfoCtx(ctx, "A message", "test")
+		slog.NoticeCtx(ctx, "A message", "test")
+		slog.WarnCtx(ctx, "A message", "test")
+		slog.ErrorCtx(ctx, "A message", "test")
+		slog.FatalCtx(ctx, "A message", "test")
+		slog.PanicCtx(ctx, "A message", "test")
+
+		s := h.ResetGet()
+		assert.StrContains(t, s, "ctx1-value")
+		assert.StrContains(t, s, "ctx2-value")
+		for _, level := range slog.AllLevels {
+			assert.StrContains(t, s, level.Name())
+		}
+	})
+
+	t.Run("with format", func(t *testing.T) {
+		slog.TracefCtx(ctx, "A message %s", "test")
+		slog.DebugfCtx(ctx, "A message %s", "test")
+		slog.InfofCtx(ctx, "A message %s", "test")
+		slog.NoticefCtx(ctx, "A message %s", "test")
+		slog.WarnfCtx(ctx, "A message %s", "test")
+		slog.ErrorfCtx(ctx, "A message %s", "test")
+		slog.PanicfCtx(ctx, "A message %s", "test")
+		slog.FatalfCtx(ctx, "A message %s", "test")
+
+		s := h.ResetGet()
+		assert.StrContains(t, s, "ctx1-value")
+		assert.StrContains(t, s, "ctx2-value")
+		for _, level := range slog.AllLevels {
+			assert.StrContains(t, s, level.Name())
+		}
+	})
+	slog.Reset()
 }

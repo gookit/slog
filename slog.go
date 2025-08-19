@@ -185,29 +185,75 @@ func Println(args ...any) { std.log(PrintLevel, args) }
 // Printf logs a message at level PrintLevel
 func Printf(format string, args ...any) { std.logf(PrintLevel, format, args) }
 
-// Trace logs a message at level Trace
+// Trace logs a message at level TraceLevel
 func Trace(args ...any) { std.log(TraceLevel, args) }
 
-// Tracef logs a message at level Trace
+// Tracef logs a message at level TraceLevel
 func Tracef(format string, args ...any) { std.logf(TraceLevel, format, args) }
 
-// Info logs a message at level Info
+// TraceCtx logs a message at level TraceLevel with context
+func TraceCtx(ctx context.Context, args ...any) { std.logCtx(ctx, TraceLevel, args) }
+
+// TracefCtx logs a message at level TraceLevel with context
+func TracefCtx(ctx context.Context, format string, args ...any) {
+	std.logfCtx(ctx, TraceLevel, format, args)
+}
+
+// Debug logs a message at level DebugLevel
+func Debug(args ...any) { std.log(DebugLevel, args) }
+
+// Debugf logs a message at level DebugLevel
+func Debugf(format string, args ...any) { std.logf(DebugLevel, format, args) }
+
+// DebugCtx logs a message at level DebugLevel with context
+func DebugCtx(ctx context.Context, args ...any) { std.logCtx(ctx, DebugLevel, args) }
+
+// DebugfCtx logs a message at level DebugLevel with context
+func DebugfCtx(ctx context.Context, format string, args ...any) {
+	std.logfCtx(ctx, DebugLevel, format, args)
+}
+
+// Info logs a message at level InfoLevel
 func Info(args ...any) { std.log(InfoLevel, args) }
 
-// Infof logs a message at level Info
+// Infof logs a message at level InfoLevel
 func Infof(format string, args ...any) { std.logf(InfoLevel, format, args) }
 
-// Notice logs a message at level Notice
+// InfoCtx logs a message at level InfoLevel with context
+func InfoCtx(ctx context.Context, args ...any) { std.logCtx(ctx, InfoLevel, args) }
+
+// InfofCtx logs a message at level InfoLevel with context
+func InfofCtx(ctx context.Context, format string, args ...any) {
+	std.logfCtx(ctx, InfoLevel, format, args)
+}
+
+// Notice logs a message at level NoticeLevel
 func Notice(args ...any) { std.log(NoticeLevel, args) }
 
-// Noticef logs a message at level Notice
+// Noticef logs a message at level NoticeLevel
 func Noticef(format string, args ...any) { std.logf(NoticeLevel, format, args) }
 
-// Warn logs a message at level Warn
+// NoticeCtx logs a message at level NoticeLevel with context
+func NoticeCtx(ctx context.Context, args ...any) { std.logCtx(ctx, NoticeLevel, args) }
+
+// NoticefCtx logs a message at level NoticeLevel with context
+func NoticefCtx(ctx context.Context, format string, args ...any) {
+	std.logfCtx(ctx, NoticeLevel, format, args)
+}
+
+// Warn logs a message at level WarnLevel
 func Warn(args ...any) { std.log(WarnLevel, args) }
 
-// Warnf logs a message at level Warn
+// Warnf logs a message at level WarnLevel
 func Warnf(format string, args ...any) { std.logf(WarnLevel, format, args) }
+
+// WarnCtx logs a message at level Warn with a context
+func WarnCtx(ctx context.Context, args ...any) { std.logCtx(ctx, WarnLevel, args) }
+
+// WarnfCtx logs a message at level Warn with a context
+func WarnfCtx(ctx context.Context, format string, args ...any) {
+	std.logfCtx(ctx, WarnLevel, format, args)
+}
 
 // Error logs a message at level Error
 func Error(args ...any) { std.log(ErrorLevel, args) }
@@ -222,17 +268,19 @@ func ErrorT(err error) {
 	}
 }
 
+// ErrorCtx logs a message at level Error with context
+func ErrorCtx(ctx context.Context, args ...any) { std.logCtx(ctx, ErrorLevel, args) }
+
+// ErrorfCtx logs a message at level Error with context
+func ErrorfCtx(ctx context.Context, format string, args ...any) {
+	std.logfCtx(ctx, ErrorLevel, format, args)
+}
+
 // EStack logs a error message and with call stack.
 // func EStack(args ...any) {
 // 	std.WithExtra(map[string]any{"stack": goinfo.GetCallerInfo(2)}).
 // 		log(ErrorLevel, args)
 // }
-
-// Debug logs a message at level Debug
-func Debug(args ...any) { std.log(DebugLevel, args) }
-
-// Debugf logs a message at level Debug
-func Debugf(format string, args ...any) { std.logf(DebugLevel, format, args) }
 
 // Fatal logs a message at level Fatal
 func Fatal(args ...any) { std.log(FatalLevel, args) }
@@ -247,6 +295,14 @@ func FatalErr(err error) {
 	}
 }
 
+// FatalCtx logs a message at level Fatal with context
+func FatalCtx(ctx context.Context, args ...any) { std.logCtx(ctx, FatalLevel, args) }
+
+// FatalfCtx logs a message at level Fatal with context
+func FatalfCtx(ctx context.Context, format string, args ...any) {
+	std.logfCtx(ctx, FatalLevel, format, args)
+}
+
 // Panic logs a message at level Panic
 func Panic(args ...any) { std.log(PanicLevel, args) }
 
@@ -258,4 +314,12 @@ func PanicErr(err error) {
 	if err != nil {
 		std.log(PanicLevel, []any{err})
 	}
+}
+
+// PanicCtx logs a message at level panic with context
+func PanicCtx(ctx context.Context, args ...any) { std.logCtx(ctx, PanicLevel, args) }
+
+// PanicfCtx logs a message at level panic with context
+func PanicfCtx(ctx context.Context, format string, args ...any) {
+	std.logfCtx(ctx, PanicLevel, format, args)
 }
