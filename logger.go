@@ -518,13 +518,27 @@ func (l *Logger) logf(level Level, format string, args []any) {
 	r.logf(level, format, args)
 }
 
+// logCtx a context message with level
+func (l *Logger) logCtx(ctx context.Context, level Level, args []any) {
+	r := l.newRecord()
+	r.Ctx = ctx
+	r.CallerSkip++
+	r.log(level, args)
+}
+
+// logfCtx a format message with level,  context
+func (l *Logger) logfCtx(ctx context.Context, level Level, format string, args []any) {
+	r := l.newRecord()
+	r.Ctx = ctx
+	r.CallerSkip++
+	r.logf(level, format, args)
+}
+
 // Log a message with level
 func (l *Logger) Log(level Level, args ...any) { l.log(level, args) }
 
 // Logf a format message with level
-func (l *Logger) Logf(level Level, format string, args ...any) {
-	l.logf(level, format, args)
-}
+func (l *Logger) Logf(level Level, format string, args ...any) { l.logf(level, format, args) }
 
 // Print logs a message at level PrintLevel
 func (l *Logger) Print(args ...any) { l.log(PrintLevel, args) }
@@ -535,11 +549,75 @@ func (l *Logger) Println(args ...any) { l.log(PrintLevel, args) }
 // Printf logs a message at level PrintLevel
 func (l *Logger) Printf(format string, args ...any) { l.logf(PrintLevel, format, args) }
 
+// Trace logs a message at level trace
+func (l *Logger) Trace(args ...any) { l.log(TraceLevel, args) }
+
+// Tracef logs a message at level trace
+func (l *Logger) Tracef(format string, args ...any) { l.logf(TraceLevel, format, args) }
+
+// TraceCtx logs a message at level trace with context
+func (l *Logger) TraceCtx(ctx context.Context, args ...any) { l.logCtx(ctx, TraceLevel, args) }
+
+// TracefCtx logs a message at level trace with context
+func (l *Logger) TracefCtx(ctx context.Context, format string, args ...any) {
+	l.logfCtx(ctx, TraceLevel, format, args)
+}
+
+// Debug logs a message at level debug
+func (l *Logger) Debug(args ...any) { l.log(DebugLevel, args) }
+
+// Debugf logs a message at level debug
+func (l *Logger) Debugf(format string, args ...any) { l.logf(DebugLevel, format, args) }
+
+// DebugCtx logs a message at level debug with context
+func (l *Logger) DebugCtx(ctx context.Context, args ...any) { l.logCtx(ctx, DebugLevel, args) }
+
+// DebugfCtx logs a message at level debug with context
+func (l *Logger) DebugfCtx(ctx context.Context, format string, args ...any) {
+	l.logfCtx(ctx, DebugLevel, format, args)
+}
+
+// Info logs a message at level Info
+func (l *Logger) Info(args ...any) { l.log(InfoLevel, args) }
+
+// Infof logs a message at level Info
+func (l *Logger) Infof(format string, args ...any) { l.logf(InfoLevel, format, args) }
+
+// InfoCtx logs a message at level Info with context
+func (l *Logger) InfoCtx(ctx context.Context, args ...any) { l.logCtx(ctx, InfoLevel, args) }
+
+// InfofCtx logs a message at level Info with context
+func (l *Logger) InfofCtx(ctx context.Context, format string, args ...any) {
+	l.logfCtx(ctx, InfoLevel, format, args)
+}
+
+// Notice logs a message at level notice
+func (l *Logger) Notice(args ...any) { l.log(NoticeLevel, args) }
+
+// Noticef logs a message at level notice
+func (l *Logger) Noticef(format string, args ...any) { l.logf(NoticeLevel, format, args) }
+
+// NoticeCtx logs a message at level notice with context
+func (l *Logger) NoticeCtx(ctx context.Context, args ...any) { l.logCtx(ctx, NoticeLevel, args) }
+
+// NoticefCtx logs a message at level notice with context
+func (l *Logger) NoticefCtx(ctx context.Context, format string, args ...any) {
+	l.logfCtx(ctx, NoticeLevel, format, args)
+}
+
 // Warn logs a message at level Warn
 func (l *Logger) Warn(args ...any) { l.log(WarnLevel, args) }
 
 // Warnf logs a message at level Warn
 func (l *Logger) Warnf(format string, args ...any) { l.logf(WarnLevel, format, args) }
+
+// WarnCtx logs a message at level Warn with context
+func (l *Logger) WarnCtx(ctx context.Context, args ...any) { l.logCtx(ctx, WarnLevel, args) }
+
+// WarnfCtx logs a message at level Warn with context
+func (l *Logger) WarnfCtx(ctx context.Context, format string, args ...any) {
+	l.logfCtx(ctx, WarnLevel, format, args)
+}
 
 // Warning logs a message at level Warn, alias of Logger.Warn()
 func (l *Logger) Warning(args ...any) { l.log(WarnLevel, args) }
@@ -569,6 +647,14 @@ func (l *Logger) ErrorT(err error) {
 	}
 }
 
+// ErrorCtx logs a message at level error with context
+func (l *Logger) ErrorCtx(ctx context.Context, args ...any) { l.logCtx(ctx, ErrorLevel, args) }
+
+// ErrorfCtx logs a message at level error with context
+func (l *Logger) ErrorfCtx(ctx context.Context, format string, args ...any) {
+	l.logfCtx(ctx, ErrorLevel, format, args)
+}
+
 // Stack logs a error message and with call stack. TODO
 // func EStack(args ...any) { std.log(ErrorLevel, args) }
 
@@ -593,6 +679,14 @@ func (l *Logger) Fatalf(format string, args ...any) { l.logf(FatalLevel, format,
 // Fatalln logs a message at level fatal
 func (l *Logger) Fatalln(args ...any) { l.log(FatalLevel, args) }
 
+// FatalCtx logs a message at level panic with context
+func (l *Logger) FatalCtx(ctx context.Context, args ...any) { l.logCtx(ctx, FatalLevel, args) }
+
+// FatalfCtx logs a message at level panic with context
+func (l *Logger) FatalfCtx(ctx context.Context, format string, args ...any) {
+	l.logfCtx(ctx, FatalLevel, format, args)
+}
+
 // Panic logs a message at level panic
 func (l *Logger) Panic(args ...any) { l.log(PanicLevel, args) }
 
@@ -601,3 +695,11 @@ func (l *Logger) Panicf(format string, args ...any) { l.logf(PanicLevel, format,
 
 // Panicln logs a message at level panic
 func (l *Logger) Panicln(args ...any) { l.log(PanicLevel, args) }
+
+// PanicCtx logs a message at level panic with context
+func (l *Logger) PanicCtx(ctx context.Context, args ...any) { l.logCtx(ctx, PanicLevel, args) }
+
+// PanicfCtx logs a message at level panic with context
+func (l *Logger) PanicfCtx(ctx context.Context, format string, args ...any) {
+	l.logfCtx(ctx, PanicLevel, format, args)
+}

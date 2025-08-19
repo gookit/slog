@@ -200,6 +200,53 @@ func TestLogger_write_error(t *testing.T) {
 	assert.Eq(t, "handle error", err.Error())
 }
 
+func TestLogger_AddWithCtx(t *testing.T) {
+	h := newTestHandler()
+
+	l := slog.NewWithHandlers(h)
+	l.DoNothingOnPanicFatal()
+	l.AddProcessor(slog.CtxKeysProcessor("data", "ctx1", "ctx2"))
+
+	ctx := context.WithValue(context.Background(), "ctx1", "ctx1-value")
+	ctx = context.WithValue(ctx, "ctx2", "ctx2-value")
+
+	t.Run("normal", func(t *testing.T) {
+		l.TraceCtx(ctx, "A message", "test")
+		l.DebugCtx(ctx, "A message", "test")
+		l.InfoCtx(ctx, "A message", "test")
+		l.NoticeCtx(ctx, "A message", "test")
+		l.WarnCtx(ctx, "A message", "test")
+		l.ErrorCtx(ctx, "A message", "test")
+		l.FatalCtx(ctx, "A message", "test")
+		l.PanicCtx(ctx, "A message", "test")
+
+		s := h.ResetGet()
+		assert.StrContains(t, s, "ctx1-value")
+		assert.StrContains(t, s, "ctx2-value")
+		for _, level := range slog.AllLevels {
+			assert.StrContains(t, s, level.Name())
+		}
+	})
+
+	t.Run("with format", func(t *testing.T) {
+		l.TracefCtx(ctx, "A message %s", "test")
+		l.DebugfCtx(ctx, "A message %s", "test")
+		l.InfofCtx(ctx, "A message %s", "test")
+		l.NoticefCtx(ctx, "A message %s", "test")
+		l.WarnfCtx(ctx, "A message %s", "test")
+		l.ErrorfCtx(ctx, "A message %s", "test")
+		l.PanicfCtx(ctx, "A message %s", "test")
+		l.FatalfCtx(ctx, "A message %s", "test")
+
+		s := h.ResetGet()
+		assert.StrContains(t, s, "ctx1-value")
+		assert.StrContains(t, s, "ctx2-value")
+		for _, level := range slog.AllLevels {
+			assert.StrContains(t, s, level.Name())
+		}
+	})
+}
+
 func TestLogger_option_BackupArgs(t *testing.T) {
 	l := slog.New(func(l *slog.Logger) {
 		l.BackupArgs = true
