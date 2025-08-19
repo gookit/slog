@@ -27,9 +27,7 @@ type SubLogger struct {
 }
 
 // NewSubWith returns a new SubLogger with parent logger.
-func NewSubWith(l *Logger) *SubLogger {
-	return &SubLogger{l: l}
-}
+func NewSubWith(l *Logger) *SubLogger { return &SubLogger{l: l} }
 
 // KeepCtx keep context for all log records
 func (sub *SubLogger) KeepCtx(ctx context.Context) *SubLogger {
@@ -40,6 +38,16 @@ func (sub *SubLogger) KeepCtx(ctx context.Context) *SubLogger {
 // KeepFields keep custom fields data for all log records
 func (sub *SubLogger) KeepFields(fields M) *SubLogger {
 	sub.Fields = fields
+	return sub
+}
+
+// KeepField keep custom field for all log records
+func (sub *SubLogger) KeepField(field string, value any) *SubLogger {
+	if sub.Fields == nil {
+		sub.Fields = make(M)
+	}
+
+	sub.Fields[field] = value
 	return sub
 }
 
@@ -67,6 +75,7 @@ func (sub *SubLogger) Release() {
 func (sub *SubLogger) withKeepCtx() *Record {
 	r := sub.l.WithContext(sub.Ctx)
 	r.Data = sub.Data
+	r.Extra = sub.Extra
 	r.Fields = sub.Fields
 	return r
 }
@@ -76,6 +85,12 @@ func (sub *SubLogger) withKeepCtx() *Record {
 // Add log message with level
 // ---------------------------------------------------------------------------
 //
+
+// Print logs a message at PrintLevel. will with sub logger's context, fields and data
+func (sub *SubLogger) Print(args ...any) { sub.withKeepCtx().Print(args...) }
+
+// Printf logs a message at PrintLevel. will with sub logger's context, fields and data
+func (sub *SubLogger) Printf(format string, args ...any) { sub.withKeepCtx().Printf(format, args...) }
 
 // Trace logs a message at TraceLevel. will with sub logger's context, fields and data
 func (sub *SubLogger) Trace(args ...any) { sub.withKeepCtx().Trace(args...) }

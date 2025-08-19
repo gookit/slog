@@ -326,3 +326,67 @@ func TestLogger_rewrite_record(t *testing.T) {
 		dump.P(h.ResetGet())
 	})
 }
+
+func TestLogger_Sub(t *testing.T) {
+	h := newTestHandler()
+
+	l := slog.NewWithHandlers(h)
+	l.DoNothingOnPanicFatal()
+	l.AddProcessor(slog.CtxKeysProcessor("extra", "ctx1"))
+
+	sub := l.NewSub().
+		KeepData(slog.M{"data1": "data1-value"}).
+		KeepExtra(slog.M{"ext1": "ext1-value"}).
+		KeepFields(slog.M{"field1": "field1-value"}).
+		KeepCtx(context.WithValue(context.Background(), "ctx1", "ctx1-value"))
+
+	assert.ContainsKey(t, sub.Data, "data1")
+	assert.ContainsKey(t, sub.Extra, "ext1")
+	assert.ContainsKey(t, sub.Fields, "field1")
+	assert.Eq(t, "ctx1-value", sub.Ctx.Value("ctx1"))
+
+	t.Run("normal", func(t *testing.T) {
+		sub.Print("A message", "test")
+		sub.Trace("A message", "test")
+		sub.Debug("A message", "test")
+		sub.Info("A message", "test")
+		sub.Notice("A message", "test")
+		sub.Warn("A message", "test")
+		sub.Error("A message", "test")
+		sub.Fatal("A message", "test")
+		sub.Panic("A message", "test")
+
+		s := h.ResetGet()
+		assert.StrContains(t, s, "ctx1-value")
+		assert.StrContains(t, s, "ext1-value")
+		for _, level := range slog.AllLevels {
+			assert.StrContains(t, s, level.Name())
+		}
+	})
+
+	t.Run("formated", func(t *testing.T) {
+		sub.Printf("A message %s", "test")
+		sub.Tracef("A message %s", "test")
+		sub.Debugf("A message %s", "test")
+		sub.Infof("A message %s", "test")
+		sub.Noticef("A message %s", "test")
+		sub.Warnf("A message %s", "test")
+		sub.Errorf("A message %s", "test")
+		sub.Panicf("A message %s", "test")
+		sub.Fatalf("A message %s", "test")
+
+		s := h.ResetGet()
+		assert.StrContains(t, s, "ctx1-value")
+		assert.StrContains(t, s, "ext1-value")
+		for _, level := range slog.AllLevels {
+			assert.StrContains(t, s, level.Name())
+		}
+	})
+
+	// Release
+	sub.Release()
+	assert.Nil(t, sub.Ctx)
+	assert.Nil(t, sub.Data)
+	assert.Nil(t, sub.Extra)
+	assert.Nil(t, sub.Fields)
+}
