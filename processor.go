@@ -95,8 +95,34 @@ func AppendCtxKeys(keys ...string) Processor {
 
 		for _, key := range keys {
 			if val := record.Ctx.Value(key); val != nil {
-				record.AddField(key, record.Ctx.Value(key))
+				record.AddField(key, val)
 			}
+		}
+	})
+}
+
+// CtxKeysProcessor append context keys to Record.Data, Record.Fields, Record.Extra
+//  - dist: "data" | "fields" | "extra"
+func CtxKeysProcessor(dist string, keys ...string) Processor {
+	return ProcessorFunc(func(r *Record) {
+		if r.Ctx == nil {
+			return
+		}
+
+		kvMap := map[string]any{}
+		for _, key := range keys {
+			if val := r.Ctx.Value(key); val != nil {
+				kvMap[key] = val
+			}
+		}
+
+		switch dist {
+		case "field", "fields":
+			r.AddFields(kvMap)
+		case "ext", "extra":
+			r.AddExtra(kvMap)
+		default:
+			r.AddData(kvMap)
 		}
 	})
 }

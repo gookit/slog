@@ -62,6 +62,20 @@ func TestLogger_AddProcessor(t *testing.T) {
 	assert.Contains(t, str, `"traceId":"traceId123abc456"`)
 }
 
+func TestCtxKeysProcessor(t *testing.T) {
+	// CtxKeysProcessor
+	tr := newLogRecord("test message")
+	tr.Extra = map[string]any{} // reset
+	procFn := slog.CtxKeysProcessor("ext", "traceId")
+	procFn.Process(tr)
+	assert.Empty(t, tr.Extra)
+
+	ctx := context.WithValue(context.Background(), "traceId", "traceId123abc456")
+	tr = tr.WithCtx(ctx)
+	procFn.Process(tr)
+	assert.Equal(t, "traceId123abc456", tr.Extra["traceId"])
+}
+
 func TestProcessable_AddProcessor(t *testing.T) {
 	ps := &slog.Processable{}
 	ps.AddProcessor(slog.MemoryUsage)

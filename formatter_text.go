@@ -2,6 +2,7 @@ package slog
 
 import (
 	"github.com/gookit/color"
+	"github.com/gookit/goutil/arrutil"
 	"github.com/valyala/bytebufferpool"
 )
 
@@ -149,6 +150,9 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 	buf := textPool.Get()
 	defer textPool.Put(buf)
 
+	// record formatted custom fields
+	var formattedFields []string
+
 	for _, field := range f.fields {
 		// is not field name. eg: "}}] "
 		if field[0] < 'a' || field[0] > 'z' {
@@ -184,11 +188,25 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 			}
 		default:
 			if _, ok := r.Fields[field]; ok {
+				formattedFields = append(formattedFields, field)
 				buf.WriteString(f.EncodeFunc(r.Fields[field]))
 			} else {
 				buf.WriteString(field)
 			}
 		}
+	}
+
+	// UP: check not configured fields in template.
+	if fLen := len(r.Fields); fLen > 0 && fLen != len(formattedFields) {
+		unformattedFields := make(map[string]any)
+		for k, v := range r.Fields {
+			if !arrutil.StringsContains(formattedFields, k) {
+				unformattedFields[k] = v
+			}
+		}
+		buf.WriteString("UN-CONFIGURED FIELDS: ")
+		buf.WriteString(f.EncodeFunc(unformattedFields))
+		buf.WriteByte('\n')
 	}
 
 	// return buf.Bytes(), nil
