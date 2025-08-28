@@ -44,12 +44,11 @@ func buildLowerLevelName() map[Level]string {
 func getCaller(callerSkip int) (fr runtime.Frame, ok bool) {
 	pcs := make([]uintptr, 1) // alloc 1 times
 	num := runtime.Callers(callerSkip, pcs)
-	if num < 1 {
-		return
+	if num > 1 {
+		fr, _ = runtime.CallersFrames(pcs).Next()
+		ok = fr.PC != 0
 	}
-
-	f, _ := runtime.CallersFrames(pcs).Next()
-	return f, f.PC != 0
+	return
 }
 
 func formatCaller(rf *runtime.Frame, flag uint8, userFn CallerFormatFn) (cs string) {
@@ -96,7 +95,11 @@ func formatArgsWithSpaces(vs []any) string {
 	}
 
 	if ln == 1 {
-		return strutil.SafeString(vs[0]) // perf: Reduce one memory allocation
+		// cast is string, return it. NOT ALLOC MEMORY
+		if str, ok := vs[0].(string); ok {
+			return str
+		}
+		return strutil.SafeString(vs[0])
 	}
 
 	// buf = make([]byte, 0, ln*8)
@@ -169,6 +172,6 @@ func parseTemplateToFields(tplStr string) []string {
 	return vars
 }
 
-func printlnStderr(args ...any) {
+func printStderr(args ...any) {
 	_, _ = fmt.Fprintln(os.Stderr, args...)
 }

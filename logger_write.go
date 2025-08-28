@@ -74,7 +74,7 @@ func (l *Logger) writeRecord(level Level, r *Record) {
 			// do write a log message by handler
 			if err := handler.Handle(r); err != nil {
 				l.err = err
-				printlnStderr("slog: failed to handle log, error:", err)
+				printStderr("slog: failed to handle log, error:", err)
 			}
 		}
 	}

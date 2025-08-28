@@ -22,26 +22,30 @@ func TestLogger_newRecord_AllocTimes(_ *testing.T) {
 	})))
 }
 
-func Test_formatArgsWithSpaces_oneElem_AllocTimes(_ *testing.T) {
-	// output: 1 times -> 0 times
-	fmt.Println("Alloc Times:", int(testing.AllocsPerRun(10, func() {
+func Test_AllocTimes_formatArgsWithSpaces_oneElem(_ *testing.T) {
+	// string Alloc Times: 0
+	fmt.Println("string Alloc Times:", int(testing.AllocsPerRun(10, func() {
 		// logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
-		formatArgsWithSpaces([]any{
-			"msg", // 2343, -23, 123.2,
-		})
+		formatArgsWithSpaces([]any{"msg"})
+	})))
+
+	// int Alloc Times: 1
+	fmt.Println("int Alloc Times:", int(testing.AllocsPerRun(10, func() {
+		formatArgsWithSpaces([]any{2343})
+	})))
+
+	// float Alloc Times: 2
+	fmt.Println("float Alloc Times:", int(testing.AllocsPerRun(10, func() {
+		formatArgsWithSpaces([]any{123.2})
 	})))
 }
 
 func Test_AllocTimes_formatArgsWithSpaces_manyElem(_ *testing.T) {
-	l := Std()
-	l.Output = io.Discard
-	defer l.Reset()
-
+	// Alloc Times: 1
 	// TIP:
 	// `float` will alloc 2 times memory
 	// `int <0`, `int > 100` will alloc 1 times memory
-	fmt.Println("Alloc Times:", int(testing.AllocsPerRun(100, func() {
-		// logger.Info("rate", "15", "low", 16, "high", 123.2, msg)
+	fmt.Println("Alloc Times:", int(testing.AllocsPerRun(50, func() {
 		formatArgsWithSpaces([]any{
 			"rate", -23, true, 106, "high", 123.2,
 		})

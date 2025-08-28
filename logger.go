@@ -190,7 +190,7 @@ func (l *Logger) FlushDaemon(onStops ...func()) {
 		select {
 		case <-tk.C:
 			if err := l.lockAndFlushAll(); err != nil {
-				printlnStderr("slog.FlushDaemon: daemon flush logs error: ", err)
+				printStderr("slog.FlushDaemon: daemon flush logs error: ", err)
 			}
 		case <-l.quitDaemon:
 			for _, fn := range onStops {
@@ -216,7 +216,7 @@ func (l *Logger) FlushTimeout(timeout time.Duration) {
 	done := make(chan bool, 1)
 	go func() {
 		if err := l.lockAndFlushAll(); err != nil {
-			printlnStderr("slog.FlushTimeout: flush logs error: ", err)
+			printStderr("slog.FlushTimeout: flush logs error: ", err)
 		}
 		done <- true
 	}()
@@ -224,7 +224,7 @@ func (l *Logger) FlushTimeout(timeout time.Duration) {
 	select {
 	case <-done:
 	case <-time.After(timeout):
-		printlnStderr("slog.FlushTimeout: flush took longer than timeout:", timeout)
+		printStderr("slog.FlushTimeout: flush took longer than timeout:", timeout)
 	}
 }
 
@@ -260,7 +260,7 @@ func (l *Logger) flushAll() {
 	_ = l.VisitAll(func(handler Handler) error {
 		if err := handler.Flush(); err != nil {
 			l.err = err
-			printlnStderr("slog: call handler.Flush() error:", err)
+			printStderr("slog: call handler.Flush() error:", err)
 		}
 		return nil
 	})
@@ -282,7 +282,7 @@ func (l *Logger) Close() error {
 	_ = l.VisitAll(func(handler Handler) error {
 		if err := handler.Close(); err != nil {
 			l.err = err
-			printlnStderr("slog: call handler.Close() error:", err)
+			printStderr("slog: call handler.Close() error:", err)
 		}
 		return nil
 	})
@@ -330,7 +330,7 @@ func (l *Logger) Exit(code int) {
 func (l *Logger) runExitHandlers() {
 	defer func() {
 		if err := recover(); err != nil {
-			printlnStderr("slog: run exit handler recovered, error:", err)
+			printStderr("slog: run exit handler recovered, error:", err)
 		}
 	}()
 
