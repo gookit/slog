@@ -44,7 +44,7 @@ func buildLowerLevelName() map[Level]string {
 func getCaller(callerSkip int) (fr runtime.Frame, ok bool) {
 	pcs := make([]uintptr, 1) // alloc 1 times
 	num := runtime.Callers(callerSkip, pcs)
-	if num > 1 {
+	if num > 0 {
 		fr, _ = runtime.CallersFrames(pcs).Next()
 		ok = fr.PC != 0
 	}

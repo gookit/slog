@@ -66,6 +66,12 @@ func TestNewTextFormatter(t *testing.T) {
 	f.WithEnableColor(true)
 	assert.True(t, f.EnableColor)
 
+	f1 := slog.NewTextFormatter()
+	f1.Configure(func(f *slog.TextFormatter) {
+		f.FullDisplay = true
+	})
+	assert.True(t, f1.FullDisplay)
+
 	t.Run("CallerFormatFunc", func(t *testing.T) {
 		buf := byteutil.NewBuffer()
 		h := handler.IOWriterWithMaxLevel(buf, slog.DebugLevel)
@@ -80,11 +86,6 @@ func TestNewTextFormatter(t *testing.T) {
 		assert.Contains(t, buf.String(), "custom_caller")
 	})
 
-	f1 := slog.NewTextFormatter()
-	f1.Configure(func(f *slog.TextFormatter) {
-		f.FullDisplay = true
-	})
-	assert.True(t, f1.FullDisplay)
 }
 
 func TestTextFormatter_Format(t *testing.T) {
