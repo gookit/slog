@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/gookit/color v1.6.0
-	github.com/gookit/goutil v0.7.1
+	github.com/gookit/goutil v0.7.2
 	github.com/gookit/gsr v0.1.1
 	github.com/valyala/bytebufferpool v1.0.0
 )
