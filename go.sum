@@ -1,8 +1,8 @@
 github.com/gookit/assert v0.1.1 h1:lh3GcawXe/p+cU7ESTZ5Ui3Sm/x8JWpIis4/1aF0mY0=
 github.com/gookit/color v1.6.0 h1:JjJXBTk1ETNyqyilJhkTXJYYigHG24TM9Xa2M1xAhRA=
 github.com/gookit/color v1.6.0/go.mod h1:9ACFc7/1IpHGBW8RwuDm/0YEnhg3dwwXpoMsmtyHfjs=
-github.com/gookit/goutil v0.7.2 h1:NSiqWWY+BT0MwIlKDeSVPfQmr9xTkkAqwDjhplobdgo=
-github.com/gookit/goutil v0.7.2/go.mod h1:vJS9HXctYTCLtCsZot5L5xF+O1oR17cDYO9R0HxBmnU=
+github.com/gookit/goutil v0.7.3 h1:nXDd/AB17nEjqVCNDGioDhVL/gVqdlqRMfFergKDjHE=
+github.com/gookit/goutil v0.7.3/go.mod h1:vJS9HXctYTCLtCsZot5L5xF+O1oR17cDYO9R0HxBmnU=
 github.com/gookit/gsr v0.1.1 h1:TaHD3M7qa6lcAf9D2J4mGNg+QjgDtD1bw7uctF8RXOM=
 github.com/gookit/gsr v0.1.1/go.mod h1:7wv4Y4WCnil8+DlDYHBjidzrEzfHhXEoFjEA0pPPWpI=
 github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6KllzawFIhcdPw=
