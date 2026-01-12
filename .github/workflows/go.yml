@@ -18,7 +18,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        go_version: [1.24, 1.23, 1.22, 1.21, 1.19, '1.20', 1.25]
+        go_version: [1.24, 1.23, 1.22, 1.21, 1.19, stable]
         os: [ubuntu-latest, windows-latest] # , macOS-latest
 
     steps:
@@ -43,7 +43,7 @@ jobs:
 
 #    - name: Revive check
 #      uses: docker://morphy/revive-action:v2
-#      if: ${{ matrix.os == 'ubuntu-latest' && matrix.go_version == '1.22' }}
+#      if: ${{ matrix.os == 'ubuntu-latest' && matrix.go_version == 'stable' }}
 #      with:
 #        config: .github/revive.toml
 #        # Exclude patterns, separated by semicolons (optional)

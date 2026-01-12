@@ -18,7 +18,9 @@ type SugaredLogger struct {
 	Formatter Formatter
 	// Output writer
 	Output io.Writer
-	// Level for log handling. if log record level <= Level, it will be record.
+	// Level for log handling. if log record level <= Level, it will be record. default: DebugLevel
+	//
+	// TIP: setting the level to lower will ignore more logs.
 	Level Level
 }
 
@@ -83,7 +85,9 @@ func (sl *SugaredLogger) Config(fns ...SugaredLoggerFn) *SugaredLogger {
 
 // Reset the logger
 func (sl *SugaredLogger) Reset() {
-	*sl = *NewSugaredLogger(os.Stdout, DebugLevel)
+	sl.Level = DebugLevel
+	sl.Output = os.Stdout
+	sl.Formatter = NewTextFormatter()
 }
 
 // IsHandling Check if the current level can be handling

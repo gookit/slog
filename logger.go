@@ -47,6 +47,10 @@ type Logger struct {
 	CallerFlag CallerFlagMode
 	// BackupArgs backup log input args to Record.Args
 	BackupArgs bool
+	// GlobalFields global fields. will be added to all log records
+	//
+	// NOTE: add field need config Formatter template fields.
+	GlobalFields map[string]any
 	// TimeClock custom time clock, timezone
 	TimeClock ClockFn
 	// custom exit, panic handler.
@@ -95,7 +99,7 @@ func (l *Logger) newRecord() *Record {
 	r := l.recordPool.Get().(*Record)
 	r.reuse = false
 	r.freed = false
-	r.Fields = nil
+	r.Fields = l.GlobalFields
 	return r
 }
 

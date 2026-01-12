@@ -247,6 +247,22 @@ func TestLogger_AddWithCtx(t *testing.T) {
 	})
 }
 
+func TestLogger_GlobalFields(t *testing.T) {
+	buf, l := newTestLogger()
+	l.Config(func(l *slog.Logger) {
+		l.GlobalFields = slog.M{
+			"global1": "test-app",
+			"global2": "test-value2",
+		}
+	})
+
+	l.Info("A message")
+	s := buf.StringReset()
+	fmt.Print(s)
+	assert.StrContains(t, s, "global1")
+	assert.StrContains(t, s, "global2")
+}
+
 func TestLogger_option_BackupArgs(t *testing.T) {
 	l := slog.New(func(l *slog.Logger) {
 		l.BackupArgs = true
