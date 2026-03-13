@@ -31,3 +31,4 @@ go.work
 changelog.md
 testdata
 _example/go.sum
+.xenv.*
