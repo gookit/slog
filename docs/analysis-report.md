@@ -193,21 +193,24 @@ pool Get → `fmt.Sprintf`/反射 → 抢全局锁 → pool Put。
   两种 CloseLock 模式都生效(`d.file`-vs-`Flush` 的读写竞态另属 flush 路径,后续可跟进)。
 - **Logger.FlushDaemon `quitDaemon`(`TestFlushDaemon`)**:**已修** —— 同 `FilesClear`,用 `l.mu`
   守护 + 循环内捕获本地变量。
-- **Record 跨 goroutine 并发复用(`TestRecord_useMultiTimes`)**:Record 本就非线程安全;
-  测试对单个 Record 并发写。应在文档明确「Record 不可跨 goroutine 共享」,或测试改造(测试侧)。
-- **rotatefile 测试并发改配置(`TestWriter_Rotate_modeCreate` 等)**:测试在 writer 存活期
-  无锁改 `*Config`(测试侧,配置应 Create 后只读)。
+- **Record 跨 goroutine 并发复用(`TestRecord_useMultiTimes`)**:**已修** —— Record 注释
+  明确「不可跨 goroutine 共享」,并发子用例改为每 goroutine 用自己的 record。
+- **rotatefile 测试并发改配置(`TestWriter_Rotate_modeCreate` 等)**:**已修** —— 测试在
+  Create 前设置配置(配置应 Create 后只读)。`go test -race ./...` 现已干净(syslog 除外)。
 
-## 待决策项(影响面大/改变默认行为,建议确认后再做)
+## 评估结论:不实施项(风险 > 收益 / 破坏性变更)
 
 - **P1-5 锁外格式化**:**评估后不实施(风险 > 收益)**。原因:① `Handler.Handle` 把
   Format+Write 合一,分离需改接口(破坏自定义 handler);② 有状态 processor(如
   `AddUniqueID` 的共享 `md5` 哈希器)依赖此锁串行,移出会引入新竞态;③ 把 `getCaller`
   移出锁会改变调用栈深度,导致 `CallerSkip` 校准失效、caller 测试全挂;④ 主要收益已由
   P1-4 拿到。
-- **P1-6 WithXxx 的 Copy 优化**:`Copy()` 对空 Data/Extra 也分配 map;改为空则留 nil 可省分配,
-  但会使 JSON 空值从 `{}` 变 `null`(行为变更),需确认。
-- **P2-8 JSONFormatter 直接拼 buffer**:中等改造,收益有限。
+- **P1-6 WithXxx 的 Copy 优化**:**评估后不实施**。`Copy()` 承担 ① map 隔离(避免别名到
+  调用方/全局 map,即 P0-2 那类 bug)② 空值归一化。去空 map 会引入别名风险或改变 JSON 空值
+  表示(且现状因 pool 回收本就 `null`/`{}` 不一致);而"归还丢弃的 pooled record"因 `Copy`
+  仍新建记录,实际只省少量 GC。收益微小、风险不低。
+- **P2-8 JSONFormatter 直接拼 buffer**:**评估后不实施**。手写需正确复刻转义/键序/类型,
+  易引入正确性 bug,收益仅省一次 map 分配 + 反射。
 - **P2-9 `ReportCaller` 默认值**:默认 `true` 导致每条实际处理日志做栈回溯;改默认 `false` 是行为变更。
 
 ## 处理进度
@@ -215,13 +218,13 @@ pool Get → `fmt.Sprintf`/反射 → 抢全局锁 → pool Put。
 - [x] P0-1 Formatter buffer 生命周期:Text/JSON Format 返回独立拷贝 + `-race` 回归测试
 - [x] P0-2 GlobalFields 共享污染:newRecord 浅拷贝全局字段(空则保持 nil)+ 回归测试
 - [x] P0-3 rotatefile asyncClean 竞态:sync.Once+写锁初始化、Close 时 join 清理 goroutine(cleanWg)、doClean 读 `d.path` 加读锁;附带修复 `FilesClear` daemon 的 `quitDaemon` 竞态、`MockClocker` 线程安全
-  - 注:剩余 `go test -race ./rotatefile/` 偶发失败源于**测试代码**在 writer 存活期并发改写共享 `*Config`(配置应在 Create 后只读),属测试重构跟进项;CI(`go test ./...`)不带 -race,常规测试全绿
 - [x] P1-4 级别快速门前置:`Logger.shouldHandle` 入口门控(禁用级别 172→37 ns/op、4→2 allocs);Panic/Fatal 始终放行
 - [x] P1-5 锁外格式化:**评估后不实施**(接口/有状态 processor/CallerSkip 校准风险 > 收益,详见上)
-- [ ] P1-6 WithXxx pool 复用(空 map 分配优化;会改 JSON 空值 `{}`→`null`,待确认)
+- [x] P1-6 WithXxx Copy 优化:**评估后不实施**(Copy 承担 map 隔离/归一化,去掉有别名/行为变更风险,收益微小)
 - [x] 深层 rotatefile 清理竞态(pathMu)+ Logger.FlushDaemon quitDaemon 竞态
 - [x] P2-7 EncodeToString 加 `case M`(订正:非死代码,经 `M.String()` 可达;此为省间接的等价优化)
-- [ ] P2-8 JSONFormatter 直接拼接
+- [x] P2-8 JSONFormatter 直接拼接:**评估后不实施**(手写 JSON 正确性风险 > 收益)
 - [x] P2-9 ReportCaller:评估后**不翻转默认**(P1-4 已覆盖成本+翻转为破坏性);改为修复 nil-caller 渲染成字面量的 bug + 补注释
 - [x] P3 安全小修:LineWriter.Write 修复 io.Writer 契约;LastErr 加锁、Close 的 closed 标志加锁
   - 订正:LineWriter.Reset 良性(不丢数据),未改;其余 alias 冗余/TODO 清理留待后续
+- [x] 测试侧竞态清理:Record 加「不可跨 goroutine」文档 + 修 `TestRecord_useMultiTimes`、`TestWriter_Rotate_modeCreate`;`go test -race ./...` 现已干净(syslog 环境用例除外)
