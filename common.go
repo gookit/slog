@@ -109,8 +109,24 @@ type StringMap = map[string]string
 type M map[string]any
 
 // String map to string
-func (m M) String() string {
-	return mapToString(m)
+func (m M) String() string { return mapToString(m) }
+
+// DataValue for quick add data field to log Record.Data TODO
+//
+// Usage: slog.Info("some message", slog.NewValue("ip", "ip value"))
+//
+type DataValue struct {
+	Key string
+	Val any
+}
+
+// LogField for quick add new field to log Record.Fields TODO
+//
+// Usage: slog.Info("some message", slog.NewField("ip", "ip value"))
+//
+type LogField struct {
+	Key string
+	Val any
 }
 
 // ClockFn func
