@@ -503,7 +503,29 @@ func (l *Logger) WithContext(ctx context.Context) *Record {
 // ---------------------------------------------------------------------------
 //
 
+// shouldHandle is a fast gate: returns true if any handler will handle the level.
+//
+// Used to skip building the record/message for disabled levels, avoiding the
+// pool, message formatting, caller lookup and lock for filtered-out logs.
+//
+// NOTE: Panic/Fatal levels must always proceed even when no handler matches,
+// because writeRecord triggers panic()/Exit() for them as a side effect.
+func (l *Logger) shouldHandle(level Level) bool {
+	if level <= FatalLevel { // panic & fatal: keep their panic/exit side effects
+		return true
+	}
+	for _, h := range l.handlers {
+		if h.IsHandling(level) {
+			return true
+		}
+	}
+	return false
+}
+
 func (l *Logger) log(level Level, args []any) {
+	if !l.shouldHandle(level) {
+		return
+	}
 	r := l.newRecord()
 	r.CallerSkip++
 	r.log(level, args)
@@ -511,6 +533,9 @@ func (l *Logger) log(level Level, args []any) {
 
 // Logf a format message with level
 func (l *Logger) logf(level Level, format string, args []any) {
+	if !l.shouldHandle(level) {
+		return
+	}
 	r := l.newRecord()
 	r.CallerSkip++
 	r.logf(level, format, args)
@@ -518,6 +543,9 @@ func (l *Logger) logf(level Level, format string, args []any) {
 
 // logCtx a context message with level
 func (l *Logger) logCtx(ctx context.Context, level Level, args []any) {
+	if !l.shouldHandle(level) {
+		return
+	}
 	r := l.newRecord()
 	r.Ctx = ctx
 	r.CallerSkip++
@@ -526,6 +554,9 @@ func (l *Logger) logCtx(ctx context.Context, level Level, args []any) {
 
 // logfCtx a format message with level,  context
 func (l *Logger) logfCtx(ctx context.Context, level Level, format string, args []any) {
+	if !l.shouldHandle(level) {
+		return
+	}
 	r := l.newRecord()
 	r.Ctx = ctx
 	r.CallerSkip++
