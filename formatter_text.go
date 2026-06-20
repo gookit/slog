@@ -174,8 +174,12 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 			buf.B = r.Time.AppendFormat(buf.B, f.TimeFormat)
 		case field == FieldKeyTimestamp:
 			buf.WriteString(r.timestamp())
-		case field == FieldKeyCaller && r.Caller != nil:
-			buf.WriteString(formatCaller(r.Caller, r.CallerFlag, f.CallerFormatFunc))
+		case field == FieldKeyCaller:
+			// render empty when caller is not reported (ReportCaller=false),
+			// instead of falling through and printing the literal "caller".
+			if r.Caller != nil {
+				buf.WriteString(formatCaller(r.Caller, r.CallerFlag, f.CallerFormatFunc))
+			}
 		case field == FieldKeyLevel:
 			buf.WriteString(f.renderColorText(field, r.LevelName(), r.Level))
 		case field == FieldKeyChannel:

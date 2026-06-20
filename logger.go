@@ -40,7 +40,10 @@ type Logger struct {
 	FlushInterval time.Duration
 	// LowerLevelName use lower level name
 	LowerLevelName bool
-	// ReportCaller on writing log record
+	// ReportCaller on writing log record. default is true.
+	//
+	// NOTE: it does a runtime stack walk per handled record. Set false to skip
+	// it on hot paths. (Disabled levels already skip it via the level gate.)
 	ReportCaller bool
 	CallerSkip   int
 	// CallerFlag used to set caller traceback information in different modes

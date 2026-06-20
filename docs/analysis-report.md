@@ -142,8 +142,17 @@ pool Get → `fmt.Sprintf`/反射 → 抢全局锁 → pool Put。
 ### P2-9. 默认 `ReportCaller=true`
 
 文件:`logger.go:84`、`util.go:44`
-每条实际处理的日志都 `runtime.Callers` 栈回溯(有 alloc)。多数库默认关闭;
-可考虑默认 false 或在文档强提示成本。
+每条实际处理的日志都 `runtime.Callers` 栈回溯(有 alloc)。
+
+> **决策(经评估改为不翻转默认值)**:
+> 1. **P1-4 级别门已覆盖主要浪费** —— 被过滤级别的日志在 `beforeHandle` 之前就 return,
+>    不再做栈回溯;caller 成本现在只发生在「确实会被写出」的日志上(那里通常需要 caller)。
+> 2. **翻转默认是破坏性变更** —— 默认模板含 `{{caller}}`,关掉后默认输出丢 caller,
+>    且 6 个用例依赖默认 caller。
+>
+> 故保留默认 `true`,改为修复一个真实 bug:**caller 为 nil 时文本模板渲染成字面量
+> "caller"**(`formatter_text.go`),使「显式关闭 caller」能得到干净输出。
+> 字段注释也补充了成本说明。如仍需翻转默认值,可在确认破坏性影响后单独进行。
 
 ---
 
@@ -206,6 +215,6 @@ pool Get → `fmt.Sprintf`/反射 → 抢全局锁 → pool Put。
 - [ ] P1-6 WithXxx pool 复用
 - [x] P2-7 EncodeToString 加 `case M`(订正:非死代码,经 `M.String()` 可达;此为省间接的等价优化)
 - [ ] P2-8 JSONFormatter 直接拼接
-- [ ] P2-9 ReportCaller 默认值评估
+- [x] P2-9 ReportCaller:评估后**不翻转默认**(P1-4 已覆盖成本+翻转为破坏性);改为修复 nil-caller 渲染成字面量的 bug + 补注释
 - [x] P3 安全小修:LineWriter.Write 修复 io.Writer 契约;LastErr 加锁、Close 的 closed 标志加锁
   - 订正:LineWriter.Reset 良性(不丢数据),未改;其余 alias 冗余/TODO 清理留待后续
