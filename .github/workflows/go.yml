@@ -66,6 +66,12 @@ jobs:
         # run: go test -v -cover ./...
         run: go test -coverprofile="profile.cov" ./...
 
+      # Race detector is slow (~5-10x) and only supported on linux/amd64, so run
+      # it on a single recent-Go + ubuntu job instead of the whole matrix.
+      - name: Run unit tests with race detector
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.go_version == 'stable' }}
+        run: go test -race ./...
+
       - name: Send coverage
         uses: shogo82148/actions-goveralls@v1
         if: ${{ matrix.os == 'ubuntu-latest' }}
