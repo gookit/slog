@@ -189,16 +189,22 @@ pool Get → `fmt.Sprintf`/反射 → 抢全局锁 → pool Put。
 以下为 `go test -race ./...` 暴露、且 **master 上即存在** 的竞态(CI 用 `go test ./...`
 不带 -race,故未覆盖):
 
-- **rotatefile + CloseLock(`TestIssues_121`)**:作为 slog handler 使用时 `CloseLock=true`,
-  写入/轮转依赖**外部 logger 锁**串行化,但异步清理 goroutine 运行在该锁之外,
-  访问 `d.file/d.path/d.written` 等字段 → 竞态。彻底修复需让清理协程与外部锁协调
-  (或 rotatefile 始终用自身锁),属较大重构。
+- **rotatefile + CloseLock(`TestIssues_121`)**:**已修** —— 用专用 `pathMu` 守护 `d.path`,
+  两种 CloseLock 模式都生效(`d.file`-vs-`Flush` 的读写竞态另属 flush 路径,后续可跟进)。
+- **Logger.FlushDaemon `quitDaemon`(`TestFlushDaemon`)**:**已修** —— 同 `FilesClear`,用 `l.mu`
+  守护 + 循环内捕获本地变量。
 - **Record 跨 goroutine 并发复用(`TestRecord_useMultiTimes`)**:Record 本就非线程安全;
-  测试对单个 Record 并发写。应在文档明确「Record 不可跨 goroutine 共享」,或测试改造。
+  测试对单个 Record 并发写。应在文档明确「Record 不可跨 goroutine 共享」,或测试改造(测试侧)。
+- **rotatefile 测试并发改配置(`TestWriter_Rotate_modeCreate` 等)**:测试在 writer 存活期
+  无锁改 `*Config`(测试侧,配置应 Create 后只读)。
 
 ## 待决策项(影响面大/改变默认行为,建议确认后再做)
 
-- **P1-5 锁外格式化**:把格式化移出 `writeRecord` 的大锁,涉及核心写路径重构(>100 行),风险较高。
+- **P1-5 锁外格式化**:**评估后不实施(风险 > 收益)**。原因:① `Handler.Handle` 把
+  Format+Write 合一,分离需改接口(破坏自定义 handler);② 有状态 processor(如
+  `AddUniqueID` 的共享 `md5` 哈希器)依赖此锁串行,移出会引入新竞态;③ 把 `getCaller`
+  移出锁会改变调用栈深度,导致 `CallerSkip` 校准失效、caller 测试全挂;④ 主要收益已由
+  P1-4 拿到。
 - **P1-6 WithXxx 的 Copy 优化**:`Copy()` 对空 Data/Extra 也分配 map;改为空则留 nil 可省分配,
   但会使 JSON 空值从 `{}` 变 `null`(行为变更),需确认。
 - **P2-8 JSONFormatter 直接拼 buffer**:中等改造,收益有限。
@@ -211,8 +217,9 @@ pool Get → `fmt.Sprintf`/反射 → 抢全局锁 → pool Put。
 - [x] P0-3 rotatefile asyncClean 竞态:sync.Once+写锁初始化、Close 时 join 清理 goroutine(cleanWg)、doClean 读 `d.path` 加读锁;附带修复 `FilesClear` daemon 的 `quitDaemon` 竞态、`MockClocker` 线程安全
   - 注:剩余 `go test -race ./rotatefile/` 偶发失败源于**测试代码**在 writer 存活期并发改写共享 `*Config`(配置应在 Create 后只读),属测试重构跟进项;CI(`go test ./...`)不带 -race,常规测试全绿
 - [x] P1-4 级别快速门前置:`Logger.shouldHandle` 入口门控(禁用级别 172→37 ns/op、4→2 allocs);Panic/Fatal 始终放行
-- [ ] P1-5 锁外格式化
-- [ ] P1-6 WithXxx pool 复用
+- [x] P1-5 锁外格式化:**评估后不实施**(接口/有状态 processor/CallerSkip 校准风险 > 收益,详见上)
+- [ ] P1-6 WithXxx pool 复用(空 map 分配优化;会改 JSON 空值 `{}`→`null`,待确认)
+- [x] 深层 rotatefile 清理竞态(pathMu)+ Logger.FlushDaemon quitDaemon 竞态
 - [x] P2-7 EncodeToString 加 `case M`(订正:非死代码,经 `M.String()` 可达;此为省间接的等价优化)
 - [ ] P2-8 JSONFormatter 直接拼接
 - [x] P2-9 ReportCaller:评估后**不翻转默认**(P1-4 已覆盖成本+翻转为破坏性);改为修复 nil-caller 渲染成字面量的 bug + 补注释
