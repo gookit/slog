@@ -198,13 +198,17 @@ const defaultFlushInterval = 30 * time.Second
 //
 // Usage, please refer to the FlushDaemon() on package.
 func (l *Logger) FlushDaemon(onStops ...func()) {
-	l.quitDaemon = make(chan struct{})
+	l.mu.Lock()
 	if l.FlushInterval <= 0 {
 		l.FlushInterval = defaultFlushInterval
 	}
+	l.quitDaemon = make(chan struct{})
+	// capture locally so StopDaemon's write to the field can't race the loop
+	quit, interval := l.quitDaemon, l.FlushInterval
+	l.mu.Unlock()
 
 	// create a ticker
-	tk := time.NewTicker(l.FlushInterval)
+	tk := time.NewTicker(interval)
 	defer tk.Stop()
 
 	for {
@@ -213,7 +217,7 @@ func (l *Logger) FlushDaemon(onStops ...func()) {
 			if err := l.lockAndFlushAll(); err != nil {
 				printStderr("slog.FlushDaemon: daemon flush logs error: ", err)
 			}
-		case <-l.quitDaemon:
+		case <-quit:
 			for _, fn := range onStops {
 				fn()
 			}
@@ -224,10 +228,14 @@ func (l *Logger) FlushDaemon(onStops ...func()) {
 
 // StopDaemon stop flush daemon
 func (l *Logger) StopDaemon() {
-	if l.quitDaemon == nil {
+	l.mu.Lock()
+	quit := l.quitDaemon
+	l.mu.Unlock()
+
+	if quit == nil {
 		panic("cannot quit daemon, please call FlushDaemon() first")
 	}
-	close(l.quitDaemon)
+	close(quit)
 }
 
 // FlushTimeout flush logs on limit time.

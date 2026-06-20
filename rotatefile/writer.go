@@ -46,6 +46,10 @@ type Writer struct {
 	cleanOnce sync.Once
 	// wait for the clean-consumer goroutine to exit on close
 	cleanWg sync.WaitGroup
+	// pathMu guards d.path. The async cleaner reads it concurrently with rotation
+	// (openFile). A dedicated lock is needed because in CloseLock mode rotation
+	// runs under the EXTERNAL logger lock, not d.mu, so d.mu can't synchronize it.
+	pathMu sync.RWMutex
 
 	// context use for rotating file by size
 	written   uint64 // written size
@@ -410,11 +414,11 @@ func (d *Writer) doClean(skipSeconds ...int) (err error) {
 	// oldFiles: xx.log.yy files, no gz file
 	var oldFiles, gzFiles []fileInfo
 	// fileDir/fileName are immutable after init(); d.path is changed on rotate,
-	// so snapshot it under read lock to avoid racing with rotatingFile/openFile.
+	// so snapshot it under pathMu to avoid racing with openFile.
 	fileDir, fileName := d.fileDir, d.fileName
-	d.mu.RLock()
+	d.pathMu.RLock()
 	curFileName := filepath.Base(d.path)
-	d.mu.RUnlock()
+	d.pathMu.RUnlock()
 
 	// FIX: do not process recent changes to avoid conflicts
 	skipSec := 30
@@ -539,7 +543,9 @@ func (d *Writer) openFile(logfile string) error {
 		return err
 	}
 
+	d.pathMu.Lock()
 	d.path = logfile
+	d.pathMu.Unlock()
 	d.file = file
 	return nil
 }
