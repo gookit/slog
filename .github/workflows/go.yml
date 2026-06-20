@@ -2,77 +2,78 @@ name: Unit-Tests
 on:
   pull_request:
     paths:
-      - 'go.mod'
-      - '**.go'
-      - '**.yml'
+      - "go.mod"
+      - "**.go"
+      - "**.yml"
   push:
+    branches: # Only trigger branch pushes; tag pushes are ignored.
+      - "**"
     paths:
-      - 'go.mod'
-      - '**.go'
-      - '**.yml'
+      - "go.mod"
+      - "**.go"
+      - "**.yml"
 
 jobs:
-
   test:
     name: Test on go ${{ matrix.go_version }} and ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        go_version: [1.24, 1.23, 1.22, 1.21, 1.19, stable]
+        go_version: [1.25, 1.23, 1.24, 1.21, "1.20", stable]
         os: [ubuntu-latest, windows-latest] # , macOS-latest
 
     steps:
-    - name: Check out code
-      uses: actions/checkout@v7
+      - name: Check out code
+        uses: actions/checkout@v7
 
-    - name: Setup Go SDK
-      uses: actions/setup-go@v6
-      timeout-minutes: 3
-      with:
-        go-version: ${{ matrix.go_version }}
+      - name: Setup Go SDK
+        uses: actions/setup-go@v6
+        timeout-minutes: 3
+        with:
+          go-version: ${{ matrix.go_version }}
 
-    - name: Tidy go mod
-      run: go mod tidy
+      - name: Tidy go mod
+        run: go mod tidy
 
-    # https://github.com/actions/setup-go
-#    - name: Use Go ${{ matrix.go_version }}
-#      timeout-minutes: 3
-#      uses: actions/setup-go@v3
-#      with:
-#        go-version: ${{ matrix.go_version }}
+      # https://github.com/actions/setup-go
+      #    - name: Use Go ${{ matrix.go_version }}
+      #      timeout-minutes: 3
+      #      uses: actions/setup-go@v3
+      #      with:
+      #        go-version: ${{ matrix.go_version }}
 
-#    - name: Revive check
-#      uses: docker://morphy/revive-action:v2
-#      if: ${{ matrix.os == 'ubuntu-latest' && matrix.go_version == 'stable' }}
-#      with:
-#        config: .github/revive.toml
-#        # Exclude patterns, separated by semicolons (optional)
-#        exclude: "./internal/..."
+      #    - name: Revive check
+      #      uses: docker://morphy/revive-action:v2
+      #      if: ${{ matrix.os == 'ubuntu-latest' && matrix.go_version == 'stable' }}
+      #      with:
+      #        config: .github/revive.toml
+      #        # Exclude patterns, separated by semicolons (optional)
+      #        exclude: "./internal/..."
 
-    - name: Run staticcheck
-      uses: reviewdog/action-staticcheck@v1
-      if: ${{ github.event_name == 'pull_request'}}
-      with:
-        github_token: ${{ secrets.github_token }}
-        # Change reviewdog reporter if you need [github-pr-check,github-check,github-pr-review].
-        reporter: github-pr-check
-        # Report all results. [added,diff_context,file,nofilter].
-        filter_mode: added
-        # Exit with 1 when it find at least one finding.
-        fail_on_error: true
+      - name: Run staticcheck
+        uses: reviewdog/action-staticcheck@v1
+        if: ${{ github.event_name == 'pull_request'}}
+        with:
+          github_token: ${{ secrets.github_token }}
+          # Change reviewdog reporter if you need [github-pr-check,github-check,github-pr-review].
+          reporter: github-pr-check
+          # Report all results. [added,diff_context,file,nofilter].
+          filter_mode: added
+          # Exit with 1 when it find at least one finding.
+          fail_on_error: true
 
-    - name: Run unit tests
-      # run: go test -v -cover ./...
-      run: go test -coverprofile="profile.cov" ./...
+      - name: Run unit tests
+        # run: go test -v -cover ./...
+        run: go test -coverprofile="profile.cov" ./...
 
-    - name: Send coverage
-      uses: shogo82148/actions-goveralls@v1
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      with:
-        path-to-profile: profile.cov
-        flag-name: Go-${{ matrix.go_version }}
-        parallel: true
-        shallow: true
+      - name: Send coverage
+        uses: shogo82148/actions-goveralls@v1
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        with:
+          path-to-profile: profile.cov
+          flag-name: Go-${{ matrix.go_version }}
+          parallel: true
+          shallow: true
 
   # notifies that all test jobs are finished.
   # https://github.com/shogo82148/actions-goveralls

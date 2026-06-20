@@ -1,9 +1,9 @@
-title: '## Change Log'
+title: "## Change Log"
 # style allow: simple, markdown(mkdown), ghr(gh-release)
 style: gh-release
 # group names
 names: [Refactor, Fixed, Feature, Update, Other]
-repo_url: https://github.com/gookit/slog
+# repo_url: https://github.com/gookit/slog
 
 filters:
   # message length should >= 12
@@ -24,13 +24,13 @@ filters:
 rules:
   - name: Refactor
     start_withs: [refactor, break]
-    contains: ['refactor:']
+    contains: ["refactor:"]
   - name: Fixed
     start_withs: [fix]
-    contains: ['fix:']
+    contains: ["fix:"]
   - name: Feature
     start_withs: [feat, new]
     contains: [feature]
   - name: Update
-    start_withs: [update, 'up:']
+    start_withs: [update, "up:"]
     contains: []
