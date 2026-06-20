@@ -137,33 +137,28 @@ func (b *LineWriter) Write(p []byte) (nn int, err error) {
 	// 	p = p[n:]
 	// }
 
-	// UP: 改造一下逻辑，如果 len(p) > b.Available() 就将buf 和 p 都写入 b.wr
+	// UP: 改造一下逻辑，如果 len(p) > b.Available() 就将 buf 和 p 都写入 b.wr
 	if len(p) > b.Available() && b.err == nil {
-		nn = b.Buffered()
-		if nn > 0 {
-			_ = b.Flush()
-			if b.err != nil {
-				return nn, b.err
+		// flush previously buffered data first, then write p directly so a single
+		// line is never split across the buffer and the underlying writer.
+		if b.Buffered() > 0 {
+			if err = b.Flush(); err != nil {
+				return 0, err
 			}
 		}
 
-		var n int
-		n, b.err = b.wr.Write(p)
-		if b.err != nil {
-			return nn, b.err
-		}
-
-		nn += n
-		return nn, nil
-	}
-
-	if b.err != nil {
+		// io.Writer contract: nn must be the number of bytes from p that were
+		// written (<= len(p)). The previously buffered bytes are NOT part of p.
+		nn, b.err = b.wr.Write(p)
 		return nn, b.err
 	}
 
-	n := copy(b.buf[b.n:], p)
-	b.n += n
-	nn += n
+	if b.err != nil {
+		return 0, b.err
+	}
+
+	nn = copy(b.buf[b.n:], p)
+	b.n += nn
 	return nn, nil
 }
 

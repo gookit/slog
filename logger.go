@@ -293,9 +293,14 @@ func (l *Logger) MustClose() { goutil.PanicErr(l.Close()) }
 //
 //	if enable async/buffer mode, please call the Close() before exit.
 func (l *Logger) Close() error {
+	// guard the closed flag so concurrent Close() calls don't race / double-close
+	l.mu.Lock()
 	if l.closed {
+		l.mu.Unlock()
 		return nil
 	}
+	l.closed = true
+	l.mu.Unlock()
 
 	_ = l.VisitAll(func(handler Handler) error {
 		if err := handler.Close(); err != nil {
@@ -305,7 +310,6 @@ func (l *Logger) Close() error {
 		return nil
 	})
 
-	l.closed = true
 	return l.err
 }
 
@@ -368,8 +372,11 @@ func (l *Logger) HandlersNum() int { return len(l.handlers) }
 
 // LastErr get, will clear it after read.
 func (l *Logger) LastErr() error {
+	// l.err is written under l.mu in writeRecord/flushAll, lock to avoid a race
+	l.mu.Lock()
 	err := l.err
 	l.err = nil
+	l.mu.Unlock()
 	return err
 }
 

@@ -150,8 +150,9 @@ pool Get → `fmt.Sprintf`/反射 → 抢全局锁 → pool Put。
 ## 🟢 小问题 / 代码质量
 
 - `bufwrite/line_writer.go:141-158`:大写入分支返回值可能 **> len(p)**,违反 `io.Writer`
-  契约。另 `Reset()`(`line_writer.go:63`)把 `buf = buf[:0]`,之后 `Write` 的
-  `copy(b.buf[b.n:], p)` 拷进零长 slice → 复位后写入静默丢失。
+  契约(对 `io.Copy` 等会误判 ShortWrite)。**已修**:仅返回 p 中实际写入的字节数。
+  - 订正:`Reset()` 把 `buf = buf[:0]` 并**不会丢数据**(Available 变 0 → 后续走直接写
+    路径),只是旁路了缓冲,属良性;且现有测试依赖该行为,故未改动。
 - `logger.go:356-360` `LastErr` 无锁读+清空 `l.err`;`Close()` 读写 `l.closed` 也无锁。
 - API 冗余:`New` / `NewWithConfig` 完全相同(`logger.go:62/72`);
   `AddHandler/PushHandler/...`、`WithCtx/WithContext` 等大量同义 alias。
@@ -206,4 +207,5 @@ pool Get → `fmt.Sprintf`/反射 → 抢全局锁 → pool Put。
 - [x] P2-7 EncodeToString 加 `case M`(订正:非死代码,经 `M.String()` 可达;此为省间接的等价优化)
 - [ ] P2-8 JSONFormatter 直接拼接
 - [ ] P2-9 ReportCaller 默认值评估
-- [ ] P3 代码质量清理
+- [x] P3 安全小修:LineWriter.Write 修复 io.Writer 契约;LastErr 加锁、Close 的 closed 标志加锁
+  - 订正:LineWriter.Reset 良性(不丢数据),未改;其余 alias 冗余/TODO 清理留待后续
