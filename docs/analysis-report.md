@@ -121,14 +121,18 @@ pool Get → `fmt.Sprintf`/反射 → 抢全局锁 → pool Put。
 
 ## 🟡 性能优化点
 
-### P2-7. `mapToString` 快路径对库自身的 `M` 类型是死代码
+### P2-7. `EncodeToString` 对 `M` 多一层 `SafeString` 间接
 
 文件:`util.go:124-129`
 
 `EncodeToString` 用 `v.(map[string]any)` 断言,但 `Record.Data/Extra` 都是命名类型
-`M`(`type M map[string]any`)。**实测该断言为 `false`**,于是 Data/Extra 每条日志
-都走反射版 `strutil.SafeString` 而非手写的 `mapToString`。
-修法:断言里加 `case M:`(或 `v.(M)`)。
+`M`(`type M map[string]any`),该断言为 `false`。
+
+> 订正:`mapToString` **并非死代码** —— `M` 实现了 `String()`,实际路径是
+> `EncodeToString(M)` → `SafeString(M)` → `M.String()` → `mapToString`,输出正确。
+> 仅多一层 Stringer 分发的开销。
+
+修法:断言里加 `case M:` 直接走 `mapToString`(输出完全一致,省去间接)。
 
 ### P2-8. JSONFormatter 先建 `map[string]any` 再编码
 
@@ -176,10 +180,10 @@ pool Get → `fmt.Sprintf`/反射 → 抢全局锁 → pool Put。
 - [x] P0-2 GlobalFields 共享污染:newRecord 浅拷贝全局字段(空则保持 nil)+ 回归测试
 - [x] P0-3 rotatefile asyncClean 竞态:sync.Once+写锁初始化、Close 时 join 清理 goroutine(cleanWg)、doClean 读 `d.path` 加读锁;附带修复 `FilesClear` daemon 的 `quitDaemon` 竞态、`MockClocker` 线程安全
   - 注:剩余 `go test -race ./rotatefile/` 偶发失败源于**测试代码**在 writer 存活期并发改写共享 `*Config`(配置应在 Create 后只读),属测试重构跟进项;CI(`go test ./...`)不带 -race,常规测试全绿
-- [ ] P1-4 级别快速门前置
+- [x] P1-4 级别快速门前置:`Logger.shouldHandle` 入口门控(禁用级别 172→37 ns/op、4→2 allocs);Panic/Fatal 始终放行
 - [ ] P1-5 锁外格式化
 - [ ] P1-6 WithXxx pool 复用
-- [ ] P2-7 EncodeToString 对 M 的断言
+- [x] P2-7 EncodeToString 加 `case M`(订正:非死代码,经 `M.String()` 可达;此为省间接的等价优化)
 - [ ] P2-8 JSONFormatter 直接拼接
 - [ ] P2-9 ReportCaller 默认值评估
 - [ ] P3 代码质量清理

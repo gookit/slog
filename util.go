@@ -122,7 +122,12 @@ func formatArgsWithSpaces(vs []any) string {
 
 // EncodeToString data to string
 func EncodeToString(v any) string {
-	if mp, ok := v.(map[string]any); ok {
+	switch mp := v.(type) {
+	case M:
+		// Record.Data/Extra are the named type M. Handle it directly to skip the
+		// SafeString -> Stringer-dispatch -> M.String() indirection (same output).
+		return mapToString(mp)
+	case map[string]any:
 		return mapToString(mp)
 	}
 	return strutil.SafeString(v)
