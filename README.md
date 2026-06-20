@@ -704,6 +704,37 @@ func main() {
 }
 ```
 
+Use rotatefile with the standard `log/slog` (Go 1.21+). `rotatefile.Writer` is an
+`io.Writer`, so plug it straight into a slog handler — you get gookit's file
+rotation while keeping the standard slog API:
+
+```go
+package main
+
+import (
+	"log/slog"
+
+	"github.com/gookit/slog/rotatefile"
+)
+
+func main() {
+	// rotate by size/time + clean + gzip, all from rotatefile config
+	w, err := rotatefile.NewConfig("testdata/std_slog.log", func(c *rotatefile.Config) {
+		c.MaxSize = 50 * 1024 * 1024 // 50MB
+		c.RotateTime = rotatefile.EveryDay
+		c.BackupNum = 7
+	}).Create()
+	if err != nil {
+		panic(err)
+	}
+
+	logger := slog.New(slog.NewJSONHandler(w, nil))
+	logger.Info("log message via std log/slog", "key", "value")
+}
+```
+
+A runnable version is in [_example/stdslog](_example/stdslog/main.go).
+
 ## Testing and benchmark
 
 ### Unit tests

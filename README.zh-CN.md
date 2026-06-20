@@ -682,6 +682,37 @@ func main() {
 }
 ```
 
+在官方 `log/slog`(Go 1.21+)上使用 rotatefile。`rotatefile.Writer` 就是一个
+`io.Writer`,直接传给 slog 的 handler 即可——这样你既用上 gookit 的文件轮转,
+又保持官方 slog 的 API:
+
+```go
+package main
+
+import (
+	"log/slog"
+
+	"github.com/gookit/slog/rotatefile"
+)
+
+func main() {
+	// 按大小/时间轮转 + 清理 + gzip,全部来自 rotatefile 配置
+	w, err := rotatefile.NewConfig("testdata/std_slog.log", func(c *rotatefile.Config) {
+		c.MaxSize = 50 * 1024 * 1024 // 50MB
+		c.RotateTime = rotatefile.EveryDay
+		c.BackupNum = 7
+	}).Create()
+	if err != nil {
+		panic(err)
+	}
+
+	logger := slog.New(slog.NewJSONHandler(w, nil))
+	logger.Info("log message via std log/slog", "key", "value")
+}
+```
+
+可运行示例见 [_example/stdslog](_example/stdslog/main.go)。
+
 ## 测试以及性能
 
 ### 单元测试
