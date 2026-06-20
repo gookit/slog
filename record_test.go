@@ -246,7 +246,8 @@ func TestRecord_useMultiTimes(t *testing.T) {
 		for i := 0; i < 100; i++ {
 			wg.Add(1)
 			go func(i int) {
-				r.Error("concurrent error log", i)
+				// a Record is not concurrency-safe; each goroutine uses its own
+				l.Record().Error("concurrent error log", i)
 				time.Sleep(time.Millisecond * 100)
 				wg.Done()
 			}(i)

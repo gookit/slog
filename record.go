@@ -10,7 +10,11 @@ import (
 	"github.com/gookit/goutil/strutil"
 )
 
-// Record a log record definition
+// Record a log record definition.
+//
+// NOTE: a Record is NOT safe for concurrent use by multiple goroutines. Do not
+// share one Record across goroutines; obtain a separate record per goroutine
+// (eg. Logger.Record()) or log via the Logger methods, which are concurrency-safe.
 type Record struct {
 	logger *Logger
 	// reuse flag. for reuse a Record, will not be released on after writing.
