@@ -51,6 +51,29 @@
 
 请查看 https://github.com/gookit/slog/issues/127#issuecomment-2827745713
 
+## 与官方 `log/slog` 对比
+
+Go 1.21 引入了标准库结构化日志包 `log/slog`。`gookit/slog` 早于它出现,定位也不同。
+如何选择:
+
+- 想要 **零依赖、高性能** 的结构化日志(适合库/服务),且自带日志落地方式 → 用官方 **`log/slog`**。
+- 想要 **开箱即用、面向应用/CLI** 的日志:内置文件轮转、彩色模板化控制台输出、多种 handler
+  (file/syslog/email/buffered/multi)、processor、`Fatal/Panic` 级别 → 用 **`gookit/slog`**。
+
+|              | `gookit/slog`                                           | 官方 `log/slog`                              |
+|--------------|--------------------------------------------------------|----------------------------------------------|
+| 分发         | 第三方                                                 | 标准库,零依赖                               |
+| 文件轮转     | 内置(`rotatefile`:按大小/时间 + 清理 + gzip)         | 不含(需自带第三方 writer)                  |
+| 控制台输出   | 彩色、模板化(`[{{datetime}}] [{{level}}]…`)           | 固定的 logfmt 文本 / JSON                    |
+| 内置 handler | console/file/rotate/syslog/email/buffered/multi        | text、json 写入 `io.Writer`                  |
+| 级别         | `Panic/Fatal/Error/Warn/Notice/Info/Debug/Trace`(数值越大越不严重) | `Debug=-4 … Error=8`(数值越小越不严重) |
+| 性能         | 参数走 `any`(分配较多)                                | 强类型 `Attr`/`Value`(`LogAttrs` 近零分配) |
+| Context/分组 | `WithContext`、`*Ctx` 方法                             | context 一等公民,`WithGroup`/`Group`、`LogValuer` |
+| API 风格     | logrus / zap-sugar 风格(`Infof`、`WithField`)         | `With` / `Attr` / `Group`                    |
+
+> **互通:** `rotatefile.Writer` 就是普通的 `io.Writer`,因此可以把 gookit 的文件轮转
+> 直接用在官方 `log/slog` 上。见 [在其他日志包上使用 rotatefile](#在其他日志包上使用-rotatefile)。
+
 ## [English](README.md)
 
 English instructions please see [./README](README.md)

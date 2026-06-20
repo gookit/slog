@@ -51,6 +51,32 @@
 
 Please see https://github.com/gookit/slog/issues/127#issuecomment-2827745713
 
+## Comparison with the standard `log/slog`
+
+Go 1.21 added the standard structured logging package `log/slog`. `gookit/slog`
+predates it and aims at a different sweet spot. A quick guide for choosing:
+
+- Use the standard **`log/slog`** when you want a zero-dependency, high-performance
+  structured logger (great for libraries/services) and will bring your own sinks.
+- Use **`gookit/slog`** when you want a batteries-included logger for apps / CLI
+  tools: built-in file rotation, colored & templated console output, multiple
+  handlers (file, syslog, email, buffered, multi), processors and `Fatal/Panic`.
+
+|                   | `gookit/slog`                                            | std `log/slog`                                        |
+|-------------------|---------------------------------------------------------|-------------------------------------------------------|
+| Distribution      | third-party                                             | standard library, zero-dep                            |
+| File rotation     | built-in (`rotatefile`: size/time + cleanup + gzip)     | not included (bring a 3rd-party writer)               |
+| Console output    | colored, template-based (`[{{datetime}}] [{{level}}]…`) | fixed logfmt text / JSON                              |
+| Built-in handlers | console, file, rotate, syslog, email, buffered, multi   | text & json to `io.Writer`                            |
+| Levels            | `Panic/Fatal/Error/Warn/Notice/Info/Debug/Trace` (higher value = less severe) | `Debug=-4 … Error=8` (lower value = less severe) |
+| Performance       | `any`-based args (more allocations)                     | typed `Attr`/`Value` (near zero-alloc via `LogAttrs`) |
+| Context / groups  | `WithContext`, `*Ctx` methods                           | context-first, `WithGroup`/`Group`, `LogValuer`       |
+| API style         | logrus / zap-sugar like (`Infof`, `WithField`)          | `With` / `Attr` / `Group`                             |
+
+> **Interop:** `rotatefile.Writer` is a plain `io.Writer`, so you can use gookit's
+> file rotation together with the standard `log/slog`. See
+> [Use rotatefile on other log package](#use-rotatefile-on-other-log-package).
+
 ## [中文说明](README.zh-CN.md)
 
 中文说明请阅读 [README.zh-CN](README.zh-CN.md)
