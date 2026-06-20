@@ -132,5 +132,8 @@ func (f *JSONFormatter) Format(r *Record) ([]byte, error) {
 
 	// has been added newline in Encode().
 	err := encoder.Encode(logData)
-	return buf.Bytes(), err
+	// NOTE: return an independent copy. buf is returned to the shared pool on
+	// defer, so returning buf.Bytes() directly would race with a concurrent
+	// Format() that reuses the same buffer. See TextFormatter.Format for detail.
+	return append([]byte(nil), buf.Bytes()...), err
 }

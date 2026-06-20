@@ -148,6 +148,10 @@ var textPool bytebufferpool.Pool
 func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 	f.beforeFormat()
 	buf := textPool.Get()
+	// NOTE: must return an independent copy of the bytes. The buffer is put
+	// back to the pool on return, and the pool is shared across loggers/handlers.
+	// Returning buf.B directly would let another concurrent Format() grab the
+	// same buffer and overwrite the bytes while the handler is still writing them.
 	defer textPool.Put(buf)
 
 	// record formatted custom fields
@@ -209,8 +213,7 @@ func (f *TextFormatter) Format(r *Record) ([]byte, error) {
 		buf.WriteByte('\n')
 	}
 
-	// return buf.Bytes(), nil
-	return buf.B, nil
+	return append([]byte(nil), buf.B...), nil
 }
 
 func (f *TextFormatter) beforeFormat() {
