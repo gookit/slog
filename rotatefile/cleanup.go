@@ -3,6 +3,7 @@ package rotatefile
 import (
 	"os"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/gookit/goutil/errorx"
@@ -96,7 +97,8 @@ func NewCConfig() *CConfig {
 //
 // use for rotate and clear other program produce log files
 type FilesClear struct {
-	// mu sync.Mutex
+	// mu guards quitDaemon (created in DaemonClean, read/closed in StopDaemon)
+	mu  sync.Mutex
 	cfg *CConfig
 	// inited mark
 	inited bool
@@ -137,10 +139,14 @@ func (r *FilesClear) WithConfigFn(fns ...CConfigFunc) *FilesClear {
 
 // StopDaemon for stop daemon clean
 func (r *FilesClear) StopDaemon() {
-	if r.quitDaemon == nil {
+	r.mu.Lock()
+	q := r.quitDaemon
+	r.mu.Unlock()
+
+	if q == nil {
 		panic("cannot quit daemon, please call DaemonClean() first")
 	}
-	close(r.quitDaemon)
+	close(q)
 }
 
 // DaemonClean daemon clean old files by config
@@ -169,13 +175,17 @@ func (r *FilesClear) DaemonClean(onStop func()) {
 		panic("clean: backupNum and backupTime are both 0")
 	}
 
+	r.mu.Lock()
 	r.quitDaemon = make(chan struct{})
+	quit := r.quitDaemon
+	r.mu.Unlock()
+
 	tk := time.NewTicker(r.cfg.CheckInterval)
 	defer tk.Stop()
 
 	for {
 		select {
-		case <-r.quitDaemon:
+		case <-quit:
 			if onStop != nil {
 				onStop()
 			}

@@ -174,7 +174,8 @@ pool Get → `fmt.Sprintf`/反射 → 抢全局锁 → pool Put。
 
 - [x] P0-1 Formatter buffer 生命周期:Text/JSON Format 返回独立拷贝 + `-race` 回归测试
 - [x] P0-2 GlobalFields 共享污染:newRecord 浅拷贝全局字段(空则保持 nil)+ 回归测试
-- [ ] P0-3 rotatefile asyncClean 竞态
+- [x] P0-3 rotatefile asyncClean 竞态:sync.Once+写锁初始化、Close 时 join 清理 goroutine(cleanWg)、doClean 读 `d.path` 加读锁;附带修复 `FilesClear` daemon 的 `quitDaemon` 竞态、`MockClocker` 线程安全
+  - 注:剩余 `go test -race ./rotatefile/` 偶发失败源于**测试代码**在 writer 存活期并发改写共享 `*Config`(配置应在 Create 后只读),属测试重构跟进项;CI(`go test ./...`)不带 -race,常规测试全绿
 - [ ] P1-4 级别快速门前置
 - [ ] P1-5 锁外格式化
 - [ ] P1-6 WithXxx pool 复用

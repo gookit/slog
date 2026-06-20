@@ -101,9 +101,6 @@ func TestWriter_Clean(t *testing.T) {
 
 	wr, err := c.Create()
 	assert.NoErr(t, err)
-	defer func() {
-		_ = wr.Close()
-	}()
 
 	for i := 0; i < 20; i++ {
 		_, err = wr.WriteString("[INFO] this is a log message, idx=" + mathutil.String(i) + "\n")
@@ -116,6 +113,10 @@ func TestWriter_Clean(t *testing.T) {
 
 	files := fsutil.Glob(internal.BuildGlobPattern(logfile))
 	dump.P(files)
+
+	// stop the async cleaner (joins the background goroutine) before mutating the
+	// shared config below. Config is expected to be immutable while writing.
+	assert.NoErr(t, wr.Close())
 
 	// test clean error
 	t.Run("clean error", func(t *testing.T) {

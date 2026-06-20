@@ -42,6 +42,10 @@ type Writer struct {
 	// oldFiles []string
 	cleanCh chan struct{}
 	stopCh  chan struct{}
+	// ensure the clean-consumer goroutine is started only once
+	cleanOnce sync.Once
+	// wait for the clean-consumer goroutine to exit on close
+	cleanWg sync.WaitGroup
 
 	// context use for rotating file by size
 	written   uint64 // written size
@@ -140,11 +144,20 @@ func (d *Writer) close(closeStopCh bool) error {
 		return err
 	}
 
-	// stop the async clean backups
-	if closeStopCh && d.stopCh != nil {
-		d.debugLog("close stopCh for stop async clean old files")
-		close(d.stopCh)
+	// stop the async clean backups, then wait for the consumer goroutine to exit.
+	// NOTE: take the channel out under lock but close + Wait outside the lock,
+	// otherwise the consumer's doClean (which needs RLock) would deadlock.
+	if closeStopCh {
+		d.mu.Lock()
+		stopCh := d.stopCh
 		d.stopCh = nil
+		d.mu.Unlock()
+
+		if stopCh != nil {
+			d.debugLog("close stopCh for stop async clean old files")
+			close(stopCh)
+			d.cleanWg.Wait()
+		}
 	}
 	return d.file.Close()
 }
@@ -320,55 +333,60 @@ func (d *Writer) shouldClean(withRand bool) bool {
 	return cfgIsYes && rand.Intn(100) < 20
 }
 
-// async clean old files by config. should be in lock.
+// async clean old files by config.
 func (d *Writer) asyncClean() {
 	if !d.shouldClean(false) {
 		return
 	}
 
-	// if already running, send a signal
-	if d.cleanCh != nil {
-		d.notifyClean()
-		return
-	}
+	// lazily start the single clean-consumer goroutine.
+	//
+	// NOTE: use sync.Once + full lock. The previous version used RLock (a shared
+	// lock) to guard the lazy init, which provides no mutual exclusion, so two
+	// concurrent Write() calls could both create channels and start goroutines.
+	d.cleanOnce.Do(func() {
+		d.mu.Lock()
+		d.debugLog("INIT clean and stop channels for clean old files")
+		// buffered(1) so a needed clean isn't lost while the consumer is busy.
+		d.cleanCh = make(chan struct{}, 1)
+		d.stopCh = make(chan struct{})
+		// capture channels locally so close()/nil-ing fields can't affect the goroutine
+		cleanCh, stopCh := d.cleanCh, d.stopCh
+		d.mu.Unlock()
 
-	// add lock for deny concurrent clean
-	d.mu.RLock()
-	defer d.mu.RUnlock()
+		d.cleanWg.Add(1)
+		go d.cleanConsumer(cleanCh, stopCh)
+	})
 
-	// re-check d.cleanCh is not nil
-	if d.cleanCh != nil {
-		d.notifyClean()
-		return
-	}
+	d.notifyClean()
+}
 
-	// init clean channel
-	d.debugLog("INIT clean and stop channels for clean old files")
-	d.cleanCh = make(chan struct{})
-	d.stopCh = make(chan struct{})
-
-	// start a goroutine to clean backups
-	go func() {
-		d.debugLog("START a goroutine consumer for clean old files")
-
-		// consume the signal until stop
-		for {
-			select {
-			case <-d.cleanCh:
-				d.debugLog("receive signal - clean old files handling")
-				printErrln("rotatefile: clean old files error:", d.doClean())
-			case <-d.stopCh:
-				d.cleanCh = nil
-				d.debugLog("STOP consumer for clean old files")
-				return // stop clean
-			}
+// cleanConsumer consumes clean signals until stopCh is closed.
+func (d *Writer) cleanConsumer(cleanCh, stopCh chan struct{}) {
+	defer d.cleanWg.Done()
+	d.debugLog("START a goroutine consumer for clean old files")
+	for {
+		select {
+		case <-cleanCh:
+			d.debugLog("receive signal - clean old files handling")
+			printErrln("rotatefile: clean old files error:", d.doClean())
+		case <-stopCh:
+			d.debugLog("STOP consumer for clean old files")
+			return // stop clean
 		}
-	}()
+	}
 }
 
 func (d *Writer) notifyClean() {
+	d.mu.RLock()
+	ch := d.cleanCh
+	d.mu.RUnlock()
+	if ch == nil {
+		return
+	}
+
 	select {
-	case d.cleanCh <- struct{}{}: // notify clean old files
+	case ch <- struct{}{}: // notify clean old files
 		d.debugLog("sent signal - start clean old files...")
 	default: // skip on blocking
 		d.debugLog("clean old files signal blocked, SKIP")
@@ -391,8 +409,12 @@ func (d *Writer) Clean() (err error) {
 func (d *Writer) doClean(skipSeconds ...int) (err error) {
 	// oldFiles: xx.log.yy files, no gz file
 	var oldFiles, gzFiles []fileInfo
+	// fileDir/fileName are immutable after init(); d.path is changed on rotate,
+	// so snapshot it under read lock to avoid racing with rotatingFile/openFile.
 	fileDir, fileName := d.fileDir, d.fileName
+	d.mu.RLock()
 	curFileName := filepath.Base(d.path)
+	d.mu.RUnlock()
 
 	// FIX: do not process recent changes to avoid conflicts
 	skipSec := 30
