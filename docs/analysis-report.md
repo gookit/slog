@@ -173,7 +173,7 @@ pool Get → `fmt.Sprintf`/反射 → 抢全局锁 → pool Put。
 ## 处理进度
 
 - [x] P0-1 Formatter buffer 生命周期:Text/JSON Format 返回独立拷贝 + `-race` 回归测试
-- [ ] P0-2 GlobalFields 共享污染
+- [x] P0-2 GlobalFields 共享污染:newRecord 浅拷贝全局字段(空则保持 nil)+ 回归测试
 - [ ] P0-3 rotatefile asyncClean 竞态
 - [ ] P1-4 级别快速门前置
 - [ ] P1-5 锁外格式化

@@ -99,7 +99,20 @@ func (l *Logger) newRecord() *Record {
 	r := l.recordPool.Get().(*Record)
 	r.reuse = false
 	r.freed = false
-	r.Fields = l.GlobalFields
+
+	// NOTE: copy global fields into the record instead of sharing the map by
+	// reference. Otherwise processors / Record.AddField would mutate the shared
+	// Logger.GlobalFields (leaking per-record/per-request data into all logs and
+	// causing data races). Keep nil when empty to preserve the zero-alloc path.
+	if len(l.GlobalFields) > 0 {
+		fields := make(M, len(l.GlobalFields))
+		for k, v := range l.GlobalFields {
+			fields[k] = v
+		}
+		r.Fields = fields
+	} else {
+		r.Fields = nil
+	}
 	return r
 }
 
@@ -116,11 +129,12 @@ func (l *Logger) releaseRecord(r *Record) {
 		return
 	}
 
-	// reset ctx data
+	// reset ctx data. Fields is (re)initialized in newRecord() from GlobalFields,
+	// so reset it to nil here to avoid keeping a stale map in the pool.
 	r.Ctx = nil
 	r.Extra = nil
 	r.Data = map[string]any{}
-	r.Fields = map[string]any{}
+	r.Fields = nil
 	// reset flags
 	r.inited = false
 	r.reuse = false

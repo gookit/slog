@@ -62,6 +62,33 @@ func TestLogger_AddProcessor(t *testing.T) {
 	assert.Contains(t, str, `"traceId":"traceId123abc456"`)
 }
 
+// regression: processors / Record.AddField must not mutate Logger.GlobalFields
+func TestLogger_GlobalFields_NotPollutedByProcessor(t *testing.T) {
+	buf := new(byteutil.Buffer)
+	l := slog.NewJSONSugared(buf, slog.InfoLevel)
+	l.GlobalFields = slog.M{"app": "demo"}
+	l.AddProcessor(slog.ProcessorFunc(func(r *slog.Record) {
+		r.AddField("perRecord", "should-not-leak")
+	}))
+
+	l.Info("m1")
+	str := buf.ResetAndGet()
+	// per-record field still shows in the output
+	assert.Contains(t, str, `"perRecord":"should-not-leak"`)
+	assert.Contains(t, str, `"app":"demo"`)
+
+	// but GlobalFields itself must stay clean
+	assert.Len(t, l.GlobalFields, 1)
+	assert.NotContains(t, l.GlobalFields, "perRecord")
+
+	// a second log must still carry the global field and not the previous one's
+	l.ResetProcessors()
+	l.Info("m2")
+	str = buf.ResetAndGet()
+	assert.Contains(t, str, `"app":"demo"`)
+	assert.NotContains(t, str, `"perRecord"`)
+}
+
 func TestCtxKeysProcessor(t *testing.T) {
 	// CtxKeysProcessor
 	tr := newLogRecord("test message")
