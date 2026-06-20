@@ -42,6 +42,9 @@ func TestWriter_Rotate_modeCreate(t *testing.T) {
 
 	c := rotatefile.NewConfig(logfile)
 	c.RotateMode = rotatefile.ModeCreate
+	// set before Create: mutating BackupNum after Create races with the async
+	// cleaner goroutine (config is expected to be immutable while writing).
+	c.BackupNum = 2
 
 	wr, err := c.Create()
 	assert.NoErr(t, err)
@@ -59,7 +62,6 @@ func TestWriter_Rotate_modeCreate(t *testing.T) {
 	}
 
 	// test clean and backup
-	c.BackupNum = 2
 	c.MaxSize = 128
 	err = wr.Rotate()
 	assert.NoErr(t, err)
