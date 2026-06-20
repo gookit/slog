@@ -174,6 +174,26 @@ pool Get → `fmt.Sprintf`/反射 → 抢全局锁 → pool Put。
 
 ---
 
+## 补充:更深层的既有竞态(超出已修范围,待决策)
+
+以下为 `go test -race ./...` 暴露、且 **master 上即存在** 的竞态(CI 用 `go test ./...`
+不带 -race,故未覆盖):
+
+- **rotatefile + CloseLock(`TestIssues_121`)**:作为 slog handler 使用时 `CloseLock=true`,
+  写入/轮转依赖**外部 logger 锁**串行化,但异步清理 goroutine 运行在该锁之外,
+  访问 `d.file/d.path/d.written` 等字段 → 竞态。彻底修复需让清理协程与外部锁协调
+  (或 rotatefile 始终用自身锁),属较大重构。
+- **Record 跨 goroutine 并发复用(`TestRecord_useMultiTimes`)**:Record 本就非线程安全;
+  测试对单个 Record 并发写。应在文档明确「Record 不可跨 goroutine 共享」,或测试改造。
+
+## 待决策项(影响面大/改变默认行为,建议确认后再做)
+
+- **P1-5 锁外格式化**:把格式化移出 `writeRecord` 的大锁,涉及核心写路径重构(>100 行),风险较高。
+- **P1-6 WithXxx 的 Copy 优化**:`Copy()` 对空 Data/Extra 也分配 map;改为空则留 nil 可省分配,
+  但会使 JSON 空值从 `{}` 变 `null`(行为变更),需确认。
+- **P2-8 JSONFormatter 直接拼 buffer**:中等改造,收益有限。
+- **P2-9 `ReportCaller` 默认值**:默认 `true` 导致每条实际处理日志做栈回溯;改默认 `false` 是行为变更。
+
 ## 处理进度
 
 - [x] P0-1 Formatter buffer 生命周期:Text/JSON Format 返回独立拷贝 + `-race` 回归测试
