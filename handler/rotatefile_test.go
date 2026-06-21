@@ -12,7 +12,7 @@ import (
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
 	"github.com/gookit/slog/internal"
-	"github.com/gookit/slog/rotatefile"
+	"github.com/gookit/rotatefile"
 )
 
 func TestNewRotateFileHandler(t *testing.T) {

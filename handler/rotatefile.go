@@ -2,7 +2,7 @@ package handler
 
 import (
 	"github.com/gookit/goutil/x/basefn"
-	"github.com/gookit/slog/rotatefile"
+	"github.com/gookit/rotatefile"
 )
 
 // NewRotateFileHandler instance. It supports splitting log files by time and size

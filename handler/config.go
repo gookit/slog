@@ -9,8 +9,8 @@ import (
 	"github.com/gookit/goutil/errorx"
 	"github.com/gookit/goutil/fsutil"
 	"github.com/gookit/slog"
-	"github.com/gookit/slog/bufwrite"
-	"github.com/gookit/slog/rotatefile"
+	"github.com/gookit/rotatefile/bufwrite"
+	"github.com/gookit/rotatefile"
 )
 
 // the buff mode constants

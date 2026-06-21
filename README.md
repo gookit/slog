@@ -45,7 +45,7 @@
 - The `rotatefile` subpackage is a stand-alone tool library with file splitting, cleaning, and compressing backups
 - `rotatefile.Writer` can also be directly wrapped and used in other logging libraries. For example: `log`, `glog`, `zap`, etc.
 - `rotatefile.FilesClear` is an independent file cleaning backup tool, which can be used in other places (such as other program log cleaning such as PHP)
-- For more usage, please see [rotatefile](rotatefile/README.md)
+- For more usage, please see [gookit/rotatefile](https://github.com/gookit/rotatefile)
 
 ### Use slog in GORM
 
@@ -570,7 +570,7 @@ package main
 import (
   "log"
 
-  "github.com/gookit/slog/rotatefile"
+  "github.com/gookit/rotatefile"
 )
 
 func main() {
@@ -689,7 +689,7 @@ package main
 import (
   "log"
 
-  "github.com/gookit/slog/rotatefile"
+  "github.com/gookit/rotatefile"
 )
 
 func main() {
@@ -714,7 +714,7 @@ package main
 import (
 	"log/slog"
 
-	"github.com/gookit/slog/rotatefile"
+	"github.com/gookit/rotatefile"
 )
 
 func main() {

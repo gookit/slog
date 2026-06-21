@@ -7,7 +7,7 @@ import (
 
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
-	"github.com/gookit/slog/rotatefile"
+	"github.com/gookit/rotatefile"
 )
 
 type GLogConfig137 struct {

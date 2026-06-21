@@ -9,7 +9,7 @@ import (
 	"github.com/gookit/goutil/timex"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
-	"github.com/gookit/slog/rotatefile"
+	"github.com/gookit/rotatefile"
 )
 
 const pth = "./logs/main.log"

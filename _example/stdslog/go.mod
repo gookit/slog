@@ -1,11 +1,10 @@
-// Separate module: this example imports log/slog (needs Go 1.21+), while the
-// main gookit/slog module stays on go 1.20. Kept under _example (ignored by the
-// main module's ./... builds) so it doesn't affect the library's Go support.
+// Separate module: imports log/slog (Go 1.21+). Uses the standalone
+// github.com/gookit/rotatefile as an io.Writer for std slog.
 module stdslog-example
 
 go 1.21
 
-require github.com/gookit/slog v0.0.0
+require github.com/gookit/rotatefile v0.0.0
 
 require (
 	github.com/gookit/goutil v0.7.6 // indirect
@@ -13,4 +12,4 @@ require (
 	golang.org/x/text v0.22.0 // indirect
 )
 
-replace github.com/gookit/slog => ../..
+replace github.com/gookit/rotatefile => ../../../rotatefile

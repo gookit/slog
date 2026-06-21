@@ -6,8 +6,12 @@ require (
 	github.com/gookit/color v1.6.1
 	github.com/gookit/goutil v0.7.6
 	github.com/gookit/gsr v0.1.1
+	github.com/gookit/rotatefile v0.0.0
 	github.com/valyala/bytebufferpool v1.0.0
 )
+
+// TODO: remove this replace once github.com/gookit/rotatefile is published & tagged.
+replace github.com/gookit/rotatefile => ../rotatefile
 
 require (
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect

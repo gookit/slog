@@ -45,7 +45,7 @@
 - `rotatefile` 子包是一个拥有文件分割,清理,压缩备份的独立工具库
 - `rotatefile.Writer` 也可以直接包装使用用在其他日志库。例如：`log`、`glog`、`zap` 等等
 - `rotatefile.FilesClear` 是一个独立的文件清理备份工具, 可以用在其他地方(如 PHP等其他程序日志清理)
-- 更多使用请查看 [rotatefile](rotatefile/README.md)
+- 更多使用请查看 [gookit/rotatefile](https://github.com/gookit/rotatefile)
 
 ### GORM 中使用 slog
 
@@ -667,7 +667,7 @@ package main
 import (
   "log"
 
-  "github.com/gookit/slog/rotatefile"
+  "github.com/gookit/rotatefile"
 )
 
 func main() {
@@ -692,7 +692,7 @@ package main
 import (
 	"log/slog"
 
-	"github.com/gookit/slog/rotatefile"
+	"github.com/gookit/rotatefile"
 )
 
 func main() {

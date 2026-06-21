@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/gookit/slog"
-	"github.com/gookit/slog/rotatefile"
+	"github.com/gookit/rotatefile"
 )
 
 //

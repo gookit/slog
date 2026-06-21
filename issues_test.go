@@ -13,7 +13,7 @@ import (
 	"github.com/gookit/goutil/timex"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
-	"github.com/gookit/slog/rotatefile"
+	"github.com/gookit/rotatefile"
 )
 
 // https://github.com/gookit/slog/issues/27

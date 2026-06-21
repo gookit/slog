@@ -11,7 +11,7 @@ import (
 	"github.com/gookit/goutil/x/fmtutil"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
-	"github.com/gookit/slog/rotatefile"
+	"github.com/gookit/rotatefile"
 )
 
 func TestNewConfig(t *testing.T) {

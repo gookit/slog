@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/gookit/slog"
-	"github.com/gookit/slog/bufwrite"
+	"github.com/gookit/rotatefile/bufwrite"
 )
 
 // NewBuffered create new BufferedHandler
