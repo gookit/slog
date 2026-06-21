@@ -6,7 +6,7 @@ require (
 	github.com/gookit/color v1.6.1
 	github.com/gookit/goutil v0.7.6
 	github.com/gookit/gsr v0.1.1
-	github.com/gookit/rotatefile v0.1.0
+	github.com/gookit/rotatefile v0.3.0
 	github.com/valyala/bytebufferpool v1.0.0
 )
 
