@@ -2,14 +2,16 @@ name: Unit-Tests
 on:
   pull_request:
     paths:
-      - "go.mod"
+      - "**.mod" # any go.mod: root and nested module (_example)
+      - "**.sum"
       - "**.go"
       - "**.yml"
   push:
     branches: # Only trigger branch pushes; tag pushes are ignored.
       - "**"
     paths:
-      - "go.mod"
+      - "**.mod" # any go.mod: root and nested module (_example)
+      - "**.sum"
       - "**.go"
       - "**.yml"
 
