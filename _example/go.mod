@@ -4,7 +4,8 @@ go 1.19
 
 require (
 	github.com/golang/glog v1.2.5
-	github.com/gookit/goutil v0.7.4
+	github.com/gookit/goutil v0.8.3
+	github.com/gookit/rotatefile v0.3.0
 	github.com/gookit/slog v0.6.0
 	github.com/phuslu/log v1.0.119
 	github.com/rs/zerolog v1.34.0
@@ -15,7 +16,7 @@ require (
 )
 
 require (
-	github.com/gookit/color v1.6.0 // indirect
+	github.com/gookit/color v1.6.2 // indirect
 	github.com/gookit/gsr v0.1.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
