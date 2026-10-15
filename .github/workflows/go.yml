@@ -50,9 +50,11 @@ jobs:
       #        # Exclude patterns, separated by semicolons (optional)
       #        exclude: "./internal/..."
 
+      # reviewdog/action-staticcheck only runs on the linux runner: it fails before
+      # analyzing anything on windows-latest, so gate the step on the OS as well.
       - name: Run staticcheck
         uses: reviewdog/action-staticcheck@v1
-        if: ${{ github.event_name == 'pull_request'}}
+        if: ${{ github.event_name == 'pull_request' && matrix.os == 'ubuntu-latest' }}
         with:
           github_token: ${{ secrets.github_token }}
           # Change reviewdog reporter if you need [github-pr-check,github-check,github-pr-review].
