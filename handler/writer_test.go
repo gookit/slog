@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/gookit/goutil/fsutil"
-	"github.com/gookit/goutil/testutil/assert"
+	"github.com/gookit/goutil/x/assert"
 	"github.com/gookit/goutil/x/fakeobj"
 	"github.com/gookit/slog"
 	"github.com/gookit/slog/handler"
