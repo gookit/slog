@@ -207,7 +207,9 @@ func TestLogger_AddWithCtx(t *testing.T) {
 	l.DoNothingOnPanicFatal()
 	l.AddProcessor(slog.CtxKeysProcessor("data", "ctx1", "ctx2"))
 
+	//lint:ignore SA1029 ctx keys are plain strings in the CtxKeysProcessor API
 	ctx := context.WithValue(context.Background(), "ctx1", "ctx1-value")
+	//lint:ignore SA1029 the same as above, the key must match CtxKeysProcessor args
 	ctx = context.WithValue(ctx, "ctx2", "ctx2-value")
 
 	t.Run("normal", func(t *testing.T) {
@@ -364,6 +366,7 @@ func TestLogger_Sub(t *testing.T) {
 		KeepData(slog.M{"data1": "data1-value"}).
 		KeepExtra(slog.M{"ext1": "ext1-value"}).
 		KeepFields(slog.M{"field1": "field1-value"}).
+		//lint:ignore SA1029 ctx keys are plain strings in the CtxKeysProcessor API
 		KeepCtx(context.WithValue(context.Background(), "ctx1", "ctx1-value"))
 
 	assert.ContainsKey(t, sub.Data, "data1")

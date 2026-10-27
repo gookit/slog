@@ -255,6 +255,7 @@ func TestSetFormatter_jsonFormat(t *testing.T) {
 	assert.StrCount(t, s, `"app":"order"`, 2)
 
 	// WithContext
+	//lint:ignore SA1029 ctx keys are plain strings in the CtxKeysProcessor API
 	ctx := context.WithValue(context.Background(), "ctxField", "ctx1-value")
 	slog.AddProcessor(slog.CtxKeysProcessor("fields", "ctxField"))
 	slog.WithContext(ctx).Print("print message with ctx")
@@ -466,7 +467,9 @@ func TestAddWithCtx(t *testing.T) {
 	slog.Std().DoNothingOnPanicFatal()
 	slog.AddProcessor(slog.CtxKeysProcessor("data", "ctx1", "ctx2"))
 
+	//lint:ignore SA1029 ctx keys are plain strings in the CtxKeysProcessor API
 	ctx := context.WithValue(context.Background(), "ctx1", "ctx1-value")
+	//lint:ignore SA1029 the same as above, the key must match CtxKeysProcessor args
 	ctx = context.WithValue(ctx, "ctx2", "ctx2-value")
 
 	t.Run("normal", func(t *testing.T) {

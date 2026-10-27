@@ -54,6 +54,7 @@ func TestLogger_AddProcessor(t *testing.T) {
 	assert.Contains(t, str, `"message":"message4"`)
 	assert.NotContains(t, str, `"traceId"`)
 
+	//lint:ignore SA1029 ctx keys are plain strings in the AppendCtxKeys API
 	ctx := context.WithValue(context.Background(), "traceId", "traceId123abc456")
 	l.WithCtx(ctx).Info("message5")
 	str = buf.ResetAndGet()
@@ -97,6 +98,7 @@ func TestCtxKeysProcessor(t *testing.T) {
 	procFn.Process(tr)
 	assert.Empty(t, tr.Extra)
 
+	//lint:ignore SA1029 ctx keys are plain strings in the CtxKeysProcessor API
 	ctx := context.WithValue(context.Background(), "traceId", "traceId123abc456")
 	tr = tr.WithCtx(ctx)
 	procFn.Process(tr)

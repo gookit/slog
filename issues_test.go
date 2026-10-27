@@ -203,6 +203,7 @@ func TestIssues_139(t *testing.T) {
 	// }))
 	L.AddProcessor(slog.AppendCtxKeys("requestid"))
 
+	//lint:ignore SA1029 ctx keys are plain strings in the AppendCtxKeys API
 	ctx := context.WithValue(context.Background(), "requestid", "111111")
 	L.WithCtx(ctx).Info("test")
 }
