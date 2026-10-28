@@ -125,6 +125,9 @@ func (sl *SugaredLogger) Close() error {
 	return sl.err
 }
 
+// Sync flushes buffered logs (if any). alias of the Flush()
+func (sl *SugaredLogger) Sync() error { return sl.Flush() }
+
 // Flush all logs. alias of the FlushAll()
 func (sl *SugaredLogger) Flush() error { return sl.FlushAll() }
 
