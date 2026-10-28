@@ -258,7 +258,7 @@ func (l *Logger) FlushTimeout(timeout time.Duration) {
 }
 
 // Sync flushes buffered logs (if any). alias of the Flush()
-func (l *Logger) Sync() error { return Flush() }
+func (l *Logger) Sync() error { return l.Flush() }
 
 // Flush flushes all the logs and attempts to "sync" their data to disk.
 // l.mu is held.
