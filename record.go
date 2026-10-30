@@ -175,9 +175,10 @@ func (r *Record) Copy() *Record {
 
 	return &Record{
 		// reuse: true, // copy record is reused
-		logger:  r.logger,
-		Channel: r.Channel,
-		// Time:       r.Time,
+		logger:     r.logger,
+		Channel:    r.Channel,
+		Time:       r.Time,
+		Ctx:        r.Ctx,
 		Level:      r.Level,
 		levelName:  r.levelName,
 		CallerFlag: r.CallerFlag,
