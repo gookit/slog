@@ -4,8 +4,8 @@ go 1.19
 
 require (
 	github.com/golang/glog v1.2.5
-	github.com/gookit/goutil v0.8.3
-	github.com/gookit/rotatefile v0.3.0
+	github.com/gookit/goutil v0.9.0
+	github.com/gookit/rotatefile v0.3.3
 	github.com/gookit/slog v0.6.0
 	github.com/phuslu/log v1.0.119
 	github.com/rs/zerolog v1.34.0
